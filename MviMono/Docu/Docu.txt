@@ -1,0 +1,3 @@
+﻿PM> Install-Package MonoGame.Framework.WindowsDX -Version 3.8.0.1641
+Cmd>dotnet tool install --global dotnet-mgcb-editor --version 3.8.0.1476-develop
+Cmd>mgcb-editor --register
