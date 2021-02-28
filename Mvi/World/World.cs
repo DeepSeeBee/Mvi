@@ -16,6 +16,7 @@ using CharlyBeck.Mvi.Sprites;
 using CharlyBeck.Mvi.Internal;
 using CharlyBeck.Mvi.Sprites.Quadrant;
 using CharlyBeck.Mvi.Sprites.Bumper;
+using Microsoft.Xna.Framework;
 
 namespace CharlyBeck.Mvi.Cube
 {
@@ -120,6 +121,19 @@ namespace CharlyBeck.Mvi.World
 namespace CharlyBeck.Mvi.World
 {
 
+    internal sealed class CWorldGenerator : CRandomGenerator
+    {
+        #region ctor
+        internal CWorldGenerator(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.Init();
+        }
+        public override T Throw<T>(Exception aException)
+           => aException.Throw<T>();
+
+
+        #endregion
+    }
     internal sealed class CTileBuilder : CServiceLocatorNode
     {
         #region ctor
@@ -137,27 +151,7 @@ namespace CharlyBeck.Mvi.World
         internal CTile Tile => CLazyLoad.Get(ref this.TileM, () => this.ServiceContainer.GetService<CTile>());
         #endregion
         #region TileDescriptor
-        internal CTileDescriptor NewTileDescriptor()
-        {
-
-            var aWorld = this.World;
-            var aTile = this.Tile;
-            //System.Diagnostics.Debug.Print("NewTileDescriptor: " + aTile.AbsoluteCubeCoordinates.ToString());
-            var aIsBeyound = aWorld.IsBeyound(aTile);
-            var aWorldGenerator = this.WorldGenerator;
-            aWorldGenerator.Reset(aTile);
-            if (aIsBeyound)
-            {
-                System.Diagnostics.Debug.Print("NewTileDescriptor: CBeyoundSpaceTileDescriptor" + aTile.AbsoluteCubeCoordinates.ToString());
-                var aTileDescriptor = new CBeyoundSpaceTileDescriptor(this);
-                return aTileDescriptor;
-            }
-            else
-            {
-                var aTileDescriptor = new CInSpaceTileDescriptor(this);
-                return aTileDescriptor;
-            }
-        }
+        internal CTileDescriptor NewTileDescriptor() => CRootTileDescriptor.New(this, this);
 
         internal CLoadedTileData NewLoadedTileData(CTileDataLoadProxy aTileDataLoadProxy)
         {
@@ -182,24 +176,37 @@ namespace CharlyBeck.Mvi.World
         #region ctor
         internal CWorld(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.CubeBorder = 1;
             this.EdgeLen = 1.0d;
             this.EdgeLenAsPos = new CVector3Dbl(this.EdgeLen);
             this.TileBumperCountMin = 5;
             this.TileBumperCountMax = 10;
-            //this.BumperRadiusMin = 0.001;
-            this.BumperRadiusMax = new double[] { 0.1d, 0.01d,
-                // 0.001d, 
-                0.001d, 
-                //0.0001d
-                 0.00001d
+
+            //this.TileBumperCountMin = 1;
+            //this.TileBumperCountMax = 5;
+
+            this.DefaultBumperQuadrantBumperRadiusMax = new double[] { 
+                0.1d, 
+                0.01d,
+                0.001d,
+                0.0001d,
+                0.00001d
                 }.OrderBy(nr=>nr).ToArray(); // Aufsteigend!
+            this.SolarSystemPlanetRadiusMax = new double[] {
+                0.1d,
+                0.01d,
+                0.001d,
+                }.OrderBy(nr => nr).ToArray(); // Aufsteigend!
+            this.SolarSystemSunRadiusMax = new double[] {
+                0.1d,
+                }.OrderBy(nr => nr).ToArray(); // Aufsteigend!
             this.BumperGravityRadiusMax = 1.0d;
             this.BumperGravityStrengthMax = 1.0d;
-            //this.NearBumperSpeedMaxDistance = 0.5;
-           // this.NearBumperSpeedMinDistance = 0.0;
             this.NearBumperSpeedMin = 0.0001;
             this.NearBumperSpeedForRadius0 = 0.001;
             this.SphereScaleCount = 25;
+            this.SolarSystemMaxRadius = 0.6;
+            this.SolarSystemMinRadius = this.SolarSystemMaxRadius * 0.75;
         }
         public override void Load()
         {
@@ -236,19 +243,11 @@ namespace CharlyBeck.Mvi.World
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
-
-        internal bool AvatarAbsCoordIsValid(CCubePos aCoords)
-        {
-            throw new NotImplementedException();
-            //var aBeyound = (from aCoordinate in aCoords
-            //                 select aCoordinate < this.MinAvatarCoord
-            //                 || aCoordinate > this.MaxAvatarCoord).Contains(true);
-            //return !aBeyound;
-        }
         private CServiceContainer NewServiceContainer()
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CWorld>(() => this);
+            aServiceContainer.AddService<CNewBorderFunc>(() => new CNewBorderFunc(()=> this.CubeBorder));
             return aServiceContainer;
         }
         #endregion
@@ -262,8 +261,6 @@ namespace CharlyBeck.Mvi.World
         private CModels ModelsM;
         internal CModels Models => CLazyLoad.Get(ref this.ModelsM, () => new CModels(this));
         #endregion
-
-
         public readonly double EdgeLen;
         internal readonly CVector3Dbl EdgeLenAsPos;
 
@@ -288,12 +285,16 @@ namespace CharlyBeck.Mvi.World
         internal readonly double NearBumperSpeedForRadius0;
         internal readonly int TileBumperCountMin;
         internal readonly int TileBumperCountMax;
-        internal readonly double[] BumperRadiusMax;
+        internal readonly double[] DefaultBumperQuadrantBumperRadiusMax;
+        internal readonly double[] SolarSystemPlanetRadiusMax;
+        internal readonly double[] SolarSystemSunRadiusMax;
+
         internal readonly double BumperGravityRadiusMax;
         internal readonly double BumperGravityStrengthMax;
-        public bool QuadrantGridLines = true;
         internal readonly double NearBumperSpeedMin;
-
+        internal readonly double SolarSystemMaxRadius;
+        internal readonly double SolarSystemMinRadius;
+        internal readonly Int64 CubeBorder;
 
         //internal CWorldPos GetQuadrantPosition(CTile aTile)
 
@@ -306,20 +307,21 @@ namespace CharlyBeck.Mvi.World
 
         public CFrameInfo FrameInfo { get; internal set; }
         public int SphereScaleCount;
-
-        public void Update(CVector3Dbl aWorldPos)
+        public GameTime GameTime { get; private set; }
+        public void Update(CVector3Dbl aAvatarPos, GameTime aGameTime)
         {
-            var aSpriteDatas = from aTile in this.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteDatas select aSpriteData;
+            this.GameTime = aGameTime;
+            var aSpriteDatas = from aTile in this.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData;
             foreach (var aSpriteData in aSpriteDatas)
             {
-                aSpriteData.UpdateFromWorldPos(aWorldPos);
+                aSpriteData.UpdateBeforeFrameInfo(aAvatarPos);
             }
 
-            this.FrameInfo = new CFrameInfo(this, aWorldPos);
+            this.FrameInfo = new CFrameInfo(this, aAvatarPos);
 
             foreach(var aSpriteData in this.FrameInfo.SpriteDatas)
             {
-                aSpriteData.UpdateFromFrameInfo(this.FrameInfo);
+                aSpriteData.UpdateAfteFrameInfo(this.FrameInfo);
             }
         }
 
@@ -346,7 +348,7 @@ namespace CharlyBeck.Mvi.World
 
             this.World = aWorld;
             this.WorldPos = aWorldPos;
-            this.SpriteDatas = (from aTile in aWorld.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteDatas select aSpriteData).ToArray();
+            this.SpriteDatas = (from aTile in aWorld.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData).ToArray();
             this.SpriteDistances = (from aSpriteData in this.SpriteDatas.OfType<CBumperSpriteData>() select new Tuple<CSpriteData, double>(aSpriteData, aSpriteData.DistanceToAvatar)).ToArray().OrderBy(aDist=>aDist.Item2).ToArray();
             this.NearestBumperSpriteDataAndDistance = ( from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSpriteData) select new Tuple<CBumperSpriteData, double>((CBumperSpriteData)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();
             //this.NearestBumperDistanceToSurface = this.NearestBumperIsDefined ? (this.NearestBumper.AvatarDistanceToSurface) : double.NaN;
@@ -381,7 +383,7 @@ namespace CharlyBeck.Mvi.World
             //else
             {
                 var aDistance =  Math.Abs(this.NearestBumper.AvatarDistanceToSurface);
-                var rm = this.World.BumperRadiusMax.Last();
+                var rm = this.World.DefaultBumperQuadrantBumperRadiusMax.Last();
                 var rf =  (this.NearestBumper.Radius / rm);
                 var s1 = (1d - rf) * this.World.NearBumperSpeedForRadius0;
                 var s2 = aDistance;

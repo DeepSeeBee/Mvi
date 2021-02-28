@@ -176,53 +176,53 @@ namespace CharlyBeck.Mvi.Test.Cube
 
         public void TestCubeLoading()
         {
-            var aFacade = new CTestFacade();
-            var aWorld = aFacade.World;
-            var aCube = aWorld.Cube;
-            var aSpriteTester = aFacade.SpriteTester;
-            Test(aCube.DimensionIdx == 2);
-            var aCubeSubDimensions = aCube.LoadedSubDimensions.ToArray();
-            Test(aCubeSubDimensions.Count() == 3);
+            //var aFacade = new CTestFacade();
+            //var aWorld = aFacade.World;
+            //var aCube = aWorld.Cube;
+            //var aSpriteTester = aFacade.SpriteTester;
+            //Test(aCube.DimensionIdx == 2);
+            //var aCubeSubDimensions = aCube.LoadedSubDimensions.ToArray();
+            //Test(aCubeSubDimensions.Count() == 3);
 
-            foreach (var aPlane in aCube.LoadedSubDimensions)
-            {
-                Test(aPlane.LoadedSubDimensions.Count() == 9);
-                Test(aPlane.DimensionIdx == 1);
-                foreach (var aTile in aPlane.LoadedSubDimensions)
-                {
-                    var aTileIdx = aPlane.LoadedSubDimensions.IndexOf(aTile);
-                    var aSize = aCube.Size;
-                    var aX = aTileIdx % aSize;
-                    var aY = aTileIdx - aX / aSize;
-                    TestEquals(aTile.LoadedSubDimensions.Count(), 0);
-                    TestEquals(aTile.DimensionIdx, 0);
-                }
-            }
-            TestEquals(aSpriteTester.GetCount<CTestSprite<CQuadrantSpriteData>>(), 27);
-            TestEquals(aSpriteTester.GetCount<CTestSprite<CBeyoundSpaceSpriteData>>(), 19);
-            aSpriteTester.AssertSprites<CTestSprite<CBeyoundSpaceSpriteData>>(ToCoordinates("0|0|0", "1|0|0", "2|0|0", "0|1|0", "1|1|0", "2|1|0", "0|2|0", "1|2|0", "2|2|0", "0|0|1", "1|0|1", "2|0|1", "0|1|1", "0|2|1", "0|0|2", "1|0|2", "2|0|2", "0|1|2", "0|2|2"));
+            //foreach (var aPlane in aCube.LoadedSubDimensions)
+            //{
+            //    Test(aPlane.LoadedSubDimensions.Count() == 9);
+            //    Test(aPlane.DimensionIdx == 1);
+            //    foreach (var aTile in aPlane.LoadedSubDimensions)
+            //    {
+            //        var aTileIdx = aPlane.LoadedSubDimensions.IndexOf(aTile);
+            //        var aSize = aCube.Size;
+            //        var aX = aTileIdx % aSize;
+            //        var aY = aTileIdx - aX / aSize;
+            //        TestEquals(aTile.LoadedSubDimensions.Count(), 0);
+            //        TestEquals(aTile.DimensionIdx, 0);
+            //    }
+            //}
+            //TestEquals(aSpriteTester.GetCount<CTestSprite<CQuadrantSpriteData>>(), 27);
+            //TestEquals(aSpriteTester.GetCount<CTestSprite<CBeyoundSpaceSpriteData>>(), 19);
+            //aSpriteTester.AssertSprites<CTestSprite<CBeyoundSpaceSpriteData>>(ToCoordinates("0|0|0", "1|0|0", "2|0|0", "0|1|0", "1|1|0", "2|1|0", "0|2|0", "1|2|0", "2|2|0", "0|0|1", "1|0|1", "2|0|1", "0|1|1", "0|2|1", "0|0|2", "1|0|2", "2|0|2", "0|1|2", "0|2|2"));
 
 
-            var aTests = new CCubeMoveTest[]
-            {
-                new CCubeMoveTest("0|0|0", 27, new string[]{ "0|0|0", "1|0|0", "2|0|0", "0|1|0", "1|1|0", "2|1|0", "0|2|0", "1|2|0", "2|2|0", "0|0|1", "1|0|1", "2|0|1", "0|1|1", "0|2|1", "0|0|2", "1|0|2", "2|0|2", "0|1|2", "0|2|2"}),
-                new CCubeMoveTest("1|0|0", 27, new string[]{ "0|0|0", "1|0|0", "2|0|0", "0|1|0", "1|1|0", "2|1|0", "0|2|0", "1|2|0", "2|2|0", "0|0|1", "1|0|1", "2|0|1", "0|1|1", "0|2|1", "0|0|2", "1|0|2", "2|0|2", "0|1|2", "0|2|2"}),
+            //var aTests = new CCubeMoveTest[]
+            //{
+            //    new CCubeMoveTest("0|0|0", 27, new string[]{ "0|0|0", "1|0|0", "2|0|0", "0|1|0", "1|1|0", "2|1|0", "0|2|0", "1|2|0", "2|2|0", "0|0|1", "1|0|1", "2|0|1", "0|1|1", "0|2|1", "0|0|2", "1|0|2", "2|0|2", "0|1|2", "0|2|2"}),
+            //    new CCubeMoveTest("1|0|0", 27, new string[]{ "0|0|0", "1|0|0", "2|0|0", "0|1|0", "1|1|0", "2|1|0", "0|2|0", "1|2|0", "2|2|0", "0|0|1", "1|0|1", "2|0|1", "0|1|1", "0|2|1", "0|0|2", "1|0|2", "2|0|2", "0|1|2", "0|2|2"}),
 
-              //  new CCubeMoveTest("2|0|0", 27, new string[]{ "0|0|0", "1|0|0", "2|0|0", "0|1|0", "1|1|0", "2|1|0", "0|2|0", "1|2|0", "2|2|0", "0|0|1", "1|0|1", "2|0|1", "0|1|1", "0|2|1", "0|0|2", "1|0|2", "2|0|2", "0|1|2", "0|2|2"}),
-                // 19
-            };
-            foreach(var aTest in aTests)
-            {
-                var aCubeCoords = ToCoordinate(aTest.Item1);
-                var aQuadrantSpriteCount = aTest.Item2;
-                var aBeyoundCoords = ToCoordinates(aTest.Item3).ToArray();
+            //  //  new CCubeMoveTest("2|0|0", 27, new string[]{ "0|0|0", "1|0|0", "2|0|0", "0|1|0", "1|1|0", "2|1|0", "0|2|0", "1|2|0", "2|2|0", "0|0|1", "1|0|1", "2|0|1", "0|1|1", "0|2|1", "0|0|2", "1|0|2", "2|0|2", "0|1|2", "0|2|2"}),
+            //    // 19
+            //};
+            //foreach(var aTest in aTests)
+            //{
+            //    var aCubeCoords = ToCoordinate(aTest.Item1);
+            //    var aQuadrantSpriteCount = aTest.Item2;
+            //    var aBeyoundCoords = ToCoordinates(aTest.Item3).ToArray();
 
-                aCube.MoveToCubeCoordinatesOnDemand(aCubeCoords);
-                TestEquals(aSpriteTester.GetCount<CTestSprite<CQuadrantSpriteData>>(), aQuadrantSpriteCount);
-                TestEquals(aSpriteTester.GetCount<CTestSprite<CBeyoundSpaceSpriteData>>(), aBeyoundCoords.Length);
+            //    aCube.MoveToCubeCoordinatesOnDemand(aCubeCoords);
+            //    TestEquals(aSpriteTester.GetCount<CTestSprite<CQuadrantSpriteData>>(), aQuadrantSpriteCount);
+            //    TestEquals(aSpriteTester.GetCount<CTestSprite<CBeyoundSpaceSpriteData>>(), aBeyoundCoords.Length);
 
-                aSpriteTester.AssertSprites<CTestSprite<CBeyoundSpaceSpriteData>>(aBeyoundCoords);
-            }
+            //    aSpriteTester.AssertSprites<CTestSprite<CBeyoundSpaceSpriteData>>(aBeyoundCoords);
+            //}
 
         }
         private static IEnumerable<CCubePos> ToCoords(params byte[] aQuadrantState)

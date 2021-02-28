@@ -201,42 +201,42 @@ namespace MviMono.Sprites.Bumper
 
             var aGame = aMonoFacade.Game;
 
-            var aCenter2 = this.WorldTranslateIsDefined
-                         ? default(CVector3Dbl)
-                         : aBumperSpriteData.WorldPos
-                         ;
-            var aRadius = aBumperSpriteData.Radius;
-            var a1X = aCenter2.x;
-            var a1Y = aCenter2.y - aRadius;
-            var a1Z = aCenter2.z;
-            var a2X = aCenter2.x + aRadius;
-            var a2Y = aCenter2.y + aRadius;
-            var a2Z = aCenter2.z;
-            var a3X = aCenter2.x - aRadius;
-            var a3Y = aCenter2.y + aRadius;
-            var a3Z = aCenter2.z;
+            //var aCenter2 = this.WorldTranslateIsDefined
+            //             ? default(CVector3Dbl)
+            //             : aBumperSpriteData.WorldPos
+            //             ;
+            //var aRadius = aBumperSpriteData.Radius;
+            //var a1X = aCenter2.x;
+            //var a1Y = aCenter2.y - aRadius;
+            //var a1Z = aCenter2.z;
+            //var a2X = aCenter2.x + aRadius;
+            //var a2Y = aCenter2.y + aRadius;
+            //var a2Z = aCenter2.z;
+            //var a3X = aCenter2.x - aRadius;
+            //var a3Y = aCenter2.y + aRadius;
+            //var a3Z = aCenter2.z;
 
-            var aVertices = new VertexPositionColor[3];
-            aVertices[0] = new VertexPositionColor(new Vector3((float)a1X, (float)a1Y, (float)a1Z), Color.Red);
-            aVertices[1] = new VertexPositionColor(new Vector3((float)a2X, (float)a2Y, (float)a2Z), Color.Green);
-            aVertices[2] = new VertexPositionColor(new Vector3((float)a3X, (float)a3Y, (float)a3Z), Color.Blue);
-            var aVertexBuffer = new VertexBuffer(aMonoFacade.Game.GraphicsDevice, typeof(VertexPositionColor), 3, BufferUsage.WriteOnly);
-            aVertexBuffer.SetData<VertexPositionColor>(aVertices);
-            this.TriangleVertexBuffer = aVertexBuffer;
+            //var aVertices = new VertexPositionColor[3];
+            //aVertices[0] = new VertexPositionColor(new Vector3((float)a1X, (float)a1Y, (float)a1Z), Color.Red);
+            //aVertices[1] = new VertexPositionColor(new Vector3((float)a2X, (float)a2Y, (float)a2Z), Color.Green);
+            //aVertices[2] = new VertexPositionColor(new Vector3((float)a3X, (float)a3Y, (float)a3Z), Color.Blue);
+
+            //var aVertexBuffer = new VertexBuffer(aMonoFacade.Game.GraphicsDevice, typeof(VertexPositionColor), 3, BufferUsage.WriteOnly);
+            //aVertexBuffer.SetData<VertexPositionColor>(aVertices);
+            //this.TriangleVertexBuffer = aVertexBuffer;
 
         }
 
 
 
-        internal override bool WorldTranslateIsDefined => true;
-        internal override Vector3 WorldTranslate => this.BumperSpriteData.WorldPos.ToVector3();
-
-
+        //internal override bool WorldTranslateIsDefined => true;
+        //internal override Vector3 WorldTranslate => this.BumperSpriteData.WorldPos.ToVector3();
+        internal override Matrix WorldMatrix => this.BumperSpriteData.WorldMatrix;
         public override T Throw<T>(Exception aException)
               => aException.Throw<T>();
 
         internal readonly CBumperSpriteData BumperSpriteData;
-        internal readonly VertexBuffer TriangleVertexBuffer;
+        //internal readonly VertexBuffer TriangleVertexBuffer;
 
         internal override void Update(BitArray aChanged)
         {

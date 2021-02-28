@@ -98,12 +98,13 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
         #endregion
         #region WorldTranslateIsDefined
-        internal virtual Vector3 WorldTranslate => new Vector3();
-        internal virtual bool WorldTranslateIsDefined => false;
+        //internal virtual Vector3 WorldTranslate => new Vector3();
+        //internal virtual bool WorldTranslateIsDefined => false;
         internal virtual Matrix WorldMatrix
-            => this.WorldTranslateIsDefined
-             ? this.Game.WorldMatrix * Matrix.CreateTranslation(this.WorldTranslate)
-             : this.Game.WorldMatrix
+            => //this.WorldTranslateIsDefined
+               // ? this.Game.WorldMatrix * Matrix.CreateTranslation(this.WorldTranslate)
+               // : 
+            this.Game.WorldMatrix
              ;
         #endregion
         #region Update
@@ -210,10 +211,6 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             else if (typeof(T) == typeof(CQuadrantSpriteData))
             {
                 return (ISprite<T>)(object)new CQuadrantSprite(this, this, (CQuadrantSpriteData)(object)aData);
-            }
-            else if (typeof(T) == typeof(CBeyoundSpaceSpriteData))
-            {
-                return default;
             }
             else
             {
@@ -574,7 +571,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 this.MonoFacade.SetCubeCoordinates(aGameAvatar.GetCubeCoordinates());
             }
 
-            this.World.Update(this.Avatar.WorldPos);
+            this.World.Update(this.Avatar.WorldPos, aGameTime);
         }
         protected override void Update(GameTime aGameTime)
         {

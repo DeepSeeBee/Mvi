@@ -90,7 +90,6 @@
     </Compile>
     <Compile Include="Examples\Sphere.cs" />
     <Compile Include="GameCore\CGame.cs" />
-    <Compile Include="XnaExtensions\XnaExtensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

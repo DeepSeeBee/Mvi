@@ -3,10 +3,14 @@ using CharlyBeck.Mvi.Extensions;
 using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Internal;
 using CharlyBeck.Mvi.Sprites.Bumper;
+using CharlyBeck.Mvi.Sprites.Quadrant;
+using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.World;
+using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.ServiceLocator;
+using Microsoft.Xna.Framework;
 using Mvi.Models;
 using System;
 using System.Collections;
@@ -17,27 +21,119 @@ using System.Threading.Tasks;
 
 namespace CharlyBeck.Mvi.Sprites
 {
+    using CTranslateAndRotate = Tuple<CVector3Dbl, CVector3Dbl>;
 
-    public abstract class CSpriteData
+    public abstract class CBuildable : CServiceLocatorNode
     {
-        internal CSpriteData(CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor)
+        #region ctor
+        internal CBuildable(CServiceLocatorNode aParent, CTileBuilder aTileBuilder) : base(aParent)
+        {
+            this.TileBuilder = aTileBuilder;
+        }
+        #endregion
+        #region Build
+        protected virtual void OnBuildSprite() { }
+        protected virtual void OnUpdate() { }
+        public void Update() 
+        {
+            this.CheckBuildIsDone();
+            this.OnUpdate();
+        }
+        protected void Build()
+        {
+            this.CheckNotBuildIsDone();
+            this.OnBuild();
+            this.OnBuildSprite();
+            this.TileBuilder = default;
+            this.BuildIsDone = true;
+            this.Update();
+        }
+        protected abstract void OnBuild();
+        private void CheckNotBuildIsDone()
+        {
+            if (this.BuildIsDone)
+                throw new InvalidOperationException();
+        }
+        private void CheckBuildIsDone()
+        {
+            if (!this.BuildIsDone)
+                throw new InvalidOperationException();
+        }
+        private bool BuildIsDone;
+        private CTileBuilder TileBuilderM;
+        internal CTileBuilder TileBuilder
+        {
+            get
+            {
+                this.CheckNotBuildIsDone();
+                return this.TileBuilderM;
+            }
+            private set { this.TileBuilderM = value; }
+        }
+        internal CTile Tile => this.TileBuilder.Tile;
+        protected virtual void OnDraw()
+        { }
+        public void Draw()
+        {
+            this.CheckBuildIsDone();
+            if(this.Visible)
+            { 
+                this.OnDraw();
+            }
+        }
+        #endregion  
+        internal virtual bool Visible => true;
+        #region Unload
+        internal virtual void OnUnload()
+        {
+        }
+        internal void Unload()
+        {
+
+        }
+        #endregion
+        #region SpriteRegistry
+        private CSpriteRegistry SpriteRegistryM;
+        internal CSpriteRegistry SpriteRegistry => CLazyLoad.Get(ref this.SpriteRegistryM, () => this.ServiceContainer.GetService<CSpriteRegistry>());
+        #endregion
+    }
+
+    public abstract class CTileDescriptorBuildable : CBuildable
+    {
+        internal CTileDescriptorBuildable(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) : base(aParent, aTileBuilder)
+        {
+            this.TileDescriptor = aTileDescriptor;
+        }
+ 
+        internal readonly CTileDescriptor TileDescriptor;
+    }
+
+    public abstract class CSpriteData : CTileDescriptorBuildable
+    {
+        internal CSpriteData(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor):base(aParent, aTileBuilder, aTileDescriptor)
         {
             this.WorldGenerator = aTileBuilder.WorldGenerator;
             this.Facade = aTileBuilder.Facade;
             this.Changes = new BitArray(this.ChangesCount);
             this.AbsoluteCubeCoordinates = aTileBuilder.Tile.AbsoluteCubeCoordinates;
-            aTileDescriptor.SpriteDatas.Add(this);
-        }
-        internal virtual void Init()
-        {
-            this.Sprite = this.NewSprite();
-            this.Update();
+            aTileDescriptor.SpriteRegistry.Add(this);
         }
 
+        internal IEnumerable<CTranslateAndRotate> TranslateAndRotates
+        {
+            get
+            {
+                yield return new CTranslateAndRotate(this.WorldPos, new CVector3Dbl(0));
+            }
+        }
         public readonly CCubePos AbsoluteCubeCoordinates;
         public abstract CVector3Dbl WorldPos { get; } // => this.World.GetWorldPos(this.AbsoluteCubeCoordinates);
 
-
+        protected override void OnBuildSprite()
+        {
+            base.OnBuildSprite();
+            this.Sprite = this.NewSprite();
+        }
         internal readonly CFacade Facade;
         internal CWorld World => this.Facade.World;
         internal readonly CWorldGenerator WorldGenerator;
@@ -47,8 +143,9 @@ namespace CharlyBeck.Mvi.Sprites
         internal virtual int ChangesCount => 0;
         internal ISprite Sprite { get; private set; }
         internal readonly BitArray Changes;
-        internal void Update()
+        protected override void OnUpdate()
         {
+            base.OnUpdate();
             if (this.Sprite is object)
             {
                 this.Sprite.Update(this.Changes);
@@ -56,17 +153,19 @@ namespace CharlyBeck.Mvi.Sprites
             this.Changes.SetAll(false);
         }
 
-        internal virtual bool Visible => true;
-        internal void Draw()
+
+        protected override void OnDraw()
         {
+            base.OnDraw();
             if (this.Visible)
             {
                 this.Sprite.Draw();
             }
         }
 
-        internal void Unload()
+        internal override void OnUnload()
         {
+            base.OnUnload();
             if (this.Sprite is object)
             {
                 this.Sprite.Unload();
@@ -75,7 +174,7 @@ namespace CharlyBeck.Mvi.Sprites
 
         public bool IsNearest;
 
-        internal virtual void UpdateFromFrameInfo(CFrameInfo aFrameInfo)
+        internal virtual void UpdateAfteFrameInfo(CFrameInfo aFrameInfo)
         {
             this.IsNearest = object.ReferenceEquals(this.World.FrameInfo.SpriteDistances.First().Item1, this);
         }
@@ -95,37 +194,42 @@ namespace CharlyBeck.Mvi.Sprites
             return a;
         }
 
-        internal virtual void UpdateFromWorldPos(CVector3Dbl aAvatarPos)
+        internal virtual void UpdateBeforeFrameInfo(CVector3Dbl aAvatarPos)
         {
             this.DistanceToAvatar = aAvatarPos.GetDistance(this.WorldPos);
         }
 
         public double DistanceToAvatar { get; private set; }
+
+        public virtual Matrix WorldMatrix => Matrix.CreateTranslation(this.WorldPos.ToVector3());
     }
 
-    internal abstract class CWorldTileDescriptor : CTileDescriptor
+    internal abstract class CRootTileDescriptor : CTileDescriptor
     {
         #region ctor
-        internal CWorldTileDescriptor(CTileBuilder aTileBuilder) : base(aTileBuilder)
+        internal CRootTileDescriptor(CServiceLocatorNode aParent, CTileBuilder aTileBuilder) : base(aParent,aTileBuilder)
         {
         }
-        #endregion
 
-    }
-
-
-    internal sealed class CWorldGenerator : CRandomGenerator
-    {
-        #region ctor
-        internal CWorldGenerator(CServiceLocatorNode aParent) : base(aParent)
+        internal static Type[] TileDescriptorTypes = new Type[] 
         {
-            this.Init();
+         //   typeof(CBumpersTileDescriptor), 
+            typeof(CSolarSystem),
+        };
+        internal static CRootTileDescriptor New(CServiceLocatorNode aParent, CTileBuilder aTileBuilder)
+        {
+            var aWorld = aTileBuilder.World;
+            var aTile = aTileBuilder.Tile;
+            var aWorldGenerator = aTileBuilder.WorldGenerator;
+            aWorldGenerator.Begin(aTile);
+            var aTypes = TileDescriptorTypes;
+            var aType = aWorldGenerator.NextItem(aTypes);
+            var aTileDescriptor = (CRootTileDescriptor)Activator.CreateInstance(aType, aParent, aTileBuilder);
+            aWorldGenerator.End();
+            return aTileDescriptor;
         }
-        public override T Throw<T>(Exception aException)
-           => aException.Throw<T>();
-
-
         #endregion
+        internal override bool OwnSpriteRegistryIsDefined => true;
     }
 
     public static class CExtensions

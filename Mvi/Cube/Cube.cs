@@ -30,19 +30,43 @@ namespace CharlyBeck.Mvi.Cube
         public override T Throw<T>(Exception aException)
            => throw aException;
         #endregion
-        //internal CTile Tile { get; private set; }
+        private Random Random 
+        { 
+            get; 
+            set; 
+        }
+        private bool IsPending => this.Random is object;
+        internal void Begin(CTile aTile)
+        {
+            this.CheckNotPending();
+            var aSeed = aTile.Cube.GetRandomSeed(aTile);
+            this.Random = new Random((int)aSeed);
+        }
 
-        private Random Random { get; set; }
+        internal void End()
+        {
+            this.CheckPending();
+            this.Random = default;
+        }
+        private void CheckNotPending()
+        {
+            if (this.IsPending)
+                throw new InvalidOperationException();
+        }
+        private void CheckPending()
+        {
+            if (!this.IsPending)
+                throw new InvalidOperationException();
 
-        internal void Reset(CTile aTile)
-           => this.Random = new Random(unchecked((int)aTile.AbsoluteCubeCoordinates.GetSeed()));
-
+        }
         internal CVector3Dbl NextWorldPos()
-           => new CVector3Dbl(this.Random.NextDouble(), this.Random.NextDouble(), this.Random.NextDouble());
+           => new CVector3Dbl(this.NextDouble(), this.NextDouble(), this.NextDouble());
         internal CVector3Dbl NextDouble(CVector3Dbl aMultiplier)
            => this.NextWorldPos().Multiply(aMultiplier);
         internal double NextDouble()
-           => this.Random.NextDouble();
+            => this.Random.NextDouble();
+        internal double NextDouble(double aMin, double aMax)
+            => aMin + this.NextDouble()  * (aMax - aMin);
         internal double NextDouble(double aMultiplier)
            => this.NextDouble() * aMultiplier;
         internal int NextInteger(int aMin, int aMax)
@@ -196,8 +220,8 @@ namespace CharlyBeck.Mvi.Cube
         internal CVector3Dbl ToWorldPos()
             => new CVector3Dbl((double)this.x, (double)this.y, (double)this.z);
 
-        internal Int64 GetSeed()
-            => this.x + (this.y * this.x) + (this.x * this.y * this.z);
+        internal UInt64 GetSeed(Int64 aCubeTileCount)
+            => (UInt64)(this.x + (this.y * aCubeTileCount) + (this.z * aCubeTileCount * aCubeTileCount)); // TODO: Das gibt bei negativen coordinaten dieselben seeds wie bei positiven.
         internal CCubePosKey GetKey(Int64 aEdgeLen) => new CCubePosKey(this, aEdgeLen);
         //{
         //    var aSeed = default(Int64);
@@ -537,10 +561,20 @@ namespace CharlyBeck.Mvi.Cube
         }
         internal bool ParentDimensionIsDefined => this.ParentDimensionNullable is object;
         #endregion
-
-        internal Int64 EdgeLength => 5;
+        #region Depth
+        private Int64? DepthM;
+        internal Int64 Depth => CLazyLoad.Get(ref this.DepthM, this.NewCubeDepth);
+        private Int64 NewCubeDepth()
+        {
+            var aBorder = this.ServiceContainer.GetService<CNewBorderFunc>()();
+            var aDepth = aBorder * 2 + 1;
+            return aDepth;
+        }
+        #endregion
     }
 
+
+    internal delegate Int64 CNewBorderFunc();
 
     internal abstract class CNodeDimension : CDimension
     {
@@ -973,19 +1007,14 @@ namespace CharlyBeck.Mvi.Cube
         #endregion
     }
 
-    internal abstract partial class CTileDescriptor
+    internal sealed class CSpriteRegistry : CServiceLocatorNode, IEnumerable<CSpriteData>
     {
-        internal CTileDescriptor(CTileBuilder aTileBuilder)
+        internal CSpriteRegistry(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.AbsoluteCubeCoordinates = aTileBuilder.Tile.AbsoluteCubeCoordinates;
+
         }
-
-        internal readonly CCubePos AbsoluteCubeCoordinates;
-
-        internal virtual void Draw()
-        {
-        }
-
+        public override T Throw<T>(Exception aException)
+            => aException.Throw<T>();
         internal void Unload()
         {
             foreach (var aSpriteData in this.SpriteDatas)
@@ -993,7 +1022,48 @@ namespace CharlyBeck.Mvi.Cube
                 aSpriteData.Unload();
             }
         }
-        internal readonly List<CSpriteData> SpriteDatas = new List<CSpriteData>();
+        private readonly List<CSpriteData> SpriteDatas = new List<CSpriteData>();
+        internal void Add(CSpriteData aSpriteData)
+            => this.SpriteDatas.Add(aSpriteData);
+        public IEnumerator<CSpriteData> GetEnumerator() => this.SpriteDatas.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+    }
+
+    internal abstract partial class CTileDescriptor : CBuildable
+    {
+        internal CTileDescriptor(CServiceLocatorNode aParent, CTileBuilder aTileBuilder) : base(aParent, aTileBuilder)
+        {
+            this.AbsoluteCubeCoordinates = aTileBuilder.Tile.AbsoluteCubeCoordinates;
+        }
+
+        internal readonly CCubePos AbsoluteCubeCoordinates;
+
+        #region SubTileDescriptors
+        internal virtual IEnumerable<CTileDescriptor> SubTileDescriptors => Array.Empty<CTileDescriptor>();
+        #endregion
+        #region SpriteRegistry
+        private CSpriteRegistry OwnSpriteRegistryM;
+        private CSpriteRegistry OwnSpriteRegistry => CLazyLoad.Get(ref this.OwnSpriteRegistryM, () => new CSpriteRegistry(this));
+        #endregion
+        internal virtual bool OwnSpriteRegistryIsDefined => false;    
+        #region ServiceContainer
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            aServiceContainer.AddService<CSpriteRegistry>(() => this.OwnSpriteRegistryIsDefined ? this.OwnSpriteRegistry : base.ServiceContainer.GetService<CSpriteRegistry>());
+            return aServiceContainer;
+        }
+        #endregion
+        internal override void OnUnload()
+        {
+            base.OnUnload();
+            if(this.OwnSpriteRegistryIsDefined)
+            {
+                this.OwnSpriteRegistry.Unload();
+            }
+        }
     }
 
 
@@ -1115,11 +1185,11 @@ namespace CharlyBeck.Mvi.Cube
         #region Cube
         internal CCube Cube { get; private set; }
         internal CCubePos RelativeCubeCoordinates
-            => this.DimensionCoordinates.GetCubeCoordinates(this.Cube.NewCoords(0), (int)this.EdgeLength);
+            => this.DimensionCoordinates.GetCubeCoordinates(this.Cube.NewCoords(0), (int)this.Depth);
         internal CCubePos AbsoluteCubeCoordinates
         => this.Cube.TileAbsoluteCoordinates(this.RelativeCubeCoordinates);
         private Int64 GetIndex(CCubePos aCoord)
-            => (aCoord.x + aCoord.y * this.EdgeLength + aCoord.z * this.EdgeLength * this.EdgeLength);
+            => (aCoord.x + aCoord.y * this.Depth + aCoord.z * this.Depth * this.Depth);
         internal Int64 RelativeIndex =>
             this.GetIndex(this.RelativeCubeCoordinates);
         #endregion
@@ -1180,7 +1250,7 @@ namespace CharlyBeck.Mvi.Cube
         internal override int DimensionIdx => 0;
         internal override int AllocateSubDimensionsSize => 0;
 
-        internal CCubePosKey CubePosKey => this.AbsoluteCubeCoordinates.GetKey(this.Cube.EdgeLength);
+        internal CCubePosKey CubePosKey => this.AbsoluteCubeCoordinates.GetKey(this.Cube.Depth);
     }
 
     internal sealed class CPlane : CNodeDimension
@@ -1202,7 +1272,7 @@ namespace CharlyBeck.Mvi.Cube
         public override T Throw<T>(Exception aException) => aException.Throw<T>();
         #endregion
         internal override int DimensionIdx => 1;
-        internal override int AllocateSubDimensionsSize => (int)this.EdgeLength.Pow2();
+        internal override int AllocateSubDimensionsSize => (int)this.Depth.Pow2();
     }
 
     internal sealed class CCube : CRootDimension
@@ -1243,7 +1313,7 @@ namespace CharlyBeck.Mvi.Cube
 
         internal override bool IsRoot => true;
         internal override int DimensionIdx => 2;
-        internal override int AllocateSubDimensionsSize => (int)this.EdgeLength;
+        internal override int AllocateSubDimensionsSize => (int)this.Depth;
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
@@ -1272,7 +1342,7 @@ namespace CharlyBeck.Mvi.Cube
             => this.CubePos.Add(aTileRelativeCubeCoordinates);
         
         #region Move
-        internal CCubePos CenterOffset => this.NewCoords((this.EdgeLength - 1) / 2);
+        internal CCubePos CenterOffset => this.NewCoords((this.Depth - 1) / 2);
 
         private readonly Dictionary<CCubePosKey, Tuple<CCubePosKey, CTile, CTileDescriptor>> MoveDic = new Dictionary<CCubePosKey, Tuple<CCubePosKey, CTile, CTileDescriptor>>();
         
@@ -1285,7 +1355,7 @@ namespace CharlyBeck.Mvi.Cube
             aDic.Clear();
 
             var aLeafs1 = (from aLeaf in this.LoadedLeafDimensions.OfType<CTile>() select aLeaf).ToArray();
-            var aLeafs2 = (from aLeaf in aLeafs1 select new Tuple<CCubePosKey, CTile, CTileDescriptor>(aLeaf.AbsoluteCubeCoordinates.GetKey(this.EdgeLength), aLeaf, aLeaf.TileDescriptor)).ToArray();
+            var aLeafs2 = (from aLeaf in aLeafs1 select new Tuple<CCubePosKey, CTile, CTileDescriptor>(aLeaf.AbsoluteCubeCoordinates.GetKey(this.Depth), aLeaf, aLeaf.TileDescriptor)).ToArray();
             foreach (var aLeaf in aLeafs2)
                 aDic.Add(aLeaf.Item1, aLeaf);
             this.CubePos = aNewCubePos;
@@ -1296,7 +1366,7 @@ namespace CharlyBeck.Mvi.Cube
             foreach (var aLeaf in aLeafs1)
             {
                 var aAbsIndex = aLeaf.AbsoluteCubeCoordinates;
-                var aAbsIndexKey = new CCubePosKey(aAbsIndex, this.EdgeLength);
+                var aAbsIndexKey = new CCubePosKey(aAbsIndex, this.Depth);
                 var aExists = aDic.ContainsKey(aAbsIndexKey);
                 if (aExists)
                 {
@@ -1336,6 +1406,9 @@ namespace CharlyBeck.Mvi.Cube
 
         internal CCubePos NewCoords(Int64 aCoord)
             => new CCubePos(aCoord);
+
+        internal UInt64 GetRandomSeed(CTile aTile)
+            => aTile.AbsoluteCubeCoordinates.GetSeed(this.Depth);
         #endregion
         internal override bool SubDimensionsIsDefined => true;
 

@@ -12,6 +12,7 @@ using CharlyBeck.Mvi.Extensions;
 using CharlyBeck.Utils3.ServiceLocator;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
+using CharlyBeck.Mvi.Sprites.Quadrant;
 
 namespace CharlyBeck.Mvi.Sprites.Bumper
 {
@@ -53,19 +54,44 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         }
     }
 
-    public sealed class CBumperSpriteData : CSpriteData
+    public sealed class CDefaultBumperSpriteData : CBumperSpriteData
+    {
+        internal CDefaultBumperSpriteData(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) : base(aParent, aTileBuilder, aTileDescriptor)
+        {
+            this.Init();
+            this.Build();
+        }
+        public override T Throw<T>(Exception aException)
+            => aException.Throw<T>();
+
+        protected override CVector3Dbl GenerateOriginalWorldPos()
+            => this.GenerateDefaultWorldPos();
+
+        internal override double[] BumperRadiusMax => this.World.DefaultBumperQuadrantBumperRadiusMax;
+    }
+
+    public abstract class CBumperSpriteData : CSpriteData
     {
         private static readonly CEnums<CAccelerateEnum> AllAccelerateEnums = new CEnums<CAccelerateEnum>();
 
-        internal CBumperSpriteData(CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) : base(aTileBuilder, aTileDescriptor)
+        internal CBumperSpriteData(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) : base(aParent, aTileBuilder, aTileDescriptor)
         {
+            this.Id = ++NewId;
+        }
+        private static ulong NewId;
+        internal readonly ulong Id;
+        internal abstract double[] BumperRadiusMax { get; }
+        protected override void OnBuild()
+        {
+
+            var aTileBuilder = this.TileBuilder;
             var aWorldGenerator = aTileBuilder.WorldGenerator;
             var aWorld = aTileBuilder.World;
             var aTile = aTileBuilder.Tile;
             var aTileAbsoluteCubeCoordinates = aTile.AbsoluteCubeCoordinates;
-            this.WorldPosM = aWorld.GetWorldPos(aTileAbsoluteCubeCoordinates).Add(aWorldGenerator.NextDouble(aWorld.EdgeLenAsPos));
+            this.OriginalWorldPos = this.GenerateOriginalWorldPos();
             //this.Coordinates2 = aWorld.GetWorldPos(aTileAbsoluteCubeCoordinates)
-            var aRadiusMax = aWorldGenerator.NextItem(this.World.BumperRadiusMax);
+            var aRadiusMax = aWorldGenerator.NextItem(this.BumperRadiusMax);
             this.Radius = aWorldGenerator.NextDouble(aRadiusMax);
             this.Color = aWorldGenerator.NextWorldPos();
             this.AccelerateEnums = aWorldGenerator.NextItems<CAccelerateEnum>(AllAccelerateEnums.Fields);
@@ -78,29 +104,30 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             this.AccelerateVector = aWorldGenerator.NextWorldPos();
             this.AccelerateStrength = aWorldGenerator.NextDouble(1.0d);
             this.AccelerateIsRepulsive = aWorldGenerator.NextBoolean();
-
-            this.Init();
         }
 
-
+        protected abstract CVector3Dbl GenerateOriginalWorldPos();
+        internal CVector3Dbl GenerateDefaultWorldPos()
+            => this.World.GetWorldPos(this.Tile.AbsoluteCubeCoordinates).Add(this.WorldGenerator.NextDouble(this.World.EdgeLenAsPos));
         internal override ISprite NewSprite()
            => this.Facade.NewSprite(this);
         internal override int ChangesCount => (int)CChangeEnum._Count;
 
-        public override CVector3Dbl WorldPos => this.WorldPosM;
-        public readonly CVector3Dbl WorldPosM;
-        public readonly double Radius;
-        public readonly CVector3Dbl Color;
-        internal readonly CAccelerateEnum[] AccelerateEnums;
-        public readonly bool GravityIsEnabled;
-        public readonly double GravityRadius;
-        public readonly double GravityStrength;
-        public readonly bool GravityRepulsive;
-        public readonly bool AccelerateIsEnabled;
-        public readonly bool AccelerateHasVector;
-        public readonly CVector3Dbl AccelerateVector;
-        public readonly double AccelerateStrength;
-        public readonly bool AccelerateIsRepulsive;
+        public override CVector3Dbl WorldPos => this.OriginalWorldPos;
+        internal CVector3Dbl OriginalWorldPos { get; private set; }
+
+        public double Radius { get; private set; }
+        public CVector3Dbl Color { get; private set; }
+        internal CAccelerateEnum[] AccelerateEnums { get; private set; }
+        public bool GravityIsEnabled { get; private set; }
+        public double GravityRadius { get; private set; }
+        public double GravityStrength { get; private set; }
+        public bool GravityRepulsive { get; private set; }
+        public bool AccelerateIsEnabled { get; private set; }
+        public bool AccelerateHasVector { get; private set; }
+        public CVector3Dbl AccelerateVector { get; private set; }
+        public double AccelerateStrength { get; private set; }
+        public bool AccelerateIsRepulsive { get; private set; }
 
         public CBumperModel BumperModel => this.World.Models.BumperModel;
 
@@ -124,20 +151,54 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
         internal override CModel NewModel() => this.World.Models.BumperModel;
 
-        internal override void UpdateFromWorldPos(CVector3Dbl aAvatarPos)
+        internal override void UpdateBeforeFrameInfo(CVector3Dbl aAvatarPos)
         {
-            base.UpdateFromWorldPos(aAvatarPos);
+            base.UpdateBeforeFrameInfo(aAvatarPos);
 
             this.AvatarDistanceToSurface = this.DistanceToAvatar - this.Radius;
             this.IsBelowSurface =  this.DistanceToAvatar < this.Radius;
         }
-        internal override void UpdateFromFrameInfo(CFrameInfo aFrameInfo)
+        internal override void UpdateAfteFrameInfo(CFrameInfo aFrameInfo)
         {
-            base.UpdateFromFrameInfo(aFrameInfo);
+            base.UpdateAfteFrameInfo(aFrameInfo);
 
             this.IsNearestBumperToAvatar = aFrameInfo.NearestBumperIsDefined
                                         && aFrameInfo.NearestBumper.RefEquals<CBumperSpriteData>(this);
         }
     }
 
+
+    internal sealed class CBumpersTileDescriptor : CQuadrantTileDescriptor
+    {
+        #region ctor
+        public CBumpersTileDescriptor(CServiceLocatorNode aParent, CTileBuilder aTileBuilder) : base(aParent, aTileBuilder)
+        {
+            this.Init();
+            this.Build();
+        }
+        public override T Throw<T>(Exception aException)
+           => throw aException;
+        #endregion
+
+        protected override void OnBuild()
+        {
+            base.OnBuild();
+            var aTileBuilder = this.TileBuilder;
+            var aWorldGenerator = aTileBuilder.WorldGenerator;
+            var aWorld = aTileBuilder.World;
+            var aBumperCount = aWorldGenerator.NextInteger(aWorld.TileBumperCountMin, aWorld.TileBumperCountMax);
+            var aBumpers = new CBumperSpriteData[aBumperCount];
+            for (var aIdx = 0; aIdx < aBumperCount; ++aIdx)
+                aBumpers[aIdx] = new CDefaultBumperSpriteData(this, aTileBuilder, this);
+            this.Bumpers = aBumpers;
+        }
+        protected override void OnDraw()
+        {
+            base.OnDraw();
+
+            foreach (var aBumper in this.Bumpers)
+                aBumper.Draw();
+        }
+        internal CBumperSpriteData[] Bumpers;
+    }
 }

@@ -3,6 +3,8 @@ using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Feature;
 using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.World;
+using CharlyBeck.Utils3.Exceptions;
+using CharlyBeck.Utils3.ServiceLocator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,27 +14,40 @@ using System.Threading.Tasks;
 namespace CharlyBeck.Mvi.Sprites.Quadrant
 {
 
-    internal abstract class CQuadrantTileDescriptor : CWorldTileDescriptor
+    internal abstract class CQuadrantTileDescriptor : CRootTileDescriptor
     {
         #region ctor
-        internal CQuadrantTileDescriptor(CTileBuilder aTileBuilder) : base(aTileBuilder)
+        internal CQuadrantTileDescriptor(CServiceLocatorNode aParent, CTileBuilder aTileBuilder) : base(aParent, aTileBuilder)
         {
-            this.QuadrantSpriteData = new CQuadrantSpriteData(aTileBuilder, this);
         }
         #endregion
-
-        internal readonly CQuadrantSpriteData QuadrantSpriteData;
-
-        internal override void Draw()
+        protected override void OnBuild()
         {
-            base.Draw();
+            this.QuadrantSpriteData = new CQuadrantSpriteData(this, this.TileBuilder, this);
+        }
+
+        internal CQuadrantSpriteData QuadrantSpriteData { get; private set; }
+
+        protected override void OnDraw()
+        {
+            base.OnDraw();
             this.QuadrantSpriteData.Draw();
         }
     }
     public sealed class CQuadrantSpriteData : CSpriteData
     {
-        internal CQuadrantSpriteData(CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) : base(aTileBuilder, aTileDescriptor)
+        internal CQuadrantSpriteData(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) : base(aParent, aTileBuilder, aTileDescriptor)
         {
+            this.QuadrantFeature = CFeature.Get(this.World, QuadrantFeatureDeclaration);
+            this.Init();
+            this.Build();
+        }
+        public override T Throw<T>(Exception aException)
+            => aException.Throw<T>();
+
+        protected override void OnBuild()
+        {
+            var aTileBuilder = this.TileBuilder;
             var aTile = aTileBuilder.Tile;
             var aWorld = aTileBuilder.World;
             var aSize2 = aWorld.EdgeLen;
@@ -40,6 +55,7 @@ namespace CharlyBeck.Mvi.Sprites.Quadrant
             this.Coordinates2 = aWorld.GetWorldPos(aTile);
             this.Size2 = aSize2;
 
+            this.Center = new CVector3Dbl(this.Coordinates2.x + aSize2 / 2d, this.Coordinates2.y + aSize2 / 2d, this.Coordinates2.z + aSize2 / 2d);
             this.FrontBottomLeft2 = new CVector3Dbl(this.Coordinates2.x, this.Coordinates2.y, this.Coordinates2.z);
             this.FrontTopLeft2 = new CVector3Dbl(this.Coordinates2.x, this.Coordinates2.y + aSize2, this.Coordinates2.z);
             this.FrontTopRight2 = new CVector3Dbl(this.Coordinates2.x + aSize2, this.Coordinates2.y + aSize2, this.Coordinates2.z);
@@ -50,9 +66,7 @@ namespace CharlyBeck.Mvi.Sprites.Quadrant
             this.BackTopRight2 = new CVector3Dbl(this.Coordinates2.x + aSize2, this.Coordinates2.y + aSize2, this.Coordinates2.z + aSize2);
             this.BackBottomRight2 = new CVector3Dbl(this.Coordinates2.x + aSize2, this.Coordinates2.y, this.Coordinates2.z + aSize2);
 
-            this.QuadrantFeature = CFeature.Get(this.World, QuadrantFeatureDeclaration);
-
-            this.Init();
+            
         }
 
         #region Features
@@ -65,19 +79,18 @@ namespace CharlyBeck.Mvi.Sprites.Quadrant
            => this.NewSprite<CQuadrantSpriteData>(this);
         internal override int ChangesCount => 0;
 
-        public readonly CVector3Dbl Coordinates2;
-        public readonly double Size2;
+        public CVector3Dbl Coordinates2 { get; private set; }
+        public double Size2 { get; private set; }
+        public CVector3Dbl Center { get; private set; }
+        public CVector3Dbl FrontBottomLeft2 { get; private set; }
+        public CVector3Dbl FrontTopLeft2 { get; private set; }
+        public CVector3Dbl FrontTopRight2 { get; private set; }
+        public CVector3Dbl FrontBottomRight2 { get; private set; }
+        public CVector3Dbl BackBottomLeft2 { get; private set; }
+        public CVector3Dbl BackTopLeft2 { get; private set; }
+        public CVector3Dbl BackTopRight2 { get; private set; }
+        public CVector3Dbl BackBottomRight2 { get; private set; }
 
-        public readonly CVector3Dbl FrontBottomLeft2;
-        public readonly CVector3Dbl FrontTopLeft2;
-        public readonly CVector3Dbl FrontTopRight2;
-        public readonly CVector3Dbl FrontBottomRight2;
-        public readonly CVector3Dbl BackBottomLeft2;
-        public readonly CVector3Dbl BackTopLeft2;
-        public readonly CVector3Dbl BackTopRight2;
-        public readonly CVector3Dbl BackBottomRight2;
-
-        internal override bool Visible => this.World.QuadrantGridLines;
         public IEnumerable<CVector3Dbl> FrontSquare2
         {
             get
@@ -177,51 +190,39 @@ namespace CharlyBeck.Mvi.Sprites.Quadrant
         }
     }
 
-    public sealed class CBeyoundSpaceSpriteData : CSpriteData
-    {
-        internal CBeyoundSpaceSpriteData(CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) : base(aTileBuilder, aTileDescriptor)
-        {
-            this.Init();
-        }
-        internal override ISprite NewSprite()
-            => this.NewSprite(this);
+    //public sealed class CBeyoundSpaceSpriteData : CSpriteData
+    //{
+    //    internal CBeyoundSpaceSpriteData(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) :  base(aParent, aTileBuilder, aTileDescriptor)
+    //    {
+    //        this.Init();
+    //        this.Build();
+    //    }
+    //    public override T Throw<T>(Exception aException)
+    //        => aException.Throw<T>();
+    //    protected override void OnBuild()
+    //    {
+    //    }
+    //    internal override ISprite NewSprite()
+    //        => this.NewSprite(this);
 
-        public override CVector3Dbl WorldPos => this.World.GetWorldPos(this.AbsoluteCubeCoordinates);
-    }
+    //    public override CVector3Dbl WorldPos => this.World.GetWorldPos(this.AbsoluteCubeCoordinates);
+    //}
 
-    internal sealed class CBeyoundSpaceTileDescriptor : CQuadrantTileDescriptor
-    {
-        #region ctor
-        internal CBeyoundSpaceTileDescriptor(CTileBuilder aTileBuilder) : base(aTileBuilder)
-        {
-            this.BeyoundSpaceSprite = new CBeyoundSpaceSpriteData(aTileBuilder, this);
-        }
-        #endregion
-        private readonly CBeyoundSpaceSpriteData BeyoundSpaceSprite;
+    //internal sealed class CBeyoundSpaceTileDescriptor : CQuadrantTileDescriptor
+    //{
+    //    #region ctor
+    //    internal CBeyoundSpaceTileDescriptor(CServiceLocatorNode aParent, CTileBuilder aTileBuilder) : base(aParent, aTileBuilder)
+    //    {
+    //        this.BeyoundSpaceSprite = new CBeyoundSpaceSpriteData(this, aTileBuilder, this);
+    //    }
+    //    public override T Throw<T>(Exception aException)
+    //        => throw aException;
+    //    #endregion
+    //    private readonly CBeyoundSpaceSpriteData BeyoundSpaceSprite;
+    //    protected override void OnBuild()
+    //    {
+    //    }
 
-    }
+    //}
 
-    internal sealed class CInSpaceTileDescriptor : CQuadrantTileDescriptor
-    {
-        #region ctor
-        internal CInSpaceTileDescriptor(CTileBuilder aTileBuilder) : base(aTileBuilder)
-        {
-            var aWorldGenerator = aTileBuilder.WorldGenerator;
-            var aWorld = aTileBuilder.World;
-            var aBumperCount = aWorldGenerator.NextInteger(aWorld.TileBumperCountMin, aWorld.TileBumperCountMax);
-            var aBumpers = new CBumperSpriteData[aBumperCount];
-            for (var aIdx = 0; aIdx < aBumperCount; ++aIdx)
-                aBumpers[aIdx] = new CBumperSpriteData(aTileBuilder, this);
-            this.Bumpers = aBumpers;
-        }
-        internal override void Draw()
-        {
-            base.Draw();
-
-            foreach (var aBumper in this.Bumpers)
-                aBumper.Draw();
-        }
-        internal CBumperSpriteData[] Bumpers;
-        #endregion
-    }
 }
