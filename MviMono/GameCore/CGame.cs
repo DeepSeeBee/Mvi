@@ -449,6 +449,12 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.Draw3d();
         }
 
+        #region Features
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration SlowDownNearObjectFeatureDeclaration = new CFeatureDeclaration(new Guid("4c4030e4-4477-4350-be27-3ad0db397e40"), "Game.SlowDownNearObject");
+        private CFeature SlowDownNearObjectFeatureM;
+        private CFeature SlowDownNearObjectFeature => CLazyLoad.Get(ref this.SlowDownNearObjectFeatureM, () => CFeature.Get(this.World, SlowDownNearObjectFeatureDeclaration));
+        #endregion
         private void UpdateInput(GameTime aGameTime)
         {
             var aEnableMouseMove = false;
@@ -525,8 +531,11 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             if (aThroodle != 0f)
             {
                 var aDistance1 = (float)(aThroodle * this.CamSpeedThroodle * aGameTime.ElapsedGameTime.TotalSeconds);
-                var aDistance2 = aDistance1 * this.World.FrameInfo.NearPlanetSpeed;
-                var aDistance = aDistance2;
+                var aDistance2 = this.SlowDownNearObjectFeature.Enabled
+                               ? aDistance1 * this.World.FrameInfo.NearPlanetSpeed
+                               : aDistance1;
+                var aDistance3 = aDistance2  * this.World.Speed;
+                var aDistance = aDistance3;
                 aAvatar = aAvatar.MoveAlongViewAngle((float)aDistance);
                 aChanged = true;
             }

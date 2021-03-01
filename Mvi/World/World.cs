@@ -287,6 +287,9 @@ namespace CharlyBeck.Mvi.World
         public int SphereScaleCount;
         private GameTime GameTimeNullable { get; set; }
         public TimeSpan GameTimeTotal => this.GameTimeNullable is object ? this.GameTimeNullable.TotalGameTime : new TimeSpan(0,0,0,0,1); // 1 to avoid division by 0
+
+        public double Speed = 1.0d;
+
         public void Update(CVector3Dbl aAvatarPos, GameTime aGameTime)
         {
             this.GameTimeNullable = aGameTime;

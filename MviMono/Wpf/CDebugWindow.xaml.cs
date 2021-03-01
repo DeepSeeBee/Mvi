@@ -118,11 +118,21 @@ namespace CharlyBeck.Mvi.Mono.Wpf
         internal readonly CGame Game;
         private DispatcherTimer UpdateTimer;
 
+        private bool IgnoreUpdate;
         private void Update()
         {
-            var aFrameInfo = this.Game.World.FrameInfo;
-            this.NearestBumperNullable = aFrameInfo.NearestBumperIsDefined ? aFrameInfo.NearestBumper : default;
-            this.CubePos = aFrameInfo.CubePos;
+            if (this.IgnoreUpdate)
+            {
+                var aFrameInfo = this.Game.World.FrameInfo;
+                this.NearestBumperNullable = aFrameInfo.NearestBumperIsDefined ? aFrameInfo.NearestBumper : default;
+                this.CubePos = aFrameInfo.CubePos;
+                this.Speed = this.Game.World.Speed;
+
+            }
+            else
+            {
+                this.IgnoreUpdate = false;
+            }
         }
 
         #region NearestBumper
@@ -138,11 +148,24 @@ namespace CharlyBeck.Mvi.Mono.Wpf
         }
         public object VmNearestBumperNullable => this.NearestBumperNullable;
         #endregion
-        #region Quardant
+        #region CubePos
         private CCubePos CubePosM;
         private CCubePos CubePos { get => this.CubePosM; set { this.CubePosM = value; this.NotifyChange(nameof(this.VmCubePos)); } }
         public object VmCubePos => this.CubePos;
         #endregion
+
+        #region Speed
+        private const double SpeedScale = 10;
+        private double SpeedM = double.NaN;
+        private double Speed { get => this.SpeedM ; set { if (this.SpeedM != value) { this.SpeedM = value; this.NotifyChange(nameof(this.VmSpeed)); } } }
+        public double VmSpeed { get => this.Speed * SpeedScale; set => this.AddAction(delegate () { this.Game.World.Speed = value / SpeedScale; }); }
+        #endregion
+        private void AddAction(Action aAction)
+        {
+            this.IgnoreUpdate = true;
+            this.Game.DebugWindowUpdate.AddAction(aAction);
+        }
+
     }
 
 }

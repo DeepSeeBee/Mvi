@@ -47,7 +47,12 @@
                     <TextBlock Text="{Binding VmAvatarPos}"/>
                 </UniformGrid>
             </GroupBox>-->
-            <GroupBox DockPanel.Dock="Top" Header="Features" >
+            <GroupBox  DockPanel.Dock="Bottom" Header="Speed" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
+                <Slider Orientation="Horizontal" Minimum="1" Maximum="50" Value="{Binding VmSpeed, Mode=TwoWay}" LargeChange="10" SmallChange="1">
+
+                </Slider>
+            </GroupBox>
+            <GroupBox DockPanel.Dock="Bottom" Header="Features" >
                 <ItemsControl  DockPanel.Dock="Top" ItemsSource="{Binding VmMonoFacade.VmFeatures}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -59,6 +64,8 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </GroupBox>
+
         </DockPanel>
+       
     </Grid> 
 </Window>
