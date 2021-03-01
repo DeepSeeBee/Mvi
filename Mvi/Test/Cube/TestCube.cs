@@ -56,29 +56,31 @@ namespace CharlyBeck.Mvi.Test.Cube
 
         private void MeasureServiceLocatorPerformance()
         {
-            var aRoot = new CDefaultServiceLocatorNode();
-            var aFacade = new CTestFacade(aRoot);
-            var aTile = aFacade.Cube.LoadedLeafDimensions.OfType<CTile>().First();
-            var aSpriteData = aTile.TileDataLoadProxy.Loaded; //.TileDescriptor.SpriteDatas.OfType<CBumperSpriteData>().First();
-            var aSw = new Stopwatch();
-            aSw.Start();
-            aSpriteData.ServiceContainer.GetService<CFacade>();
-            aSw.Stop();
-            Debug.Print("GetService took " + aSw.Elapsed.TotalMilliseconds + " ms.");
+            throw new NotImplementedException();
+            //var aRoot = new CDefaultServiceLocatorNode();
+            //var aFacade = new CTestFacade(aRoot);
+            //var aTile = aFacade.Cube.LoadedLeafDimensions.OfType<CTile>().First();
+            //var aSpriteData = aTile.TileDataLoadProxy.Loaded; //.TileDescriptor.SpriteDatas.OfType<CBumperSpriteData>().First();
+            //var aSw = new Stopwatch();
+            //aSw.Start();
+            //aSpriteData.ServiceContainer.GetService<CFacade>();
+            //aSw.Stop();
+            //Debug.Print("GetService took " + aSw.Elapsed.TotalMilliseconds + " ms.");
         }
 
         public void RunTestUnderDevelopment()
         {
+            throw new NotImplementedException();
             //this.MeasurePerformance();
-            this.MeasureServiceLocatorPerformance();
+            //this.MeasureServiceLocatorPerformance();
 
-            var aFacade = new CTestFacade();
-            var aSw = new Stopwatch();
-            aFacade.Cube.MoveToCubeCoordinatesOnDemand(new CCubePos(0, 0, 0));
-            aSw.Start();
-            aFacade.Cube.MoveToCubeCoordinatesOnDemand(new CCubePos(1, 0, 0));
-            aSw.Stop();
-            Debug.Print("Move took " + aSw.Elapsed.TotalMilliseconds + " ms.");
+            //var aFacade = new CTestFacade();
+            //var aSw = new Stopwatch();
+            //aFacade.Cube.MoveToCubeCoordinatesOnDemand(new CCubePos(0, 0, 0));
+            //aSw.Start();
+            //aFacade.Cube.MoveToCubeCoordinatesOnDemand(new CCubePos(1, 0, 0));
+            //aSw.Stop();
+            //Debug.Print("Move took " + aSw.Elapsed.TotalMilliseconds + " ms.");
         }
 
 

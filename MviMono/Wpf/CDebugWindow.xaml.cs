@@ -7,6 +7,7 @@ using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.ServiceLocator;
+using CharlyBeck.Utils3.Strings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -125,7 +126,7 @@ namespace CharlyBeck.Mvi.Mono.Wpf
             {
                 var aFrameInfo = this.Game.World.FrameInfo;
                 this.NearestBumperNullable = aFrameInfo.NearestBumperIsDefined ? aFrameInfo.NearestBumper : default;
-                this.CubePos = aFrameInfo.CubePos;
+                this.CubePositions = aFrameInfo.CubePositions;
                 this.Speed = this.Game.World.Speed;
 
             }
@@ -149,9 +150,9 @@ namespace CharlyBeck.Mvi.Mono.Wpf
         public object VmNearestBumperNullable => this.NearestBumperNullable;
         #endregion
         #region CubePos
-        private CCubePos CubePosM;
-        private CCubePos CubePos { get => this.CubePosM; set { this.CubePosM = value; this.NotifyChange(nameof(this.VmCubePos)); } }
-        public object VmCubePos => this.CubePos;
+        private IEnumerable<CCubePos> CubePositionsM = Array.Empty<CCubePos>();
+        private IEnumerable<CCubePos> CubePositions { get => this.CubePositionsM; set { this.CubePositionsM = value; this.NotifyChange(nameof(this.VmCubePos)); } }
+        public object VmCubePos => (from aPos in this.CubePositions select "(" + aPos.ToString() + ")").JoinString(", ");
         #endregion
 
         #region Speed

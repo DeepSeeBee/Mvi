@@ -53,17 +53,18 @@ namespace CharlyBeck.Mvi.Facade
         }
 
         public readonly CWorld World;
-        internal CCube Cube => this.World.Cube;
+        internal ICube Cube => this.World.Cube;
+
         public abstract ISprite<T> NewSprite<T>(T aSpriteData);
 
 
         public void Draw()
            => this.World.Draw();
 
-        public void SetCubeCoordinates(CCubePos aCoordinates)
-        {
-            this.Cube.MoveToCubeCoordinatesOnDemand(aCoordinates);
-        }
+        //public void SetCubeCoordinates(CCubePos aCoordinates)
+        //{
+        //    this.Cube.MoveToCubeCoordinatesOnDemand(aCoordinates);
+        //}
 
         public CVector3Dbl WorldPos { set => this.Cube.WorldPos = value; }
 

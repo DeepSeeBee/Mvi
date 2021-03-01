@@ -1293,7 +1293,10 @@ namespace CharlyBeck.Mvi.Cube
         internal override int AllocateSubDimensionsSize => (int)this.Depth.Pow2();
     }
 
-    internal sealed class CCube : CRootDimension
+    internal sealed class CCube 
+    : 
+        CRootDimension
+    ,   ICube
     {
         #region ctor
         private CCube(CServiceLocatorNode aParent) : base(aParent)
@@ -1326,6 +1329,33 @@ namespace CharlyBeck.Mvi.Cube
         public override T Throw<T>(Exception aException)
         => aException.Throw<T>();
         #endregion
+        #region ICube
+        void ICube.Draw() => this.Draw();
+        CVector3Dbl ICube.WorldPos { set => this.WorldPos = value; }
+        void ICube.Update(CVector3Dbl aAvatarPos) => this.Update(aAvatarPos);
+        void ICube.Update(CFrameInfo aFrameInfo) => this.Update(aFrameInfo);
+        IEnumerable<CSpriteData> ICube.SpriteDatas => this.SpriteDatas;
+        IEnumerable<CCubePos> ICube.CubePositions { get { yield return this.CubePos; } }
+        #endregion
+        internal IEnumerable<CSpriteData> SpriteDatas => from aTile in this.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData;
+        internal void Update(CVector3Dbl aAvatarPos)
+        {
+            var aSpriteDatas = this.SpriteDatas;
+            foreach (var aSpriteData in aSpriteDatas)
+            {
+                aSpriteData.UpdateBeforeFrameInfo(aAvatarPos);
+            }
+        }
+        internal void Update(CFrameInfo aFrameInfo)
+        {
+            var aSpriteDatas = this.SpriteDatas;
+            foreach (var aSpriteData in aSpriteDatas)
+            {
+                aSpriteData.UpdateAfteFrameInfo(aFrameInfo);
+            }
+        }
+
+
         private readonly CWorld World;
         //internal override Int64 Depth => 3u;
 
@@ -1446,8 +1476,20 @@ namespace CharlyBeck.Mvi.Cube
         #endregion
     }
 
+    internal interface ICube
+    {
+        CVector3Dbl WorldPos { set; }
+        void Draw();
 
-    internal sealed class CMultiverseCube : CServiceLocatorNode
+        void Update(CVector3Dbl aAvatarPos);
+        void Update(CFrameInfo aFrameInfo);
+        IEnumerable<CSpriteData> SpriteDatas { get; }
+        IEnumerable<CCubePos> CubePositions { get; }
+
+    }
+    internal sealed class CMultiverseCube 
+    :
+        CServiceLocatorNode
     {
         #region ctor
         internal CMultiverseCube(CServiceLocatorNode aParent) : base(aParent)
@@ -1460,10 +1502,18 @@ namespace CharlyBeck.Mvi.Cube
         internal readonly CCube Cube;
         internal bool Active;
         internal CVector3Dbl WorldPos { set => this.Cube.WorldPos = value; }
+        internal void Draw() => this.Cube.Draw();
+        internal void Update(CVector3Dbl aAvatarPos) => this.Cube.Update(aAvatarPos);
+        internal void Update(CFrameInfo aFrameInfo) => this.Cube.Update(aFrameInfo);
+        internal IEnumerable<CSpriteData> SpriteDatas => this.Cube.SpriteDatas;
+        internal IEnumerable<CCubePos> CubePositions { get { yield return this.Cube.CubePos; } }
 
     }
 
-    internal sealed class CMultiverseCubes  : CServiceLocatorNode
+    internal sealed class CMultiverseCubes  
+    : 
+        CServiceLocatorNode
+    , ICube
     {
         #region ctor
         internal CMultiverseCubes(CServiceLocatorNode aParent) : base(aParent)
@@ -1493,5 +1543,27 @@ namespace CharlyBeck.Mvi.Cube
             }
         }
         #endregion
+        internal void Draw()
+        {
+            foreach (var aItem in this.ActiveItems)
+                aItem.Draw();
+        }
+        #region ICube
+        CVector3Dbl ICube.WorldPos { set => this.WorldPos = value; }
+        void ICube.Draw() => this.Draw();
+        void ICube.Update(CVector3Dbl aAvatarPos)
+        {
+            foreach (var aCube in this.ActiveItems)
+                aCube.Update(aAvatarPos);
+        }
+        void ICube.Update(CFrameInfo aFrameInfo)
+        {
+            foreach (var aCube in this.ActiveItems)
+                aCube.Update(aFrameInfo);
+        }
+        IEnumerable<CSpriteData> ICube.SpriteDatas => from aItem in this.ActiveItems from aSpriteData in aItem.SpriteDatas select aSpriteData;
+        IEnumerable<CCubePos> ICube.CubePositions => (from aItem in this.ActiveItems select aItem.CubePositions).Flatten();
+        #endregion
+
     }
 }

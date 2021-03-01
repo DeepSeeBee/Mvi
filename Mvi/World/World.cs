@@ -210,10 +210,11 @@ namespace CharlyBeck.Mvi.World
         }
         #endregion
         #region Cube
-        private CCube CubeM;
-        internal CCube Cube => CLazyLoad.Get(ref this.CubeM, () => CCube.New(this));
+        private CCube SimpleCubeM;
+        internal CCube SimpleCube => CLazyLoad.Get(ref this.SimpleCubeM, () => CCube.New(this));
         #endregion
         #region MultiverseCubes
+        internal ICube Cube => this.SimpleCube;
         private CMultiverseCube MultiverseCubeM;
         internal CMultiverseCube MultiverseCube => CLazyLoad.Get(ref this.MultiverseCubeM, ()=>new CMultiverseCube(this));
         #endregion
@@ -253,8 +254,8 @@ namespace CharlyBeck.Mvi.World
         internal CVector3Dbl GetWorldPos2(CCubePos aCubeCoordinates)
             => aCubeCoordinates.ToWorldPos() * this.EdgeLenAsPos;
 
-        public CCubePos GetCubePos(CVector3Dbl aWorldPos)
-            => this.Cube.GetCubePos(aWorldPos);
+        //public CCubePos GetCubePos(CVector3Dbl aWorldPos)
+        //    => this.Cube.GetCubePos(aWorldPos);
             //=> aWorldPos.Divide(this.EdgeLenAsPos).ToCubePos();
 
         internal readonly double NearBumperSpeedForRadius0;
@@ -298,18 +299,23 @@ namespace CharlyBeck.Mvi.World
         public void Update(CVector3Dbl aAvatarPos, GameTime aGameTime)
         {
             this.GameTimeNullable = aGameTime;
-            var aSpriteDatas = from aTile in this.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData;
-            foreach (var aSpriteData in aSpriteDatas)
-            {
-                aSpriteData.UpdateBeforeFrameInfo(aAvatarPos);
-            }
-
+            this.Cube.Update(aAvatarPos);
             this.FrameInfo = new CFrameInfo(this, aAvatarPos);
+            this.Cube.Update(this.FrameInfo);
 
-            foreach(var aSpriteData in this.FrameInfo.SpriteDatas)
-            {
-                aSpriteData.UpdateAfteFrameInfo(this.FrameInfo);
-            }
+
+            //var aSpriteDatas = from aTile in this.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData;
+            //foreach (var aSpriteData in aSpriteDatas)
+            //{
+            //    aSpriteData.UpdateBeforeFrameInfo(aAvatarPos);
+            //}
+
+            //this.FrameInfo = new CFrameInfo(this, aAvatarPos);
+
+            //foreach(var aSpriteData in this.FrameInfo.SpriteDatas)
+            //{
+            //    aSpriteData.UpdateAfteFrameInfo(this.FrameInfo);
+            //}
         }
 
 
@@ -332,14 +338,16 @@ namespace CharlyBeck.Mvi.World
             //this.NearestBumperDistanceToSurface = default;
             //this.NearestBumperIsEntered = default;
             this.NearPlanetSpeedM = default;
-            this.CubePos = default;
+            this.CubePositions = default;
 
             this.World = aWorld;
             this.WorldPos = aWorldPos;
-            this.SpriteDatas = (from aTile in aWorld.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData).ToArray();
+            var aCube = aWorld.Cube;
+
+            this.SpriteDatas = aCube.SpriteDatas.ToArray(); // (from aTile in aWorld.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData).ToArray();
             this.SpriteDistances = (from aSpriteData in this.SpriteDatas select new Tuple<CSpriteData, double>(aSpriteData, aSpriteData.DistanceToAvatar)).ToArray().OrderBy(aDist=>aDist.Item2).ToArray();
             this.NearestBumperSpriteDataAndDistance = ( from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSpriteData) select new Tuple<CBumperSpriteData, double>((CBumperSpriteData)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();
-            this.CubePos = this.World.Cube.CubePos;
+            this.CubePositions = this.World.Cube.CubePositions;
 
             //this.NearestBumperDistanceToSurface = this.NearestBumperIsDefined ? (this.NearestBumper.AvatarDistanceToSurface) : double.NaN;
             //this.NearestBumperIsEntered = this.NearestBumperIsDefined ? this.NearestBumper.IsBelowSurface : false; // this.NearestBumperDistance < this.NearestBumper.Radius : false;
@@ -353,7 +361,7 @@ namespace CharlyBeck.Mvi.World
         public IEnumerable<CSpriteData> SpriteDatasOrderedByDistance => from aItem in this.SpriteDistances select aItem.Item1;
         public readonly Tuple<CBumperSpriteData, double> NearestBumperSpriteDataAndDistance;
         public CBumperSpriteData NearestBumper => this.NearestBumperSpriteDataAndDistance.Item1;
-        public CCubePos CubePos { get; private set; }
+        public IEnumerable<CCubePos> CubePositions { get; private set; }
 
         
         // public double NearestBumperDistance => this.NearestBumperSpriteDataAndDistance.Item2;

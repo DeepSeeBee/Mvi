@@ -375,8 +375,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         internal CAvatar Avatar => this.Game.Avatar;
         internal bool GetCubeCoordinatesIsDefined()
             => true; //this.World.GetCubeCoordinatesIsDefined(this.Avatar.WorldPos);
-        internal CCubePos GetCubeCoordinates()
-            => this.World.GetCubePos(this.Avatar.WorldPos);
+        //internal CCubePos GetCubeCoordinates()
+        //    => this.World.GetCubePos(this.Avatar.WorldPos);
         internal CVector3Dbl WorldPos => this.Avatar.WorldPos;
 
     }
@@ -583,11 +583,12 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             }
             else
             {
-                var aCubeCoordinatesIsDefined = aGameAvatar.GetCubeCoordinatesIsDefined();
-                if (aCubeCoordinatesIsDefined)
-                {
-                    this.MonoFacade.SetCubeCoordinates(aGameAvatar.GetCubeCoordinates());
-                }
+                throw new NotImplementedException();
+                //var aCubeCoordinatesIsDefined = aGameAvatar.GetCubeCoordinatesIsDefined();
+                //if (aCubeCoordinatesIsDefined)
+                //{
+                //    this.MonoFacade.SetCubeCoordinates(aGameAvatar.GetCubeCoordinates());
+                //}
             }
 
             this.World.Update(this.Avatar.WorldPos, aGameTime);
