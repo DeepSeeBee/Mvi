@@ -194,7 +194,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
     internal sealed class CMonoFacade : CFacade
     {
-        internal CMonoFacade(CGame aGame) : base()
+        internal CMonoFacade(CServiceLocatorNode aParent, CGame aGame) : base(aParent)
         {
             this.Game = aGame;
         }
@@ -389,7 +389,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.Content.RootDirectory = "Content\\bin";
             this.ServiceLocatorNode.ServiceContainer.AddService<CGame>(() => this);
 
-            this.MonoFacade = new CMonoFacade(this);
+            this.MonoFacade = new CMonoFacade(this.ServiceLocatorNode, this);
 
             this.OriginFeature = CFeature.Get(this.MonoFacade, OriginFeatureDeclaration);
         }
@@ -399,6 +399,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             base.EndRun();
             this.Avatar.Save();
         }
+
+        internal readonly CServiceLocatorNode ServiceLocatorNode = new CDefaultServiceLocatorNode();
 
         internal readonly CMonoFacade MonoFacade;
         public object VmMonoFacade => this.MonoFacade;
@@ -799,9 +801,6 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
 
 
-        #endregion
-        #region ServiceLocatorNode
-        private readonly CServiceLocatorNode ServiceLocatorNode = new CRootBase();
         #endregion
         #region Models
         private CMonoModels ModelsM;

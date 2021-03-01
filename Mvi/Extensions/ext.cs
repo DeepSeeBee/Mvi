@@ -11,6 +11,8 @@ namespace CharlyBeck.Mvi.Extensions
 
     public static class CExtensions
     {
+        public static double AvoidNan(this double d)
+            => double.IsNaN(d) ? 0 : d;
         public static CColoredVertexDbl ToColoredVertex(this CVector3Dbl v, CVector3Dbl c)
             => new CColoredVertexDbl(v, c);
 

@@ -19,7 +19,10 @@ namespace CharlyBeck.Mvi.XnaExtensions
         public static Vector3 Rotate(this Matrix m, Vector3 v) // https://stackoverflow.com/questions/12731704/vector3-matrix-multiplication
             => new Vector3((v.X * m[0, 0] + v.Y * m[0, 1] + v.Z * m[0, 2] + m[0, 3]),
                            (v.X * m[1, 0] + v.Y * m[1, 1] + v.Z * m[1, 2] + m[1, 3]),
-                           (v.X * m[2, 0] + v.Y * m[2, 1] + v.Z * m[2, 2] + m[2, 3]));      
+                           (v.X * m[2, 0] + v.Y * m[2, 1] + v.Z * m[2, 2] + m[2, 3]));
+
+        public static Vector3 RotateXyz(this Vector3 v, Vector3 aXyzAngle)
+            => v.RotateX(aXyzAngle.X).RotateY(aXyzAngle.Y).RotateZ(aXyzAngle.Z);
 
         public static Vector3 RotateZ(this Vector3 aRotated, float aRadians)
             => Matrix.CreateRotationZ(aRadians).Rotate(aRotated);

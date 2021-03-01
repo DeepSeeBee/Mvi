@@ -97,6 +97,8 @@ namespace MviMono.Sprites.Bumper
             var aTriangleStripVertexBuffer = this.SphereTriangleListVertexBuffers[aVertexBufferIndex];// this.GetSphereTriangleStripVertexBuffer(aAvatarDistanceToSurface);
 
             var aIsNearest = aBumperSpriteData.IsNearest;
+            var aIsBelowSurface = aBumperSpriteData.IsBelowSurface;
+
 //            aAlpha = 1d;
             var aBumperColor = aBumperSpriteData.Color.ToColor().SetAlpha((float)aAlpha);
             var aBumperColorWhite = Color.White.SetAlpha((float)aAlpha);
@@ -111,7 +113,7 @@ namespace MviMono.Sprites.Bumper
 
             //aGraphicsDevice.BlendState = Microsoft.Xna.Framework.Graphics.BlendState.AlphaBlend;
 
-            if(aIsNearest)
+            //if(aIsNearest)
             { // TriangleStrip
                 var aOldRasterizerState = aGraphicsDevice.RasterizerState;
                 aGraphicsDevice.RasterizerState = this.RasterizerState;
@@ -123,9 +125,11 @@ namespace MviMono.Sprites.Bumper
                 aGraphicsDevice.RasterizerState = aOldRasterizerState;
             }
 
+            if(aIsNearest
+            || aIsBelowSurface)
             { // LineList
                // aBasicEffect.Alpha = 0.0f;
-                aGraphicsDevice.BlendFactor =aIsNearest ? aBumperColorWhite : aBumperColor;
+                aGraphicsDevice.BlendFactor = aBumperColorWhite;
                 if(aIsNearest)
                 {
                     this.Load();
@@ -231,7 +235,7 @@ namespace MviMono.Sprites.Bumper
 
         //internal override bool WorldTranslateIsDefined => true;
         //internal override Vector3 WorldTranslate => this.BumperSpriteData.WorldPos.ToVector3();
-        internal override Matrix WorldMatrix => this.BumperSpriteData.WorldMatrix;
+      //  internal override Matrix WorldMatrix => this.BumperSpriteData.WorldMatrix;
         public override T Throw<T>(Exception aException)
               => aException.Throw<T>();
 

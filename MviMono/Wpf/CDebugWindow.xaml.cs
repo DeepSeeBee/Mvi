@@ -1,6 +1,12 @@
-﻿using CharlyBeck.Mvi.Mono.GameCore;
+﻿using CharlyBeck.Mvi.Cube;
+using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Mvi.Mono.GameCore;
+using CharlyBeck.Mvi.Sprites.Bumper;
+using CharlyBeck.Mvi.Sprites.Quadrant;
 using CharlyBeck.Mvi.XnaExtensions;
+using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
+using CharlyBeck.Utils3.ServiceLocator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +22,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace CharlyBeck.Mvi.Mono.Wpf
 {
@@ -29,9 +36,10 @@ namespace CharlyBeck.Mvi.Mono.Wpf
             InitializeComponent();
 
             this.Game = aGame;
+            this.GameState = new CGameState(this.Game.ServiceLocatorNode);
             this.DataContext = aGame;
         }
-        public static void Show()
+        public static new void Show()
         {
             var aGame = new CGame();
             var aWindowThread = new Thread(ShowWindowThread);
@@ -88,5 +96,53 @@ namespace CharlyBeck.Mvi.Mono.Wpf
         {
             this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookUpDown = (LookDegreesF).ToRadians(); });
         }
+
+        private readonly CGameState GameState;
+        public object VmGameState => this.GameState;
     }
+
+    internal sealed class CGameState : CChangeNotifier
+    {
+        internal CGameState(CServiceLocatorNode aParent): base(aParent)
+        {
+            this.Game = this.ServiceContainer.GetService<CGame>();
+            this.UpdateTimer = new DispatcherTimer(new TimeSpan(0, 0, 0, 0, 250),
+                                                   DispatcherPriority.Background,
+                                                    delegate (object aSender, EventArgs a) { this.Update(); },
+                                                    Dispatcher.CurrentDispatcher
+                                                   );
+        }
+        public override T Throw<T>(Exception aException)
+            => aException.Throw<T>();
+
+        internal readonly CGame Game;
+        private DispatcherTimer UpdateTimer;
+
+        private void Update()
+        {
+            var aFrameInfo = this.Game.World.FrameInfo;
+            this.NearestBumperNullable = aFrameInfo.NearestBumperIsDefined ? aFrameInfo.NearestBumper : default;
+            this.CubePos = aFrameInfo.CubePos;
+        }
+
+        #region NearestBumper
+        private CBumperSpriteData NearestBumperNullableM;
+        private CBumperSpriteData NearestBumperNullable { get => this.NearestBumperNullableM; set
+            {
+                if(value != this.NearestBumperNullableM)
+                {
+                    this.NearestBumperNullableM = value;
+                    this.NotifyChange(nameof(this.VmNearestBumperNullable));
+                }
+            }
+        }
+        public object VmNearestBumperNullable => this.NearestBumperNullable;
+        #endregion
+        #region Quardant
+        private CCubePos CubePosM;
+        private CCubePos CubePos { get => this.CubePosM; set { this.CubePosM = value; this.NotifyChange(nameof(this.VmCubePos)); } }
+        public object VmCubePos => this.CubePos;
+        #endregion
+    }
+
 }

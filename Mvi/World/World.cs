@@ -18,6 +18,9 @@ using CharlyBeck.Mvi.Sprites.Quadrant;
 using CharlyBeck.Mvi.Sprites.Bumper;
 using Microsoft.Xna.Framework;
 
+using CDoubleRange = System.Tuple<double, double>;
+using CIntegerRange = System.Tuple<int, int>;
+
 namespace CharlyBeck.Mvi.Cube
 {
     partial class CTileDataLoadProxy
@@ -33,6 +36,7 @@ namespace CharlyBeck.Mvi.Cube
 
 namespace CharlyBeck.Mvi.World
 {
+
     public struct CVector3Dbl
     {
         public CVector3Dbl(double xyz) : this(xyz, xyz, xyz) { }
@@ -181,32 +185,11 @@ namespace CharlyBeck.Mvi.World
             this.EdgeLenAsPos = new CVector3Dbl(this.EdgeLen);
             this.TileBumperCountMin = 5;
             this.TileBumperCountMax = 10;
-
-            //this.TileBumperCountMin = 1;
-            //this.TileBumperCountMax = 5;
-
-            this.DefaultBumperQuadrantBumperRadiusMax = new double[] { 
-                0.1d, 
-                0.01d,
-                0.001d,
-                0.0001d,
-                0.00001d
-                }.OrderBy(nr=>nr).ToArray(); // Aufsteigend!
-            this.SolarSystemPlanetRadiusMax = new double[] {
-                0.1d,
-                0.01d,
-                0.001d,
-                }.OrderBy(nr => nr).ToArray(); // Aufsteigend!
-            this.SolarSystemSunRadiusMax = new double[] {
-                0.1d,
-                }.OrderBy(nr => nr).ToArray(); // Aufsteigend!
             this.BumperGravityRadiusMax = 1.0d;
             this.BumperGravityStrengthMax = 1.0d;
             this.NearBumperSpeedMin = 0.0001;
             this.NearBumperSpeedForRadius0 = 0.001;
             this.SphereScaleCount = 25;
-            this.SolarSystemMaxRadius = 0.6;
-            this.SolarSystemMinRadius = this.SolarSystemMaxRadius * 0.75;
         }
         public override void Load()
         {
@@ -215,16 +198,6 @@ namespace CharlyBeck.Mvi.World
         }
         public override T Throw<T>(Exception aException)
            => aException.Throw<T>();
-
-        //internal readonly Int64 MaxInSpaceCubeCoord;
-        //internal readonly Int64 MinInSpaceCubeCoord;
-        //internal readonly Int64 MaxCubeCoord;
-        ////internal readonly Int64 MinCubeCoord;
-        //internal readonly Int64 MinAvatarCoord;
-        //internal readonly Int64 MaxAvatarCoord;
-
-        //internal double MinWorldCoord => this.MinCubeCoord * this.TileEdgeLen;
-        //internal double MaxWorldCoord => this.MaxCubeCoord * this.TileEdgeLen;
 
         internal bool IsBeyound(CTile aTile)
         {
@@ -278,23 +251,28 @@ namespace CharlyBeck.Mvi.World
 
         public CCubePos GetCubePos(CVector3Dbl aWorldPos)
             => aWorldPos.Divide(this.EdgeLenAsPos).ToCubePos();
-        //internal CCubePos CubeCenterOffset
-        //    => CCubePos.NewN((this.Cube.Depth - 1) / 2, (int)this.Cube.Depth);
-        ////    => new CCubePos((Int64)aWorldPos[0], (Int64)aWorldPos[1], (Int64)aWorldPos[2]); //.Add(this.CubeCenterOffset);
 
         internal readonly double NearBumperSpeedForRadius0;
         internal readonly int TileBumperCountMin;
         internal readonly int TileBumperCountMax;
-        internal readonly double[] DefaultBumperQuadrantBumperRadiusMax;
-        internal readonly double[] SolarSystemPlanetRadiusMax;
-        internal readonly double[] SolarSystemSunRadiusMax;
+        internal readonly CDoubleRange DefaultBumperQuadrantBumperRadiusMax = new CDoubleRange(0.00001d, 0.01d);
+        internal readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.05d);
+        internal readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.001d, 0.1d);
+        internal readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.1d, 0.2d);
 
         internal readonly double BumperGravityRadiusMax;
         internal readonly double BumperGravityStrengthMax;
         internal readonly double NearBumperSpeedMin;
-        internal readonly double SolarSystemMaxRadius;
-        internal readonly double SolarSystemMinRadius;
         internal readonly Int64 CubeBorder;
+        internal double OrbDayDurationMin => 1d;
+        internal double OrbDayDurationMax => 20d;
+        internal CDoubleRange TrabantYearDurationRange => new CDoubleRange(4000d, 9000d);
+        internal CDoubleRange MoonYearDurationRange => new CDoubleRange(40d, 90d);
+        internal CIntegerRange PlanetMoonCountRange => new CIntegerRange(0, 2);
+        internal double PlanetHasMoonsProbability => 0.3d;
+        internal CDoubleRange PlanetOrbitRange => new CDoubleRange(1.0d, 1.2d);
+        internal CDoubleRange MoonOrbitRange => new CDoubleRange(4.0d, 5.0d);
+
 
         //internal CWorldPos GetQuadrantPosition(CTile aTile)
 
@@ -307,10 +285,11 @@ namespace CharlyBeck.Mvi.World
 
         public CFrameInfo FrameInfo { get; internal set; }
         public int SphereScaleCount;
-        public GameTime GameTime { get; private set; }
+        private GameTime GameTimeNullable { get; set; }
+        public TimeSpan GameTimeTotal => this.GameTimeNullable is object ? this.GameTimeNullable.TotalGameTime : new TimeSpan(0,0,0,0,1); // 1 to avoid division by 0
         public void Update(CVector3Dbl aAvatarPos, GameTime aGameTime)
         {
-            this.GameTime = aGameTime;
+            this.GameTimeNullable = aGameTime;
             var aSpriteDatas = from aTile in this.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData;
             foreach (var aSpriteData in aSpriteDatas)
             {
@@ -345,12 +324,15 @@ namespace CharlyBeck.Mvi.World
             //this.NearestBumperDistanceToSurface = default;
             //this.NearestBumperIsEntered = default;
             this.NearPlanetSpeedM = default;
+            this.CubePos = default;
 
             this.World = aWorld;
             this.WorldPos = aWorldPos;
             this.SpriteDatas = (from aTile in aWorld.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData).ToArray();
-            this.SpriteDistances = (from aSpriteData in this.SpriteDatas.OfType<CBumperSpriteData>() select new Tuple<CSpriteData, double>(aSpriteData, aSpriteData.DistanceToAvatar)).ToArray().OrderBy(aDist=>aDist.Item2).ToArray();
+            this.SpriteDistances = (from aSpriteData in this.SpriteDatas select new Tuple<CSpriteData, double>(aSpriteData, aSpriteData.DistanceToAvatar)).ToArray().OrderBy(aDist=>aDist.Item2).ToArray();
             this.NearestBumperSpriteDataAndDistance = ( from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSpriteData) select new Tuple<CBumperSpriteData, double>((CBumperSpriteData)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();
+            this.CubePos = this.World.Cube.CubePos;
+
             //this.NearestBumperDistanceToSurface = this.NearestBumperIsDefined ? (this.NearestBumper.AvatarDistanceToSurface) : double.NaN;
             //this.NearestBumperIsEntered = this.NearestBumperIsDefined ? this.NearestBumper.IsBelowSurface : false; // this.NearestBumperDistance < this.NearestBumper.Radius : false;
             //this.NearPlanetSpeed = this.NewNearPlanetSpeed();
@@ -360,13 +342,17 @@ namespace CharlyBeck.Mvi.World
         public readonly CVector3Dbl WorldPos;
         public readonly CSpriteData[] SpriteDatas;
         public readonly CSpriteDistance[] SpriteDistances;
+        public IEnumerable<CSpriteData> SpriteDatasOrderedByDistance => from aItem in this.SpriteDistances select aItem.Item1;
         public readonly Tuple<CBumperSpriteData, double> NearestBumperSpriteDataAndDistance;
         public CBumperSpriteData NearestBumper => this.NearestBumperSpriteDataAndDistance.Item1;
-       // public double NearestBumperDistance => this.NearestBumperSpriteDataAndDistance.Item2;
+        public CCubePos CubePos { get; private set; }
+
+        
+        // public double NearestBumperDistance => this.NearestBumperSpriteDataAndDistance.Item2;
 
        // public readonly bool NearestBumperIsEntered;
        // public readonly double NearestBumperDistanceToSurface;       
-        public bool NearestBumperIsDefined => this.NearestBumperSpriteDataAndDistance.Item1 is object;
+        public bool NearestBumperIsDefined => this.NearestBumperSpriteDataAndDistance is object && this.NearestBumperSpriteDataAndDistance.Item1 is object;
 
         public double NearPlanetSpeed { get => CLazyLoad.Get(ref this.NearPlanetSpeedM, this.NewNearPlanetSpeed); }
         public double? NearPlanetSpeedM;
@@ -383,9 +369,9 @@ namespace CharlyBeck.Mvi.World
             //else
             {
                 var aDistance =  Math.Abs(this.NearestBumper.AvatarDistanceToSurface);
-                var rm = this.World.DefaultBumperQuadrantBumperRadiusMax.Last();
+                var rm = this.World.DefaultBumperQuadrantBumperRadiusMax.Item2;
                 var rf =  (this.NearestBumper.Radius / rm);
-                var s1 = (1d - rf) * this.World.NearBumperSpeedForRadius0;
+                var s1 = 0; // (1d - rf) * this.World.NearBumperSpeedForRadius0;
                 var s2 = aDistance;
                 var s3 = (s1 + s2) / 2d; // s1 + s2;
                 var s = Math.Max(this.World.NearBumperSpeedMin, s3);

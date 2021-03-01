@@ -176,7 +176,7 @@ namespace CharlyBeck.Mvi.Sprites
 
         internal virtual void UpdateAfteFrameInfo(CFrameInfo aFrameInfo)
         {
-            this.IsNearest = object.ReferenceEquals(this.World.FrameInfo.SpriteDistances.First().Item1, this);
+            this.IsNearest = this.World.FrameInfo.SpriteDatasOrderedByDistance.OfType<CSpriteData>().First().RefEquals<CSpriteData>(this);
         }
 
         private CModel ModelM;
@@ -201,7 +201,7 @@ namespace CharlyBeck.Mvi.Sprites
 
         public double DistanceToAvatar { get; private set; }
 
-        public virtual Matrix WorldMatrix => Matrix.CreateTranslation(this.WorldPos.ToVector3());
+        //public virtual Matrix WorldMatrix => Matrix.CreateTranslation(this.WorldPos.ToVector3());
     }
 
     internal abstract class CRootTileDescriptor : CTileDescriptor
@@ -213,7 +213,7 @@ namespace CharlyBeck.Mvi.Sprites
 
         internal static Type[] TileDescriptorTypes = new Type[] 
         {
-         //   typeof(CBumpersTileDescriptor), 
+            typeof(CBumpersTileDescriptor), 
             typeof(CSolarSystem),
         };
         internal static CRootTileDescriptor New(CServiceLocatorNode aParent, CTileBuilder aTileBuilder)

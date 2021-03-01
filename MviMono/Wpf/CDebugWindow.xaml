@@ -14,6 +14,11 @@
              d:DesignHeight="100" d:DesignWidth="800">
     <Grid>
         <DockPanel>
+            <TextBlock DockPanel.Dock="Top" FontSize="20" FontWeight="Bold" TextAlignment="Center"  FontStretch="ExtraCondensed" Text="No matter"/>
+            <TextBlock DockPanel.Dock="Top" FontSize="10" TextAlignment="Center" Text="There's no matter." FontStyle="Italic" />
+            <TextBlock DockPanel.Dock="Top" FontSize="15" TextAlignment="Center" Text="Just a multiverse." />
+            <Border DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="1" Margin="5,5,5,5"/>
+
             <UniformGrid Rows="3" Columns="3" DockPanel.Dock="Top">
                 <Control/>
                 <Button Content="Top" Click="LookUp"/>
@@ -24,16 +29,36 @@
                 <Control/>
                 <Button Content="Down" Click="LookDown"/>
             </UniformGrid>
-            <ItemsControl  DockPanel.Dock="Top" ItemsSource="{Binding VmMonoFacade.VmFeatures}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="{Binding VmEnabled}" Content="{Binding VmFeatureDeclaration.VmName}">
-                            </CheckBox>
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <GroupBox DockPanel.Dock="Top" Header="Quadrant" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
+                <UniformGrid Columns="2">
+                    <TextBlock Text="Coordinates" />
+                    <TextBlock Text="{Binding VmCubePos}"/>
+                </UniformGrid>
+            </GroupBox>
+            <GroupBox DockPanel.Dock="Top" Header="Object" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
+                <UniformGrid Columns="2">
+                    <TextBlock Text="Category" />
+                    <TextBlock Text="{Binding VmNearestBumperNullable.VmCategoryName}"/>
+                </UniformGrid>
+            </GroupBox>
+            <!--<GroupBox DockPanel.Dock="Top" Header="Avatar" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
+                <UniformGrid Columns="2">
+                    <TextBlock Text="Category" />
+                    <TextBlock Text="{Binding VmAvatarPos}"/>
+                </UniformGrid>
+            </GroupBox>-->
+            <GroupBox DockPanel.Dock="Top" Header="Features" >
+                <ItemsControl  DockPanel.Dock="Top" ItemsSource="{Binding VmMonoFacade.VmFeatures}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox IsChecked="{Binding VmEnabled}" Content="{Binding VmFeatureDeclaration.VmName}">
+                                </CheckBox>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </GroupBox>
         </DockPanel>
     </Grid> 
 </Window>

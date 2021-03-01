@@ -1,4 +1,6 @@
 ﻿using CharlyBeck.Mvi.Cube;
+using CharlyBeck.Mvi.Extensions;
+using CharlyBeck.Mvi.Feature;
 using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.Sprites.Quadrant;
 using CharlyBeck.Mvi.World;
@@ -15,66 +17,149 @@ using System.Threading.Tasks;
 
 namespace CharlyBeck.Mvi.Sprites.SolarSystem
 {
+    using CDoubleRange = Tuple<double, double>;
+    using CIntegerRange = Tuple<int, int>;
 
     public abstract class COrb : CBumperSpriteData
     {
+        #region ctor
         internal COrb(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) : base(aParent, aTileBuilder, aTileDescriptor)
         {
-
+            this.SolarSystem = this.ServiceContainer.GetService<CSolarSystem>();
         }
-        internal override double[] BumperRadiusMax => this.World.SolarSystemPlanetRadiusMax;
+        #endregion
+        internal override CDoubleRange BumperRadiusMax => this.World.PlanetRadiusMax;
 
+        internal virtual CVector3Dbl OrbitAngles { get; set; }
+
+        #region Trabants
+        internal virtual double TrabantPropability => 1d;
+        internal virtual CIntegerRange TrabantCountRange => new CIntegerRange(0,0);
+        internal virtual CTrabant NewTrabant(double aOrbitRadius) => this.Throw<CTrabant>(new NotImplementedException());
+        internal virtual CDoubleRange TrabantOrbitRange => this.Throw<CDoubleRange>(new NotImplementedException());
+        private CTrabant[] Trabants;
+        private void BuildTrabants()
+        {
+            if (this.HasTrabants)
+            {
+                var aTileBuilder = this.TileBuilder;
+                var aWorldGenerator = aTileBuilder.WorldGenerator;
+                var aWorld = aTileBuilder.World;
+                var aTrabantCountRange = this.TrabantCountRange;
+                var aHasTrabants = this.TrabantPropability >= aWorldGenerator.NextDouble();
+                var aTrabantRange = this.TrabantCountRange;
+                var aTrabantCount =  aHasTrabants 
+                                  ? aWorldGenerator.NextInteger(aTrabantCountRange.Item1, aTrabantCountRange.Item2)
+                                  : 0;
+                var aTrabants = new CTrabant[aTrabantCount];
+                if (aTrabantCount > 0)
+                {
+                    var aOrbitRange = this.TrabantOrbitRange;
+                    var aOrbRadius = this.Radius;
+                    var aOrbitRangeMin = aOrbitRange.Item1 * aOrbRadius;
+                    var aOrbitRangeMax = aOrbitRange.Item2 * aOrbRadius;
+                    var aOrbitRadius = aWorldGenerator.NextDouble(aOrbitRangeMin, aOrbitRangeMax);
+                    for (var aIdx = 0; aIdx < aTrabantCount; ++aIdx)
+                    {
+                        var aTrabantOrbit = ((double)aIdx + 1) * aOrbitRadius;
+                        aTrabants[aIdx] = this.NewTrabant(aTrabantOrbit);
+                    }
+                }
+                this.Trabants = aTrabants;
+            }
+            else
+            {
+                this.Trabants = Array.Empty<CTrabant>();
+            }
+        }
+        internal virtual bool HasTrabants => false;
+        private void DrawTrabants()
+        {
+            foreach(var aTrabant in this.Trabants)
+            {
+                aTrabant.Draw();
+            }
+        }
+        #endregion
+        internal abstract CFeature OrbVisibleFeature { get; }
+        protected override void OnDraw()
+        {
+            if(this.OrbVisibleFeature.Enabled)
+            {
+                base.OnDraw();
+            }
+
+
+            this.DrawTrabants();
+        }
+        protected override void OnBuild()
+        {
+            base.OnBuild();
+
+            var aTileBuilder = this.TileBuilder;
+            var aWorldGenerator = aTileBuilder.WorldGenerator;
+            var aWorld = aTileBuilder.World;
+            this.OrbitAngles = aWorldGenerator.NextVector3Dbl(Math.PI * 2);
+            this.DayDuration  =  TimeSpan.FromSeconds(aWorldGenerator.NextDouble(aWorld.OrbDayDurationMin, aWorld.OrbDayDurationMax));
+            this.BuildTrabants();
+        }
+
+        internal TimeSpan DayDuration { get; private set; }
+
+        #region SolarSystem
+        internal readonly CSolarSystem SolarSystem;
+        #endregion
     }
 
     public abstract class CTrabant : COrb
     {
         internal CTrabant(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor, double aOrbit) : base(aParent, aTileBuilder, aTileDescriptor)
         {          
-            this.Orbit = aOrbit;
+            this.OrbitRadius = aOrbit;
         }
 
-        internal readonly double Orbit; 
-        internal TimeSpan SolarSystemYear { get; private set; }
-        internal double OrbitStartAngle { get; private set; }
-        internal double OrbitCurrentAngle => (this.World.GameTime.TotalGameTime.TotalSeconds * Math.PI * 2d / this.SolarSystemYear.TotalSeconds) + this.OrbitStartAngle;
+        internal override double BuildRadius() => base.BuildRadius() * this.ParentOrb.Radius;
+
+        internal readonly double OrbitRadius; 
+        internal TimeSpan YearDuration { get; private set; }
+        internal double OrbitCurrentRadians => this.SolarSystem.AnimateSolarSystemFeature.Enabled
+                                          ? ((this.World.GameTimeTotal.TotalSeconds * Math.PI * 2d / this.YearDuration.TotalSeconds).ToRadians() + this.OrbitStartRadians).AvoidNan()
+                                          : this.OrbitStartRadians;
+        private double OrbitStartRadians { get; set; }
         internal abstract COrb ParentOrb { get; }
         protected override CVector3Dbl GenerateOriginalWorldPos()
-            => (this.ParentOrb.WorldPos.ToVector3() + new Vector3((float)this.Orbit, 0, 0))
-                .RotateY(this.ParentOrb.WorldPos.ToVector3(), (float)this.OrbitStartAngle).ToVector3Dbl();
+            => this.GetWorldPos(0);
         public override CVector3Dbl WorldPos
-                => (this.ParentOrb.WorldPos.ToVector3() + new Vector3((float)this.Orbit, 0, 0))
-                    .RotateY(this.ParentOrb.WorldPos.ToVector3(), (float)this.OrbitCurrentAngle).ToVector3Dbl();
+            => this.GetWorldPos(this.OrbitCurrentRadians);
+
+        private CVector3Dbl GetWorldPos(double aOrbitRadians)
+        {
+            var aOrbitRadius = this.OrbitRadius;
+            var aOrbPos1 = new Vector3((float)aOrbitRadius, 0, 0);
+            var aRotateMatrix = Matrix.CreateRotationY((float)aOrbitRadians);
+            var aOrbPos2 = aRotateMatrix.Rotate(aOrbPos1);
+            var aOrbPos3 = aOrbPos2.RotateXyz(this.OrbitAngles.ToVector3());
+            var aParentOrbPos = this.ParentOrb.WorldPos;
+            var aOrbPos4 = aOrbPos3 + aParentOrbPos.ToVector3();
+            return aOrbPos4.ToVector3Dbl();
+        }
+
+        internal virtual CDoubleRange TrabantYearDurationRange => this.World.TrabantYearDurationRange;
 
         protected override void OnBuild()
         {
             base.OnBuild();
 
-            this.OrbitStartAngle = (this.WorldGenerator.NextDouble() * Math.PI * 2d).ToRadians();
-            this.SolarSystemYear =  TimeSpan.FromSeconds(this.WorldGenerator.NextDouble(40d, 90d ) * this.Orbit);
+            this.YearDuration =  TimeSpan.FromSeconds(this.WorldGenerator.NextDouble(this.TrabantYearDurationRange) * this.OrbitRadius);
+            this.OrbitStartRadians = (this.WorldGenerator.NextDouble() * Math.PI * 2d);
         }
 
 
-        public override Matrix WorldMatrix
-        {
-            get
-            {
-                /*
-                var m1 = this.ParentOrbIsDefined
-                       ? this.ParentOrb.WorldMatrix
-                       : Matrix.Identity;
-                var m2 = Matrix.CreateTranslation((float)this.Radius);
-                var m3 = m1 * m2;
-                */
-                return Matrix.Identity;
-              //  throw new NotImplementedException();
-
-            }
-        }
     }
 
     public sealed class CPlanet : CTrabant
     {
-        internal CPlanet(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor, double aOrbit) : base(aParent, aTileBuilder, aTileDescriptor, aOrbit)
+        internal CPlanet(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor, double aOrbitRadius) : base(aParent, aTileBuilder, aTileDescriptor, aOrbitRadius)
         {
             this.Sun = this.ServiceContainer.GetService<CSun>();
             this.Init();
@@ -84,7 +169,33 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             => aException.Throw<T>();
         private readonly CSun Sun;
         internal override COrb ParentOrb => this.Sun;
+        internal override CVector3Dbl OrbitAngles => this.Sun.OrbitAngles;
 
+        #region HasTrabants
+        internal override bool HasTrabants => true;
+        internal override CIntegerRange TrabantCountRange => this.World.PlanetMoonCountRange;
+        internal override CTrabant NewTrabant(double aOrbitRadius) => new CMoon(this, this.TileBuilder, this.TileDescriptor, aOrbitRadius);
+        internal override double TrabantPropability =>this.World.PlanetHasMoonsProbability;
+        internal override CDoubleRange TrabantOrbitRange => this.World.MoonOrbitRange;
+        #endregion
+        #region ServiceContainer
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            aServiceContainer.AddService<CPlanet>(() => this);
+            return aServiceContainer;
+        }
+        #endregion
+        #region Features
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration PlanetsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("3412f4ab-14f3-447d-81fe-923f57993019"), "SolarSystem.Planets.Visible");
+        private CFeature PlanetsVisibleFeatureM;
+        private CFeature PlanetsVisibleFeature => CLazyLoad.Get(ref this.PlanetsVisibleFeatureM, () => CFeature.Get(this, PlanetsVisibleFeatureDeclaration));
+        internal override CFeature OrbVisibleFeature => this.PlanetsVisibleFeature;
+        #endregion
+        public override string CategoryName => "Planet";
     }
 
     public sealed class CMoon : CTrabant
@@ -101,12 +212,26 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             => aException.Throw<T>();
         private CPlanet Planet;
         internal override COrb ParentOrb => this.Planet;
-        internal override double[] BumperRadiusMax => base.BumperRadiusMax;
+        internal override CDoubleRange BumperRadiusMax => this.World.MoonRadiusMax;
+        protected override void OnDraw()
+        {
+            base.OnDraw();
+        }
+        internal override CDoubleRange TrabantYearDurationRange => this.World.MoonYearDurationRange;
+        internal override bool Visible => base.Visible && this.MoonsVisibleFeature.Enabled;
+        #region Features
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration MoonsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("7962faea-31d9-482d-aab4-60667b797d54"), "SolarSystem.Moons.Visible");
+        private CFeature MoonsVisibleFeatureM;
+        private CFeature MoonsVisibleFeature => CLazyLoad.Get(ref this.MoonsVisibleFeatureM, () => CFeature.Get(this, MoonsVisibleFeatureDeclaration));
+        internal override CFeature OrbVisibleFeature => this.MoonsVisibleFeature;
+        #endregion
+        public override string CategoryName => "Moon";
     }
-
 
     internal sealed class CSun : COrb
     {
+        #region ctor
         internal CSun(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CQuadrantTileDescriptor aTileDescriptor) : base(aParent, aTileBuilder, aTileDescriptor)
         {
             this.QuadrantTileDescriptor = aTileDescriptor;
@@ -115,11 +240,43 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         }
         public override T Throw<T>(Exception aException)
             => aException.Throw<T>();
+        #endregion
         private readonly CQuadrantTileDescriptor QuadrantTileDescriptor;
         protected override CVector3Dbl GenerateOriginalWorldPos()
-            => this.QuadrantTileDescriptor.QuadrantSpriteData.Center;
+            => this.QuadrantTileDescriptor.QuadrantSpriteData.Center; // TODO
         internal Vector3 OrbitAxis => new Vector3(1, 1, 1);
-        internal override double[] BumperRadiusMax => this.World.SolarSystemSunRadiusMax;
+        internal override CDoubleRange BumperRadiusMax => this.World.SunRadiusMax;
+
+
+        protected override void OnBuild()
+        {
+            base.OnBuild();
+        }
+        #region Trabants
+        internal override CIntegerRange TrabantCountRange => new CIntegerRange(this.World.TileBumperCountMin, this.World.TileBumperCountMax);
+        internal override bool HasTrabants => true;
+        internal override CTrabant NewTrabant(double aOrbitRadius)
+            => new CPlanet(this, this.TileBuilder, this.TileDescriptor, aOrbitRadius);
+        internal override CDoubleRange TrabantOrbitRange => this.World.PlanetOrbitRange;
+        #endregion
+        #region ServiceContainer
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            aServiceContainer.AddService<CSun>(() => this);
+            return aServiceContainer;
+        }
+        #endregion
+        #region Features
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration SunsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("afeb49da-5453-49d5-87ac-94d703e6cb3b"), "SolarSystem.Suns.Visible");
+        private CFeature SunsVisibleFeatureM;
+        private CFeature SunsVisibleFeature => CLazyLoad.Get(ref this.SunsVisibleFeatureM, () => CFeature.Get(this, SunsVisibleFeatureDeclaration));
+        internal override CFeature OrbVisibleFeature => this.SunsVisibleFeature;
+        #endregion
+        public override string CategoryName => "Sun";
     }
 
     internal sealed class CSolarSystem : CQuadrantTileDescriptor
@@ -140,11 +297,6 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             base.OnDraw();
 
             this.Sun.Draw();
-
-            foreach(var aPlanet in this.Planets)
-            {
-                aPlanet.Draw();
-            }
         }
         protected override void OnBuild()
         {
@@ -152,29 +304,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
 
             var aTileBuilder = this.TileBuilder;
             this.Sun = new CSun(this, this.TileBuilder, this);
-
-            var aWorldGenerator = aTileBuilder.WorldGenerator;
-            var aWorld = aTileBuilder.World;
-            var aPlanetCount = aWorldGenerator.NextInteger(aWorld.TileBumperCountMin, aWorld.TileBumperCountMax);
-            //aPlanetCount = 0;
-            var aPlanets = new CPlanet[aPlanetCount];
-            var aSolarSystemRadius = aWorldGenerator.NextDouble(aWorld.SolarSystemMinRadius, aWorld.SolarSystemMaxRadius);
-            var aSunRadius = this.Sun.Radius;
-            var aOrbitStartRadius = aSunRadius + aSunRadius * 0.75;
-            var aOrbitEndRadius = aSolarSystemRadius;
-            var aPlanetOrbitRange = (aOrbitEndRadius - aOrbitStartRadius) / aPlanetCount;
-           // var aPlanetOrbit
-            for (var aIdx = 0; aIdx < aPlanetCount; ++aIdx)
-            {
-                var aOrbit1 = ((double)aIdx + 1) * aPlanetOrbitRange;
-                //var aOrbit2 = aOrbit1 + aOrbitStartRadius;
-                //var aOrbit3 = aOrbit2 + aWorldGenerator.NextDouble() * aPlanetOrbitRange;
-                var aOrbit = aOrbit1;
-                aPlanets[aIdx] = new CPlanet(this, aTileBuilder, this, aOrbit);
-            }
-            this.Planets = aPlanets;
         }
-        internal CPlanet[] Planets { get; private set; }
         private CSun Sun;
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
@@ -182,9 +312,16 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         private CServiceContainer NewServiceContainer()
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
-            aServiceContainer.AddService<CSun>(() => this.Sun);
+            aServiceContainer.AddService<CSolarSystem>(() => this);
             return aServiceContainer;
         }
         #endregion
+        #region Features
+        [CFeatureDeclaration]
+        private static CFeatureDeclaration AnimateSolarSystemFeatureDeclaration = new CFeatureDeclaration(new Guid("cb53ccd6-dc7e-496f-a720-cbab040e5234"), "SolarSystem.Animate");
+        private CFeature AnimateSolarSystemFeatureM;
+        internal CFeature AnimateSolarSystemFeature => CLazyLoad.Get(ref this.AnimateSolarSystemFeatureM, () => CFeature.Get(this, AnimateSolarSystemFeatureDeclaration));
+        #endregion
+
     }
 }

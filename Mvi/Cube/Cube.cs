@@ -14,6 +14,8 @@ using System.Diagnostics;
 using System.Threading;
 using CharlyBeck.Mvi.Sprites;
 using CharlyBeck.Mvi.Internal;
+using CDoubleRange = System.Tuple<double, double>;
+using CIntegerRange = System.Tuple<int, int>;
 
 namespace CharlyBeck.Mvi.Cube
 {
@@ -59,6 +61,10 @@ namespace CharlyBeck.Mvi.Cube
                 throw new InvalidOperationException();
 
         }
+
+        internal double NextDouble(CDoubleRange r)
+            => this.NextDouble(r.Item1, r.Item2);
+
         internal CVector3Dbl NextWorldPos()
            => new CVector3Dbl(this.NextDouble(), this.NextDouble(), this.NextDouble());
         internal CVector3Dbl NextDouble(CVector3Dbl aMultiplier)
@@ -70,7 +76,16 @@ namespace CharlyBeck.Mvi.Cube
         internal double NextDouble(double aMultiplier)
            => this.NextDouble() * aMultiplier;
         internal int NextInteger(int aMin, int aMax)
-           => this.Random.Next(aMin, aMax);
+        {
+            int aNext;
+            var d = this.NextDouble();
+            var r = aMax - aMin + 1; // +1 weil fast nie genau 1.0 rauskommt.
+            var i = (int)(d * (double)r);
+            aNext = aMin + i;
+            if (aNext > aMin)
+                aNext = aMax; // für den fall, das tatsächlich genau 1.0 rausgekommen ist.
+            return aNext;
+        }
         internal bool NextBoolean()
            => this.NextBoolean(0.5d);
         internal bool NextBoolean(double aPropability)
@@ -90,6 +105,9 @@ namespace CharlyBeck.Mvi.Cube
 
         internal T[] NextEnums<T>()
            => this.NextItems(typeof(T).GetEnumValues().Cast<T>().ToArray());
+
+        internal CVector3Dbl NextVector3Dbl(double aXyz)
+            => new CVector3Dbl(this.NextDouble(aXyz), this.NextDouble(aXyz), this.NextDouble(aXyz));
     }
 
     internal abstract class CRootDimension : CDimension
@@ -1338,6 +1356,9 @@ namespace CharlyBeck.Mvi.Cube
             }
         }
         internal CCubePos CubePos { get; private set; }
+        internal CTile Tile => (from aTile in this.Tiles where aTile.AbsoluteCubeCoordinates == this.CubePos select aTile).First(); // TODO_OPT
+
+
         internal CCubePos TileAbsoluteCoordinates(CCubePos aTileRelativeCubeCoordinates)
             => this.CubePos.Add(aTileRelativeCubeCoordinates);
         

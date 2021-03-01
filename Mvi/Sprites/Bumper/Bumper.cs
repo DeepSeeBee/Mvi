@@ -14,10 +14,13 @@ using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Mvi.Sprites.Quadrant;
 
+using CColoredVertex = System.Tuple<CharlyBeck.Mvi.World.CVector3Dbl, CharlyBeck.Mvi.World.CVector3Dbl>;
+using CDoubleRange = System.Tuple<double, double>;
+using CIntegerRange = System.Tuple<int, int>;
+
 namespace CharlyBeck.Mvi.Sprites.Bumper
 {
-    using CColoredVertex = Tuple<CVector3Dbl, CVector3Dbl>;
-  
+
 
     public sealed class CBumperModel : CModel
     {
@@ -67,7 +70,8 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         protected override CVector3Dbl GenerateOriginalWorldPos()
             => this.GenerateDefaultWorldPos();
 
-        internal override double[] BumperRadiusMax => this.World.DefaultBumperQuadrantBumperRadiusMax;
+        internal override CDoubleRange BumperRadiusMax => this.World.DefaultBumperQuadrantBumperRadiusMax;
+        public override string CategoryName => "Bumper";
     }
 
     public abstract class CBumperSpriteData : CSpriteData
@@ -80,7 +84,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         }
         private static ulong NewId;
         internal readonly ulong Id;
-        internal abstract double[] BumperRadiusMax { get; }
+        internal abstract CDoubleRange BumperRadiusMax { get; }
         protected override void OnBuild()
         {
 
@@ -91,8 +95,8 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             var aTileAbsoluteCubeCoordinates = aTile.AbsoluteCubeCoordinates;
             this.OriginalWorldPos = this.GenerateOriginalWorldPos();
             //this.Coordinates2 = aWorld.GetWorldPos(aTileAbsoluteCubeCoordinates)
-            var aRadiusMax = aWorldGenerator.NextItem(this.BumperRadiusMax);
-            this.Radius = aWorldGenerator.NextDouble(aRadiusMax);
+            //var aRadiusMax = aWorldGenerator.NextItem(this.BumperRadiusMax);
+            this.Radius = this.BuildRadius(); // aWorldGenerator.NextDouble(aRadiusMax);
             this.Color = aWorldGenerator.NextWorldPos();
             this.AccelerateEnums = aWorldGenerator.NextItems<CAccelerateEnum>(AllAccelerateEnums.Fields);
             this.GravityIsEnabled = this.AccelerateEnums.Contains(CAccelerateEnum.Gravity);
@@ -105,6 +109,8 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             this.AccelerateStrength = aWorldGenerator.NextDouble(1.0d);
             this.AccelerateIsRepulsive = aWorldGenerator.NextBoolean();
         }
+        internal virtual double BuildRadius()
+            => this.WorldGenerator.NextDouble(this.BumperRadiusMax);
 
         protected abstract CVector3Dbl GenerateOriginalWorldPos();
         internal CVector3Dbl GenerateDefaultWorldPos()
@@ -136,6 +142,8 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             _Count
         }
 
+        public abstract string CategoryName {get;}
+        public string VmCategoryName => this.CategoryName;
 
         internal enum CAccelerateEnum
         {
@@ -156,6 +164,8 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             base.UpdateBeforeFrameInfo(aAvatarPos);
 
             this.AvatarDistanceToSurface = this.DistanceToAvatar - this.Radius;
+
+                
             this.IsBelowSurface =  this.DistanceToAvatar < this.Radius;
         }
         internal override void UpdateAfteFrameInfo(CFrameInfo aFrameInfo)

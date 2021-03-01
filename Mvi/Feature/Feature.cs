@@ -78,7 +78,7 @@ namespace CharlyBeck.Mvi.Feature
                 if (this.EnabledM != value)
                 {
                     this.EnabledM = value;
-                    //this.NotifyChange(nameof(this.Enabled));
+                    this.NotifyChange(nameof(this.VmEnabled));
                 }
             }
         }
@@ -148,7 +148,7 @@ namespace CharlyBeck.Mvi.Feature
             => this.FeatureDic.Add(aFeature.FeatureDeclaration, aFeature);
 
         private Dictionary<CFeatureDeclaration, CFeature> FeatureDic = new Dictionary<CFeatureDeclaration, CFeature>();
-        public IEnumerator<CFeature> GetEnumerator() => this.FeatureDic.Values.GetEnumerator();
+        public IEnumerator<CFeature> GetEnumerator() => this.FeatureDic.Values.OrderBy(aFeature=>aFeature.FeatureDeclaration.Name).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
         public CFeature GetFeature(CFeatureDeclaration aFeatureDeclaration)
             => this.FeatureDic[aFeatureDeclaration];
