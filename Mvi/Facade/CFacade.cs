@@ -65,6 +65,8 @@ namespace CharlyBeck.Mvi.Facade
             this.Cube.MoveToCubeCoordinatesOnDemand(aCoordinates);
         }
 
+        public CVector3Dbl WorldPos { set => this.Cube.WorldPos = value; }
+
         #region Features
         private CFeatures FeaturesM;
         public CFeatures Features => CLazyLoad.Get(ref this.FeaturesM, this.NewFeatureRegistry);
@@ -98,6 +100,7 @@ namespace CharlyBeck.Mvi.Facade
         }
         #endregion   
         public abstract void AddInGameThreadAction(Action aAction);
+
     }
 
 }

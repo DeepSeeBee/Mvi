@@ -1430,6 +1430,9 @@ namespace CharlyBeck.Mvi.Cube
 
         internal UInt64 GetRandomSeed(CTile aTile)
             => aTile.AbsoluteCubeCoordinates.GetSeed(this.Depth);
+
+        internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
+            => aWorldPos.Divide(this.World.EdgeLenAsPos).ToCubePos();
         #endregion
         internal override bool SubDimensionsIsDefined => true;
 
@@ -1438,6 +1441,57 @@ namespace CharlyBeck.Mvi.Cube
         private CTileDataLoadProxyWorker LoadProxyWorker => CLazyLoad.Get(ref this.LoadProxyWorkerM, () => new CTileDataLoadProxyWorker(this));
 
         public IEnumerable<CTile> Tiles => this.LoadedLeafDimensions.OfType<CTile>();
+
+        public CVector3Dbl WorldPos {  set => this.MoveToCubeCoordinatesOnDemand(this.GetCubePos(value)); }
+        #endregion
+    }
+
+
+    internal sealed class CMultiverseCube : CServiceLocatorNode
+    {
+        #region ctor
+        internal CMultiverseCube(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.Cube = CCube.New(aParent);
+        }
+        public override T Throw<T>(Exception aException)
+            => aException.Throw<T>();
+        #endregion
+        internal readonly CCube Cube;
+        internal bool Active;
+        internal CVector3Dbl WorldPos { set => this.Cube.WorldPos = value; }
+
+    }
+
+    internal sealed class CMultiverseCubes  : CServiceLocatorNode
+    {
+        #region ctor
+        internal CMultiverseCubes(CServiceLocatorNode aParent) : base(aParent)
+        {
+            var aItems = new CMultiverseCube[2];
+            foreach(var aIdx in Enumerable.Range(0, aItems.Length))
+            {
+                aItems[aIdx] = new CMultiverseCube(this);
+            }
+            this.Items = aItems;
+        }
+        public override T Throw<T>(Exception aException)
+            => aException.Throw<T>();
+        #endregion
+        #region Cubes
+        internal readonly CMultiverseCube[] Items;
+        internal IEnumerable<CMultiverseCube> ActiveItems => from aCube in this.Items where aCube.Active select aCube;
+
+        internal int CubeIndex { get; set; }
+
+        internal CVector3Dbl WorldPos
+        {
+            set
+            {
+                foreach (var aItem in this.ActiveItems)
+                    aItem.WorldPos = value;
+            }
+        }
         #endregion
     }
 }

@@ -250,7 +250,8 @@ namespace CharlyBeck.Mvi.World
             => aCubeCoordinates.ToWorldPos() * this.EdgeLenAsPos;
 
         public CCubePos GetCubePos(CVector3Dbl aWorldPos)
-            => aWorldPos.Divide(this.EdgeLenAsPos).ToCubePos();
+            => this.Cube.GetCubePos(aWorldPos);
+            //=> aWorldPos.Divide(this.EdgeLenAsPos).ToCubePos();
 
         internal readonly double NearBumperSpeedForRadius0;
         internal readonly int TileBumperCountMin;

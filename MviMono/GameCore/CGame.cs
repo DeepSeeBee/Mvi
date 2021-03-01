@@ -377,6 +377,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             => true; //this.World.GetCubeCoordinatesIsDefined(this.Avatar.WorldPos);
         internal CCubePos GetCubeCoordinates()
             => this.World.GetCubePos(this.Avatar.WorldPos);
+        internal CVector3Dbl WorldPos => this.Avatar.WorldPos;
 
     }
     internal sealed class CGame : Game
@@ -533,7 +534,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 var aDistance1 = (float)(aThroodle * this.CamSpeedThroodle * aGameTime.ElapsedGameTime.TotalSeconds);
                 var aDistance2 = this.SlowDownNearObjectFeature.Enabled
                                ? aDistance1 * this.World.FrameInfo.NearPlanetSpeed
-                               : aDistance1;
+                               : aDistance1 * 0.4;
                 var aDistance3 = aDistance2  * this.World.Speed;
                 var aDistance = aDistance3;
                 aAvatar = aAvatar.MoveAlongViewAngle((float)aDistance);
@@ -575,11 +576,18 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         private void UpdateWorld(GameTime aGameTime)
         {
             var aGameAvatar = this.GameAvatar;
-            var aCubeCoordinatesIsDefined = aGameAvatar.GetCubeCoordinatesIsDefined();
- 
-            if(aCubeCoordinatesIsDefined)
+            var aNew = true;
+            if (aNew)
             {
-                this.MonoFacade.SetCubeCoordinates(aGameAvatar.GetCubeCoordinates());
+                this.MonoFacade.WorldPos = aGameAvatar.WorldPos;
+            }
+            else
+            {
+                var aCubeCoordinatesIsDefined = aGameAvatar.GetCubeCoordinatesIsDefined();
+                if (aCubeCoordinatesIsDefined)
+                {
+                    this.MonoFacade.SetCubeCoordinates(aGameAvatar.GetCubeCoordinates());
+                }
             }
 
             this.World.Update(this.Avatar.WorldPos, aGameTime);
