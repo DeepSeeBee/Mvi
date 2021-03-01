@@ -52,7 +52,7 @@ namespace CharlyBeck.Mvi.Sprites.Quadrant
             var aWorld = aTileBuilder.World;
             var aSize2 = aWorld.EdgeLen;
 
-            this.Coordinates2 = aWorld.GetWorldPos(aTile);
+            this.Coordinates2 = this.GetWorldPos(aTile.AbsoluteCubeCoordinates);
             this.Size2 = aSize2;
 
             this.Center = new CVector3Dbl(this.Coordinates2.x + aSize2 / 2d, this.Coordinates2.y + aSize2 / 2d, this.Coordinates2.z + aSize2 / 2d);
@@ -74,7 +74,7 @@ namespace CharlyBeck.Mvi.Sprites.Quadrant
         internal static readonly CFeatureDeclaration QuadrantFeatureDeclaration = new CFeatureDeclaration(new Guid("4af89c99-2734-4c25-a8d5-9417a2d17b77"), "Quadrant");
         public readonly CFeature QuadrantFeature;
         #endregion
-        public override CVector3Dbl WorldPos => this.World.GetWorldPos(this.AbsoluteCubeCoordinates);
+        public override CVector3Dbl WorldPos => this.GetWorldPos(this.AbsoluteCubeCoordinates);
         internal override ISprite NewSprite()
            => this.NewSprite<CQuadrantSpriteData>(this);
         internal override int ChangesCount => 0;

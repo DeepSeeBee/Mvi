@@ -106,6 +106,14 @@ namespace CharlyBeck.Mvi.Sprites
         }
  
         internal readonly CTileDescriptor TileDescriptor;
+
+        #region MultiverseCube
+        private CMultiverseCube MultiverseCubeM;
+        private CMultiverseCube MultiverseCube => CLazyLoad.Get(ref this.MultiverseCubeM, () => this.ServiceContainer.GetService<CMultiverseCube>());
+        #endregion
+
+        internal CVector3Dbl GetWorldPos(CCubePos aCubePos)
+            => this.MultiverseCube.GetWorldPos(aCubePos);
     }
 
     public abstract class CSpriteData : CTileDescriptorBuildable

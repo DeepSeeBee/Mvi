@@ -246,17 +246,17 @@ namespace CharlyBeck.Mvi.World
         public readonly double EdgeLen;
         internal readonly CVector3Dbl EdgeLenAsPos;
 
-        internal CVector3Dbl GetWorldPos(CTile aTile)
-           => this.GetWorldPos(aTile.AbsoluteCubeCoordinates);
+        //internal CVector3Dbl GetWorldPos(CTile aTile)
+        //   => this.GetWorldPos(aTile.AbsoluteCubeCoordinates);
 
         internal CVector3Dbl NewCoords(double xyz)
             => new CVector3Dbl(xyz);
 
-        internal CVector3Dbl GetWorldPos(CCubePos aCubeCoordinates)
-           => this.GetWorldPos2(aCubeCoordinates); // .Subtract(this.CubeCenterOffset)
+        //internal CVector3Dbl GetWorldPos(CCubePos aCubeCoordinates)
+        //   => this.GetWorldPos2(aCubeCoordinates); // .Subtract(this.CubeCenterOffset)
 
-        internal CVector3Dbl GetWorldPos2(CCubePos aCubeCoordinates)
-            => aCubeCoordinates.ToWorldPos() * this.EdgeLenAsPos;
+        //internal CVector3Dbl GetWorldPos2(CCubePos aCubeCoordinates)
+        //    => aCubeCoordinates.ToWorldPos() * this.EdgeLenAsPos;
 
         //public CCubePos GetCubePos(CVector3Dbl aWorldPos)
         //    => this.Cube.GetCubePos(aWorldPos);

@@ -1292,7 +1292,16 @@ namespace CharlyBeck.Mvi.Cube
         internal override int DimensionIdx => 0;
         internal override int AllocateSubDimensionsSize => 0;
 
-        internal CCubePosKey CubePosKey => this.AbsoluteCubeCoordinates.GetKey(this.Cube.Depth);
+        #region MultiverseCube
+        private CMultiverseCube MultiVerseCubeM;
+        private CMultiverseCube MultiVerseCube => CLazyLoad.Get(ref this.MultiVerseCubeM, () => this.ServiceContainer.GetService<CMultiverseCube>());
+        #endregion
+
+        #region WorldPos
+        internal CVector3Dbl WorldPos => this.MultiVerseCube.GetWorldPos(this.AbsoluteCubeCoordinates);
+        #endregion
+
+
     }
 
     internal sealed class CPlane : CNodeDimension
@@ -1497,7 +1506,7 @@ namespace CharlyBeck.Mvi.Cube
         #region ctor
         internal CMultiverseCube(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.Cube = CCube.New(aParent);
+            this.Cube = CCube.New(this);
         }
         public override T Throw<T>(Exception aException)
             => aException.Throw<T>();
@@ -1513,6 +1522,22 @@ namespace CharlyBeck.Mvi.Cube
         internal CCubePos CubePosOffset { get; set; }
         internal void MoveTo(CCubePos aCubePos, bool aTranslateToCenter)
             => this.Cube.MoveTo(aCubePos + this.CubePosOffset, aTranslateToCenter);
+
+        internal CVector3Dbl GetWorldPos(CCubePos aCubePos)
+            => (aCubePos - this.CubePosOffset).ToWorldPos() * this.World.EdgeLenAsPos;
+
+        private CWorld WorldM;
+        private CWorld World => CLazyLoad.Get(ref this.WorldM, () => this.ServiceContainer.GetService<CWorld>());
+        #region ServiceContainer
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            aServiceContainer.AddService<CMultiverseCube>(() => this);
+            return aServiceContainer;
+        }
+        #endregion
     }
 
     internal sealed class CMultiverseCubes  
@@ -1579,15 +1604,14 @@ namespace CharlyBeck.Mvi.Cube
         internal void Swap(CBumperSpriteData aSource)
         {
             if (aSource.Cube.RefEquals<CCube>(this[0].Cube)
-                 && !aSource.IsBelowSurfaceInWarpArea
-                 && aSource.IsBelowSurface)
+                && aSource.IsBelowSurface)
             {
                 this[1].CubePosOffset = aSource.TargetCubePos;
                 this[1].MoveTo(new CCubePos(), true);
-                this[1].Active = true;
+                //this[1].Active = true;
             }
 
-             if(aSource.Cube.RefEquals<CCube>(this[1].Cube)
+             if(aSource.Cube.RefEquals<CCube>(this[0].Cube)
                  && aSource.IsBelowSurfaceInWarpArea)
             {
                 var aFirst = this[0];

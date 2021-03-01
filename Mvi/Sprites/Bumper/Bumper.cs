@@ -115,7 +115,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
         protected abstract CVector3Dbl GenerateOriginalWorldPos();
         internal CVector3Dbl GenerateDefaultWorldPos()
-            => this.World.GetWorldPos(this.Tile.AbsoluteCubeCoordinates).Add(this.WorldGenerator.NextDouble(this.World.EdgeLenAsPos));
+            => this.GetWorldPos(this.Tile.AbsoluteCubeCoordinates).Add(this.WorldGenerator.NextDouble(this.World.EdgeLenAsPos));
         internal override ISprite NewSprite()
            => this.Facade.NewSprite(this);
         internal override int ChangesCount => (int)CChangeEnum._Count;
