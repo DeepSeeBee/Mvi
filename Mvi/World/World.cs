@@ -136,6 +136,7 @@ namespace CharlyBeck.Mvi.World
            => aException.Throw<T>();
 
 
+
         #endregion
     }
     internal sealed class CTileBuilder : CServiceLocatorNode
@@ -210,13 +211,15 @@ namespace CharlyBeck.Mvi.World
         }
         #endregion
         #region Cube
+        internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
+            => aWorldPos.Divide(this.EdgeLenAsPos).ToCubePos();
         private CCube SimpleCubeM;
         internal CCube SimpleCube => CLazyLoad.Get(ref this.SimpleCubeM, () => CCube.New(this));
         #endregion
         #region MultiverseCubes
-        internal ICube Cube => this.SimpleCube;
-        private CMultiverseCube MultiverseCubeM;
-        internal CMultiverseCube MultiverseCube => CLazyLoad.Get(ref this.MultiverseCubeM, ()=>new CMultiverseCube(this));
+        internal ICube Cube => this.MultiverseCubes; // this.SimpleCube;
+        private CMultiverseCubes MultiverseCubesM;
+        internal CMultiverseCubes MultiverseCubes => CLazyLoad.Get(ref this.MultiverseCubesM, ()=>new CMultiverseCubes(this));
         #endregion
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
@@ -226,6 +229,7 @@ namespace CharlyBeck.Mvi.World
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CWorld>(() => this);
             aServiceContainer.AddService<CNewBorderFunc>(() => new CNewBorderFunc(()=> this.CubeBorder));
+            aServiceContainer.AddService<CMultiverseCubes>(() => this.MultiverseCubes);
             return aServiceContainer;
         }
         #endregion
@@ -338,7 +342,7 @@ namespace CharlyBeck.Mvi.World
             //this.NearestBumperDistanceToSurface = default;
             //this.NearestBumperIsEntered = default;
             this.NearPlanetSpeedM = default;
-            this.CubePositions = default;
+            this.CubePositionsM = default;
 
             this.World = aWorld;
             this.WorldPos = aWorldPos;
@@ -361,7 +365,8 @@ namespace CharlyBeck.Mvi.World
         public IEnumerable<CSpriteData> SpriteDatasOrderedByDistance => from aItem in this.SpriteDistances select aItem.Item1;
         public readonly Tuple<CBumperSpriteData, double> NearestBumperSpriteDataAndDistance;
         public CBumperSpriteData NearestBumper => this.NearestBumperSpriteDataAndDistance.Item1;
-        public IEnumerable<CCubePos> CubePositions { get; private set; }
+        private IEnumerable<CCubePos> CubePositionsM;
+        public IEnumerable<CCubePos> CubePositions { get => this.CubePositionsM is object ? this.CubePositionsM : Array.Empty<CCubePos>(); private set => this.CubePositionsM = value; }
 
         
         // public double NearestBumperDistance => this.NearestBumperSpriteDataAndDistance.Item2;

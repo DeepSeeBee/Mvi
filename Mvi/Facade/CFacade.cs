@@ -66,7 +66,7 @@ namespace CharlyBeck.Mvi.Facade
         //    this.Cube.MoveToCubeCoordinatesOnDemand(aCoordinates);
         //}
 
-        public CVector3Dbl WorldPos { set => this.Cube.WorldPos = value; }
+        public CVector3Dbl WorldPos { set => this.Cube.MoveTo(this.World.GetCubePos(value), true); }
 
         #region Features
         private CFeatures FeaturesM;

@@ -16,6 +16,9 @@ using CharlyBeck.Mvi.Sprites;
 using CharlyBeck.Mvi.Internal;
 using CDoubleRange = System.Tuple<double, double>;
 using CIntegerRange = System.Tuple<int, int>;
+using CharlyBeck.Mvi.Sprites.SolarSystem;
+using CharlyBeck.Mvi.Sprites.Bumper;
+using CharlyBeck.Mvi.Feature;
 
 namespace CharlyBeck.Mvi.Cube
 {
@@ -108,6 +111,22 @@ namespace CharlyBeck.Mvi.Cube
 
         internal CVector3Dbl NextVector3Dbl(double aXyz)
             => new CVector3Dbl(this.NextDouble(aXyz), this.NextDouble(aXyz), this.NextDouble(aXyz));
+
+        internal Int64 NextInt64(Int64 aMin, Int64 aMax)
+        { 
+            // TODO-use 2x NextInteger + byte swapping to cover whole range
+            var i = unchecked((uint)this.NextInteger(0, int.MaxValue));
+            var range = unchecked((UInt64)(aMax - aMin));
+            var r1 = unchecked((UInt64)i) % range;
+            var r2 = aMin + unchecked((Int64) r1);
+            return r2;
+        }
+
+        internal CCubePos NextCubePos()
+            =>new CCubePos(this.NextInt64(CCubePos.Min.x, CCubePos.Max.x),
+                           this.NextInt64(CCubePos.Min.y, CCubePos.Max.y),
+                           this.NextInt64(CCubePos.Min.z, CCubePos.Max.z) );
+
     }
 
     internal abstract class CRootDimension : CDimension
@@ -196,6 +215,11 @@ namespace CharlyBeck.Mvi.Cube
         internal readonly Int64 x;
         internal readonly Int64 y;
         internal readonly Int64 z;
+
+
+        internal static readonly CCubePos Min = new CCubePos(-1000); // TODO
+        internal static readonly CCubePos Max = new CCubePos(+1000);
+
         public override string ToString() => this.x.ToString() + "|" + this.y.ToString() + "|" + this.z.ToString() + "|";
         public static bool operator ==(CCubePos lhs, CCubePos rhs)
             => lhs.x == rhs.x
@@ -1331,11 +1355,11 @@ namespace CharlyBeck.Mvi.Cube
         #endregion
         #region ICube
         void ICube.Draw() => this.Draw();
-        CVector3Dbl ICube.WorldPos { set => this.WorldPos = value; }
         void ICube.Update(CVector3Dbl aAvatarPos) => this.Update(aAvatarPos);
         void ICube.Update(CFrameInfo aFrameInfo) => this.Update(aFrameInfo);
         IEnumerable<CSpriteData> ICube.SpriteDatas => this.SpriteDatas;
         IEnumerable<CCubePos> ICube.CubePositions { get { yield return this.CubePos; } }
+        void ICube.MoveTo(CCubePos aCubePos, bool aTranslateAvatarPos) => this.MoveTo(aCubePos, aTranslateAvatarPos);
         #endregion
         internal IEnumerable<CSpriteData> SpriteDatas => from aTile in this.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData;
         internal void Update(CVector3Dbl aAvatarPos)
@@ -1397,61 +1421,41 @@ namespace CharlyBeck.Mvi.Cube
 
         private readonly Dictionary<CCubePosKey, Tuple<CCubePosKey, CTile, CTileDescriptor>> MoveDic = new Dictionary<CCubePosKey, Tuple<CCubePosKey, CTile, CTileDescriptor>>();
         
-        private void MoveToCubeCoordinates(CCubePos aNewCubePos)
+        internal void MoveTo(CCubePos aCenteredOrAvatar, bool aTranslateAvatarPos)
         {
-            var aSw = new Stopwatch();
-
-            aSw.Restart();
-            var aDic = this.MoveDic;
-            aDic.Clear();
-
-            var aLeafs1 = (from aLeaf in this.LoadedLeafDimensions.OfType<CTile>() select aLeaf).ToArray();
-            var aLeafs2 = (from aLeaf in aLeafs1 select new Tuple<CCubePosKey, CTile, CTileDescriptor>(aLeaf.AbsoluteCubeCoordinates.GetKey(this.Depth), aLeaf, aLeaf.TileDescriptor)).ToArray();
-            foreach (var aLeaf in aLeafs2)
-                aDic.Add(aLeaf.Item1, aLeaf);
-            this.CubePos = aNewCubePos;
-
-            aSw.Stop();
-            Debug.Print("Prepare took " + aSw.ElapsedMilliseconds.ToString() + " ms.");
-
-            foreach (var aLeaf in aLeafs1)
-            {
-                var aAbsIndex = aLeaf.AbsoluteCubeCoordinates;
-                var aAbsIndexKey = new CCubePosKey(aAbsIndex, this.Depth);
-                var aExists = aDic.ContainsKey(aAbsIndexKey);
-                if (aExists)
-                {
-                    var aOldData = aDic[aAbsIndexKey];
-                    var aTileDescriptor = aOldData.Item3;
-                    aLeaf.ReplaceTileData(aTileDescriptor)();
-                }
-                else
-                {
-                    aLeaf.ReplaceTileData()();
-                }
-            }
-        }
-
-        internal void MoveToCubeCoordinatesOnDemand(CCubePos aAvatarPos)
-        {
-            var aCubePos = aAvatarPos.Subtract(this.CenterOffset);
-            if (aCubePos.IsEqual(this.CubePos))
+            var aNewCubePos = aTranslateAvatarPos
+                         ? aCenteredOrAvatar.Subtract(this.CenterOffset)
+                         : aCenteredOrAvatar
+                         ;
+            if (aNewCubePos.IsEqual(this.CubePos))
             {
                 // no change
             }
-            //else if (!this.World.AvatarAbsCoordIsValid(aNewCubeCoordinates))
-            //{
-            //    // Einfach durchfliegen... muss anderweitig behandelt werden.
-            //}
             else
             {
-                System.Diagnostics.Debug.Print("AvatarPos at: " + aAvatarPos.ToString());
-                System.Diagnostics.Debug.Print("CubePos at: " + aCubePos.ToString());
-                var aStopWatch = new Stopwatch();
-                aStopWatch.Start();
-                this.MoveToCubeCoordinates(aCubePos);
-                aStopWatch.Stop();
-                Debug.Print("MoveToCubeCoordinates took " + aStopWatch.ElapsedMilliseconds);
+                var aDic = this.MoveDic;
+                aDic.Clear();
+                var aLeafs1 = (from aLeaf in this.LoadedLeafDimensions.OfType<CTile>() select aLeaf).ToArray();
+                var aLeafs2 = (from aLeaf in aLeafs1 select new Tuple<CCubePosKey, CTile, CTileDescriptor>(aLeaf.AbsoluteCubeCoordinates.GetKey(this.Depth), aLeaf, aLeaf.TileDescriptor)).ToArray();
+                foreach (var aLeaf in aLeafs2)
+                    aDic.Add(aLeaf.Item1, aLeaf);
+                this.CubePos = aNewCubePos;
+                foreach (var aLeaf in aLeafs1)
+                {
+                    var aAbsIndex = aLeaf.AbsoluteCubeCoordinates;
+                    var aAbsIndexKey = new CCubePosKey(aAbsIndex, this.Depth);
+                    var aExists = aDic.ContainsKey(aAbsIndexKey);
+                    if (aExists)
+                    {
+                        var aOldData = aDic[aAbsIndexKey];
+                        var aTileDescriptor = aOldData.Item3;
+                        aLeaf.ReplaceTileData(aTileDescriptor)();
+                    }
+                    else
+                    {
+                        aLeaf.ReplaceTileData()();
+                    }
+                }
             }
         }
 
@@ -1461,8 +1465,7 @@ namespace CharlyBeck.Mvi.Cube
         internal UInt64 GetRandomSeed(CTile aTile)
             => aTile.AbsoluteCubeCoordinates.GetSeed(this.Depth);
 
-        internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
-            => aWorldPos.Divide(this.World.EdgeLenAsPos).ToCubePos();
+
         #endregion
         internal override bool SubDimensionsIsDefined => true;
 
@@ -1472,15 +1475,15 @@ namespace CharlyBeck.Mvi.Cube
 
         public IEnumerable<CTile> Tiles => this.LoadedLeafDimensions.OfType<CTile>();
 
-        public CVector3Dbl WorldPos {  set => this.MoveToCubeCoordinatesOnDemand(this.GetCubePos(value)); }
+        //public CVector3Dbl WorldPos {  set => this.MoveToCubeCoordinatesOnDemand(this.GetCubePos(value)); }
         #endregion
     }
 
     internal interface ICube
     {
-        CVector3Dbl WorldPos { set; }
+        //CVector3Dbl WorldPos { set; }
         void Draw();
-
+        void MoveTo(CCubePos aCubePos, bool aTranslateAvatarPos);
         void Update(CVector3Dbl aAvatarPos);
         void Update(CFrameInfo aFrameInfo);
         IEnumerable<CSpriteData> SpriteDatas { get; }
@@ -1501,19 +1504,21 @@ namespace CharlyBeck.Mvi.Cube
         #endregion
         internal readonly CCube Cube;
         internal bool Active;
-        internal CVector3Dbl WorldPos { set => this.Cube.WorldPos = value; }
         internal void Draw() => this.Cube.Draw();
         internal void Update(CVector3Dbl aAvatarPos) => this.Cube.Update(aAvatarPos);
         internal void Update(CFrameInfo aFrameInfo) => this.Cube.Update(aFrameInfo);
         internal IEnumerable<CSpriteData> SpriteDatas => this.Cube.SpriteDatas;
         internal IEnumerable<CCubePos> CubePositions { get { yield return this.Cube.CubePos; } }
 
+        internal CCubePos CubePosOffset { get; set; }
+        internal void MoveTo(CCubePos aCubePos, bool aTranslateToCenter)
+            => this.Cube.MoveTo(aCubePos + this.CubePosOffset, aTranslateToCenter);
     }
 
     internal sealed class CMultiverseCubes  
     : 
         CServiceLocatorNode
-    , ICube
+    ,   ICube
     {
         #region ctor
         internal CMultiverseCubes(CServiceLocatorNode aParent) : base(aParent)
@@ -1523,6 +1528,7 @@ namespace CharlyBeck.Mvi.Cube
             {
                 aItems[aIdx] = new CMultiverseCube(this);
             }
+            aItems.First().Active = true;
             this.Items = aItems;
         }
         public override T Throw<T>(Exception aException)
@@ -1531,25 +1537,19 @@ namespace CharlyBeck.Mvi.Cube
         #region Cubes
         internal readonly CMultiverseCube[] Items;
         internal IEnumerable<CMultiverseCube> ActiveItems => from aCube in this.Items where aCube.Active select aCube;
-
         internal int CubeIndex { get; set; }
-
-        internal CVector3Dbl WorldPos
-        {
-            set
-            {
-                foreach (var aItem in this.ActiveItems)
-                    aItem.WorldPos = value;
-            }
-        }
         #endregion
         internal void Draw()
         {
-            foreach (var aItem in this.ActiveItems)
-                aItem.Draw();
+            if (this.Cube1VisibleFeature.Enabled
+            && this[0].Active)
+                this[0].Draw();
+            if (this.Cube2VisibleFeature.Enabled
+            && this[1].Active)
+                this[1].Draw();
         }
         #region ICube
-        CVector3Dbl ICube.WorldPos { set => this.WorldPos = value; }
+      
         void ICube.Draw() => this.Draw();
         void ICube.Update(CVector3Dbl aAvatarPos)
         {
@@ -1563,7 +1563,57 @@ namespace CharlyBeck.Mvi.Cube
         }
         IEnumerable<CSpriteData> ICube.SpriteDatas => from aItem in this.ActiveItems from aSpriteData in aItem.SpriteDatas select aSpriteData;
         IEnumerable<CCubePos> ICube.CubePositions => (from aItem in this.ActiveItems select aItem.CubePositions).Flatten();
+        void ICube.MoveTo(CCubePos aCubePos, bool aTranslateToCenter) => this.MoveTo(aCubePos, aTranslateToCenter);
         #endregion
+
+        private CMultiverseCube this[int idx]
+        {
+            get => this.Items[idx];
+            set => this.Items[idx] = value;
+        }
+        internal bool SecondIsActive
+        {
+            get => this[1].Active;
+            set => this[1].Active = value;
+        }
+        internal void Swap(CBumperSpriteData aSource)
+        {
+            if (aSource.Cube.RefEquals<CCube>(this[0].Cube)
+                 && !aSource.IsBelowSurfaceInWarpArea
+                 && aSource.IsBelowSurface)
+            {
+                this[1].CubePosOffset = aSource.TargetCubePos;
+                this[1].MoveTo(new CCubePos(), true);
+                this[1].Active = true;
+            }
+
+             if(aSource.Cube.RefEquals<CCube>(this[1].Cube)
+                 && aSource.IsBelowSurfaceInWarpArea)
+            {
+                var aFirst = this[0];
+                var aSecond = this[1];
+                aFirst.Active = false;
+                aSecond.Active = true;
+                this[0] = aSecond;
+                this[1] = aFirst;
+            }
+        }
+        internal void MoveTo(CCubePos aCubePos, bool aTranslateToCenter)
+            => this[0].MoveTo(aCubePos, aTranslateToCenter);
+
+
+        #region Features
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration Cube1VisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("bc921412-a77a-4942-92f4-dc304f59a767"), "Multiverse.Cube1.Visible");
+        private CFeature Cube1VisibleFeatureM;
+        private CFeature Cube1VisibleFeature => CLazyLoad.Get(ref this.Cube1VisibleFeatureM, () => CFeature.Get(this, Cube1VisibleFeatureDeclaration));
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration Cube2VisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("34928767-f86a-4a65-8bb8-09c0fe04f1ca"), "Multiverse.Cube2.Visible");
+        private CFeature Cube2VisibleFeatureM;
+        private CFeature Cube2VisibleFeature => CLazyLoad.Get(ref this.Cube2VisibleFeatureM, () => CFeature.Get(this, Cube2VisibleFeatureDeclaration));
+        #endregion
+
+
 
     }
 }

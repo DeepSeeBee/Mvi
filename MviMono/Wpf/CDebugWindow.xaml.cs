@@ -124,15 +124,14 @@ namespace CharlyBeck.Mvi.Mono.Wpf
         {
             if (this.IgnoreUpdate)
             {
+                this.IgnoreUpdate = false;
+            }
+            else
+            {
                 var aFrameInfo = this.Game.World.FrameInfo;
                 this.NearestBumperNullable = aFrameInfo.NearestBumperIsDefined ? aFrameInfo.NearestBumper : default;
                 this.CubePositions = aFrameInfo.CubePositions;
                 this.Speed = this.Game.World.Speed;
-
-            }
-            else
-            {
-                this.IgnoreUpdate = false;
             }
         }
 

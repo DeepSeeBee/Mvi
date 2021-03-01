@@ -108,6 +108,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             this.AccelerateVector = aWorldGenerator.NextWorldPos();
             this.AccelerateStrength = aWorldGenerator.NextDouble(1.0d);
             this.AccelerateIsRepulsive = aWorldGenerator.NextBoolean();
+            this.TargetCubePos = aWorldGenerator.NextCubePos();
         }
         internal virtual double BuildRadius()
             => this.WorldGenerator.NextDouble(this.BumperRadiusMax);
@@ -134,7 +135,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         public CVector3Dbl AccelerateVector { get; private set; }
         public double AccelerateStrength { get; private set; }
         public bool AccelerateIsRepulsive { get; private set; }
-
+        internal CCubePos TargetCubePos { get; private set; }
         public CBumperModel BumperModel => this.World.Models.BumperModel;
 
         internal enum CChangeEnum
@@ -154,7 +155,8 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         internal override bool ModelIsDefined => true;
 
         public double AvatarDistanceToSurface { get; private set; }
-        public bool IsBelowSurface { get; set; }
+        public bool IsBelowSurface { get; private set; }
+        internal bool IsBelowSurfaceInWarpArea { get; private set; }
         public bool IsNearestBumperToAvatar { get; set; }
 
         internal override CModel NewModel() => this.World.Models.BumperModel;
@@ -167,6 +169,9 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
                 
             this.IsBelowSurface =  this.DistanceToAvatar < this.Radius;
+            //System.Diagnostics.Debug.Assert(!this.IsBelowSurface);
+            this.IsBelowSurfaceInWarpArea = this.DistanceToAvatar < this.Radius / 2;
+            //System.Diagnostics.Debug.Assert(!this.IsBelowSurfaceInWarpArea);
         }
         internal override void UpdateAfteFrameInfo(CFrameInfo aFrameInfo)
         {
@@ -174,7 +179,18 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
             this.IsNearestBumperToAvatar = aFrameInfo.NearestBumperIsDefined
                                         && aFrameInfo.NearestBumper.RefEquals<CBumperSpriteData>(this);
+            if (this.IsBelowSurface)
+            {
+                this.MultiverseCubes.Swap(this);
+            }
         }
+
+        #region Cube
+        private CMultiverseCubes MultiverseCubesM;
+        private CMultiverseCubes MultiverseCubes => CLazyLoad.Get(ref this.MultiverseCubesM, () => this.ServiceContainer.GetService<CMultiverseCubes>());
+        private CCube CubeM;
+        internal CCube Cube => CLazyLoad.Get(ref this.CubeM, () => this.ServiceContainer.GetService<CCube>());
+        #endregion
     }
 
 
