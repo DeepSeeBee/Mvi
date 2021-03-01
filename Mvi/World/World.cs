@@ -213,6 +213,10 @@ namespace CharlyBeck.Mvi.World
         private CCube CubeM;
         internal CCube Cube => CLazyLoad.Get(ref this.CubeM, () => CCube.New(this));
         #endregion
+        #region MultiverseCubes
+        private CMultiverseCube MultiverseCubeM;
+        internal CMultiverseCube MultiverseCube => CLazyLoad.Get(ref this.MultiverseCubeM, ()=>new CMultiverseCube(this));
+        #endregion
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
