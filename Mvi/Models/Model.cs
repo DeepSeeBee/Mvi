@@ -57,5 +57,35 @@ namespace Mvi.Models
         internal CBumperModel BumperModel;
 
     }
+    public abstract class CShapeScales<TShape>
+    {
+        public CShapeScales(int aMinScale, int aMaxScale)
+        {
+            this.MinScale = aMinScale;
+            this.MaxScale = aMaxScale;
+        }
 
+        protected void Init()
+        {
+            var c = this.Count;
+            var aShapes = new TShape[c];
+            for (var i = 0; i < c; ++i)
+            {
+                var aScale = i + this.MinScale;
+                aShapes[i] = this.NewShape(aScale);
+            }
+            this.Shapes = aShapes;
+        }
+
+        public readonly int MinScale;
+        public readonly int MaxScale;
+        internal int Count => this.MaxScale - this.MinScale;
+        protected TShape[] Shapes;
+
+
+        public TShape GetShapeByScale(int aScale) => this.Shapes[Math.Max(Math.Min(aScale, this.MaxScale-1), this.MinScale) - this.MinScale];
+
+
+        protected abstract TShape NewShape(int aScale);
+    }
 }

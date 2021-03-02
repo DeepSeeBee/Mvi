@@ -184,8 +184,8 @@ namespace CharlyBeck.Mvi.World
             this.CubeBorder = 1;
             this.EdgeLen = 1.0d;
             this.EdgeLenAsPos = new CVector3Dbl(this.EdgeLen);
-            this.TileBumperCountMin = 5;
-            this.TileBumperCountMax = 10;
+            this.TileBumperCountMin = 3;
+            this.TileBumperCountMax = 7;
             this.BumperGravityRadiusMax = 1.0d;
             this.BumperGravityStrengthMax = 1.0d;
             this.NearBumperSpeedMin = 0.0001;
@@ -265,9 +265,9 @@ namespace CharlyBeck.Mvi.World
         internal readonly double NearBumperSpeedForRadius0;
         internal readonly int TileBumperCountMin;
         internal readonly int TileBumperCountMax;
-        internal readonly CDoubleRange DefaultBumperQuadrantBumperRadiusMax = new CDoubleRange(0.00001d, 0.01d);
+        internal readonly CDoubleRange DefaultBumperRadiusMax = new CDoubleRange(0.00001d, 0.01d);
         internal readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.05d);
-        internal readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.001d, 0.1d);
+        internal readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.1d, 0.5d);
         internal readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.1d, 0.2d);
 
         internal readonly double BumperGravityRadiusMax;
@@ -276,11 +276,11 @@ namespace CharlyBeck.Mvi.World
         internal readonly Int64 CubeBorder;
         internal double OrbDayDurationMin => 1d;
         internal double OrbDayDurationMax => 20d;
-        internal CDoubleRange TrabantYearDurationRange => new CDoubleRange(4000d, 9000d);
+        internal CDoubleRange PlanetYearDurationRange => new CDoubleRange(0.01d, 10d); // new CDoubleRange(0.01d, 20d);
         internal CDoubleRange MoonYearDurationRange => new CDoubleRange(40d, 90d);
         internal CIntegerRange PlanetMoonCountRange => new CIntegerRange(0, 2);
         internal double PlanetHasMoonsProbability => 0.3d;
-        internal CDoubleRange PlanetOrbitRange => new CDoubleRange(1.0d, 1.2d);
+        internal CDoubleRange PlanetOrbitRange => new CDoubleRange(2d, 3d);
         internal CDoubleRange MoonOrbitRange => new CDoubleRange(4.0d, 5.0d);
 
 
@@ -390,7 +390,7 @@ namespace CharlyBeck.Mvi.World
             //else
             {
                 var aDistance =  Math.Abs(this.NearestBumper.AvatarDistanceToSurface);
-                var rm = this.World.DefaultBumperQuadrantBumperRadiusMax.Item2;
+                var rm = this.World.DefaultBumperRadiusMax.Item2;
                 var rf =  (this.NearestBumper.Radius / rm);
                 var s1 = 0; // (1d - rf) * this.World.NearBumperSpeedForRadius0;
                 var s2 = aDistance;

@@ -384,15 +384,12 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     {
         internal CGame()
         {
-            
             this.GraphicsDeviceManager = new GraphicsDeviceManager(this);
             //this.GraphicsDeviceManager.IsFullScreen = true;
             this.Content.RootDirectory = "Content\\bin";
-            this.ServiceLocatorNode.ServiceContainer.AddService<CGame>(() => this);
-
-            this.MonoFacade = new CMonoFacade(this.ServiceLocatorNode, this);
-
-            this.OriginFeature = CFeature.Get(this.MonoFacade, OriginFeatureDeclaration);
+            this.RootServiceLocatorNode.ServiceContainer.AddService<CGame>(() => this);
+            this.MonoFacade = new CMonoFacade(this.RootServiceLocatorNode, this);
+            this.OriginFeature = CFeature.Get(this.ServiceLocatorNode, OriginFeatureDeclaration);
         }
 
         protected override void EndRun()
@@ -401,7 +398,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.Avatar.Save();
         }
 
-        internal readonly CServiceLocatorNode ServiceLocatorNode = new CDefaultServiceLocatorNode();
+        private readonly CServiceLocatorNode RootServiceLocatorNode = new CDefaultServiceLocatorNode();
+        internal CServiceLocatorNode ServiceLocatorNode => this.MonoFacade;
 
         internal readonly CMonoFacade MonoFacade;
         public object VmMonoFacade => this.MonoFacade;

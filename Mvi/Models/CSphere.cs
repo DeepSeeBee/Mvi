@@ -87,5 +87,6 @@ namespace CharlyBeck.Mvi.Models
         public readonly CVector3Dbl[] HorizontalOutterPolygonLineList;
         public readonly CVector3Dbl[] TriangleStrips;
 
+
     }
 }

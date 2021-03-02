@@ -21,6 +21,7 @@ using CIntegerRange = System.Tuple<int, int>;
 namespace CharlyBeck.Mvi.Sprites.Bumper
 {
 
+    using COrbit = Tuple<CVector3Dbl, CVector3Dbl, double, double>; // OrbitAngles, OrbitCenter, OrbitRadius, OrbitCurrentRadians
 
     public sealed class CBumperModel : CModel
     {
@@ -29,12 +30,15 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             this.Sphere = new CSphere(4, 1.0f, true);
             var aLen = this.World.SphereScaleCount; // 33;
             this.Spheres = (from aIdx in Enumerable.Range(0, aLen) select new CSphere(aIdx + 1, 1.0d, true)).ToArray();
+            this.Circles = new CCircles(3, 100);
         }
         public override T Throw<T>(Exception aException)
             => aException.Throw<T>();
         public readonly COctaeder Octaeder = new COctaeder(0.01);
         public readonly CSphere Sphere;
         public readonly CSphere[] Spheres;
+        public readonly CCircles Circles;
+
         public int GetSphereIdx(double aDistanceToSurface)
         {
             var aBase = 4;
@@ -70,7 +74,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         protected override CVector3Dbl GenerateOriginalWorldPos()
             => this.GenerateDefaultWorldPos();
 
-        internal override CDoubleRange BumperRadiusMax => this.World.DefaultBumperQuadrantBumperRadiusMax;
+        internal override CDoubleRange BumperRadiusMax => this.World.DefaultBumperRadiusMax;
         public override string CategoryName => "Bumper";
     }
 
@@ -137,7 +141,8 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         public bool AccelerateIsRepulsive { get; private set; }
         internal CCubePos TargetCubePos { get; private set; }
         public CBumperModel BumperModel => this.World.Models.BumperModel;
-
+        public virtual bool OrbitIsDefined => false;
+        public virtual COrbit Orbit => this.Throw<COrbit>(new InvalidOperationException());
         internal enum CChangeEnum
         {
             _Count

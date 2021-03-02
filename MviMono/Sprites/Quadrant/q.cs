@@ -23,7 +23,7 @@ namespace MviMono.Sprites.Quadrant
             this.QuadrantSpriteData = aQuadrantSpriteData;
             var aGraphicDevice = this.GraphicsDevice;
 
-            var aVertexPositionColor = aQuadrantSpriteData.Lines2.ToVector3s().ToVertexPositionColor(new Color(0.1f, 0.1f, 0.1f, 0.1f));
+            var aVertexPositionColor = aQuadrantSpriteData.Lines2.ToVector3s().ToVertexPositionColor(CColors.QuadrantGridGray);
             this.LinesVertexBuffer2 = aVertexPositionColor.ToVertexBuffer(aGraphicDevice);
             
             var aUseCornerTriangles = false;

@@ -15,9 +15,31 @@ using CharlyBeck.Mvi.Sprites.Bumper;
 using Microsoft.Xna.Framework;
 using System.Collections;
 using CharlyBeck.Mvi.XnaExtensions;
+using CharlyBeck.Mvi.Models;
+using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Utils3.LazyLoad;
 
 namespace MviMono.Sprites.Bumper
 {
+    internal sealed class CCircleVertexBuffers : CShapeScales<VertexBuffer>
+    {
+        internal CCircleVertexBuffers(GraphicsDevice aGraphicsDevice, CCircles aCircles, Color aColor) : base(aCircles.MinScale, aCircles.MaxScale)
+        {
+            this.GraphicsDevice = aGraphicsDevice;
+            this.Circles = aCircles;
+            this.Color = aColor;
+
+            this.Init();
+        }
+        private readonly CCircles Circles;
+        private readonly GraphicsDevice GraphicsDevice;
+        private readonly Color Color;
+
+        protected override VertexBuffer NewShape(int aScale)
+            => this.Circles.GetShapeByScale(aScale).LineList.ToVector3s().ToVertexPositionColor(this.Color).ToVertexBuffer(this.GraphicsDevice);
+        internal VertexBuffer GetShapeByRadius(double r)=>this.GetShapeByScale(this.Circles.GetScaleByRadius(r));
+    }
+
 
     internal sealed class CMonoBumperModel : CMonoModel
     {
@@ -33,6 +55,9 @@ namespace MviMono.Sprites.Bumper
             this.SphereTriangleListVertexBuffers = (from aSphere in aMviBumperModel.Spheres 
                                                     select aSphere.TriangleStrips.ToVector3s().ToVertexPositionColor(Color.White)
                                                     .ToVertexBuffer(aGraphicsDevice)).ToArray();
+            this.CircleVertexBuffers = new CCircleVertexBuffers(aGraphicsDevice, aMviBumperModel.Circles, CColors.OrbitGray);
+            
+            
             this.MviBumperModel = aMviBumperModel;
 
             this.BlendState = new BlendState();
@@ -42,6 +67,7 @@ namespace MviMono.Sprites.Bumper
             var aRasterizerState = new RasterizerState();
             aRasterizerState.CullMode = CullMode.CullClockwiseFace;
             this.RasterizerState = aRasterizerState;
+
         }
         public override T Throw<T>(Exception aException)
             => aException.Throw<T>();
@@ -51,6 +77,7 @@ namespace MviMono.Sprites.Bumper
         private readonly VertexBuffer SphereLineListVertexBuffer;
         private readonly VertexBuffer[] SphereLineListVertexBuffers;
         private readonly VertexBuffer[] SphereTriangleListVertexBuffers;
+        private readonly CCircleVertexBuffers CircleVertexBuffers;
 
         private VertexBuffer GetSphereLineListVertexBuffer(double aDistanceToSurface)
             => this.SphereLineListVertexBuffers[this.MviBumperModel.GetSphereIdx(aDistanceToSurface)];
@@ -146,54 +173,60 @@ namespace MviMono.Sprites.Bumper
             aGraphicsDevice.BlendState = aOldBlendState;
         }
 
+        private void DrawOrbit(CBumperSprite aBumperSprite)
+        {
+            var aBumperSpriteData = aBumperSprite.BumperSpriteData;
+            if (aBumperSpriteData.OrbitIsDefined
+            && this.DrawOrbitsFeature.Enabled)
+            {
+                var aGraphicsDevice = this.Game.GraphicsDevice;
+                var aOrbit = aBumperSpriteData.Orbit;
+
+                var aOrbitRadians = aOrbit.Item1;
+                var aOrbitCenter = aOrbit.Item2;
+                var aOrbitRadius = aOrbit.Item3;
+
+                var aScaleMatrix = Matrix.CreateScale((float)aOrbitRadius);
+
+                var aRotateMatrix = aOrbitRadians.ToVector3().ToRotateMatrixXyz();
+                var aTranslateMatrix = aOrbitCenter.ToVector3().ToTranslateMatrix(); 
+                
+                var aBasicEffect = this.Game.BasicEffect;
+                var aOldWorldMatrix = aBasicEffect.World;
+
+                var aWorldMatrix = aOldWorldMatrix * aScaleMatrix *aRotateMatrix * aTranslateMatrix ;
+
+                aBasicEffect.World = aWorldMatrix;
+                var aVertexBuffer = this.CircleVertexBuffers.GetShapeByRadius(aOrbitRadius * 1000);
+
+                foreach (var aPass in aBasicEffect.CurrentTechnique.Passes)
+                {
+                    aPass.Apply();
+                    aVertexBuffer.DrawLineList(aGraphicsDevice);
+                }
+                aBasicEffect.World = aOldWorldMatrix;
+            }
+        }
+
         internal void Draw(CBumperSprite aBumperSprite)
         {
             //this.DrawOctaedres(aBumperSprite);
             this.DrawSphere(aBumperSprite);
-                
+            this.DrawOrbit(aBumperSprite);    
 
 
             
 
         }
 
-
-
-        //internal override void Draw()
-        //{
-        //  //  return;
-        //    //foreach (var aSphereDot in this.MviBumperModel.Sphere.Dots)
-        //    {
-
-        //        //var aTranslation = Matrix.CreateTranslation(aSphereDot.ToVector3());
-        //        //aEffect.World = aEffectTemplate.World * aTranslation;
-        //        //this.BumperSprite.UpdateBasicEffect();
-        //        //this.BumperSprite.UpdateBasicEffect();
-        //        foreach (var aPass in this.BumperSprite.BasicEffect.CurrentTechnique.Passes)
-        //        {
-        //             aPass.Apply();
-        //              this.OctaederVertexBuffer.DrawLineList(this.Game.GraphicsDevice);
-        //        }
-        //    }
-
-        //    //this.OctaederVertexBuffer.DrawLineList(this.Game.GraphicsDevice);
-        //}
-
-        //internal override void DrawPrimitives()
-        //{
-        //    base.DrawPrimitives();
-
-        //    //this.BumperSprite.UpdateBasicEffect();
-        //    //foreach (var aPass in this.BumperSprite.BasicEffect.CurrentTechnique.Passes)
-        //    //{
-        //    //    aPass.Apply();
-        //  //      this.OctaederVertexBuffer.DrawLineList(this.Game.GraphicsDevice);
-        //    //}
-
-        //     this.OctaederVertexBuffer.DrawLineList(this.Game.GraphicsDevice);
-        //}
+        #region Features
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration DrawOrbitsFeatureDeclaration = new CFeatureDeclaration(new Guid("54570387-102d-48a8-aac9-a68044fefc54"), "SolarSystem.Orbits.Draw");
+        private CFeature DrawOrbitsFeatureM;
+        private CFeature DrawOrbitsFeature => CLazyLoad.Get(ref this.DrawOrbitsFeatureM, () => CFeature.Get(this, DrawOrbitsFeatureDeclaration));
+        #endregion
     }
- 
+
 
     internal sealed class CBumperSprite
     :

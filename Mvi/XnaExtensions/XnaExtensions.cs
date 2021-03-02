@@ -16,14 +16,23 @@ namespace CharlyBeck.Mvi.XnaExtensions
 
     public static class MatrixExtensions
     {
+        public static Matrix ToRotateMatrixXyz(this Vector3 xyz)
+            => Matrix.CreateRotationX(xyz.X) * Matrix.CreateRotationY(xyz.Y) * Matrix.CreateRotationZ(xyz.Z);
+        public static Matrix ToRotateMatrixZyx(this Vector3 xyz)
+            => Matrix.CreateRotationZ(xyz.Z) * Matrix.CreateRotationY(xyz.Y) * Matrix.CreateRotationX(xyz.X);
+        public static Matrix ToTranslateMatrix(this Vector3 v)
+            => Matrix.CreateTranslation(v);
+
         public static Vector3 Rotate(this Matrix m, Vector3 v) // https://stackoverflow.com/questions/12731704/vector3-matrix-multiplication
             => new Vector3((v.X * m[0, 0] + v.Y * m[0, 1] + v.Z * m[0, 2] + m[0, 3]),
                            (v.X * m[1, 0] + v.Y * m[1, 1] + v.Z * m[1, 2] + m[1, 3]),
                            (v.X * m[2, 0] + v.Y * m[2, 1] + v.Z * m[2, 2] + m[2, 3]));
 
         public static Vector3 RotateXyz(this Vector3 v, Vector3 aXyzAngle)
-            => v.RotateX(aXyzAngle.X).RotateY(aXyzAngle.Y).RotateZ(aXyzAngle.Z);
-
+            => aXyzAngle.ToRotateMatrixXyz().Rotate(v);
+        // => v.RotateX(aXyzAngle.X).RotateY(aXyzAngle.Y).RotateZ(aXyzAngle.Z);
+        public static Vector3 RotateZyx(this Vector3 v, Vector3 aXyzAngle)
+            => aXyzAngle.ToRotateMatrixZyx().Rotate(v);
         public static Vector3 RotateZ(this Vector3 aRotated, float aRadians)
             => Matrix.CreateRotationZ(aRadians).Rotate(aRotated);
 
@@ -150,6 +159,16 @@ namespace CharlyBeck.Mvi.XnaExtensions
             => from aVector3 in aVector3s select new VertexPositionColor(aVector3, aColor);
         public static Vector3 ToVector3(this CVector3Dbl aVector)
             => new Vector3((float)aVector.x, (float)aVector.y, (float)aVector.z);
+        public static CVector3Dbl InvertX(this CVector3Dbl v)
+            => new CVector3Dbl(-v.x, v.y, v.z);
+        public static CVector3Dbl InvertXz(this CVector3Dbl v)
+        => new CVector3Dbl(-v.x, v.y, -v.z);
+        public static CVector3Dbl InvertY(this CVector3Dbl v)
+            => new CVector3Dbl(v.x, -v.y, v.z);
+        public static CVector3Dbl InvertZ(this CVector3Dbl v)
+            => new CVector3Dbl(v.x, v.y, -v.z);
+        public static CVector3Dbl Invert(this CVector3Dbl v)
+            => new CVector3Dbl(-v.x, -v.y, -v.z);
         public static IEnumerable<Vector3> ToVector3s(this IEnumerable<CVector3Dbl> aCoordinates)
             => from aCoordinate in aCoordinates select ToVector3(aCoordinate);
         public static IEnumerable<VertexPosition> ToVertexPosition(this IEnumerable<Vector3> aVectors)

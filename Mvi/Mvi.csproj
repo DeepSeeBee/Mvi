@@ -95,6 +95,7 @@
     <Compile Include="Facade\CFacade.cs" />
     <Compile Include="Feature\Feature.cs" />
     <Compile Include="Internal\Internal.cs" />
+    <Compile Include="Models\CCircles.cs" />
     <Compile Include="Models\CSphere.cs" />
     <Compile Include="Models\COctaeder.cs" />
     <Compile Include="Models\Model.cs" />
