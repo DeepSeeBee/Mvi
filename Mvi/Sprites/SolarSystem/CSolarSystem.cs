@@ -50,7 +50,6 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
                 var aWorld = aTileBuilder.World;
                 var aTrabantCountRange = this.TrabantCountRange;
                 var aHasTrabants = this.TrabantPropability >= aWorldGenerator.NextDouble();
-                var aTrabantRange = this.TrabantCountRange;
                 var aTrabantCount =  aHasTrabants 
                                   ? aWorldGenerator.NextInteger(aTrabantCountRange.Item1, aTrabantCountRange.Item2)
                                   : 0;
@@ -186,7 +185,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             => aException.Throw<T>();
         private readonly CSun Sun;
         internal override COrb ParentOrb => this.Sun;
-        internal override CVector3Dbl GeneratedOrbitPlaneSlope => this.Sun.GeneratedOrbitPlaneSlope;
+        //internal override CVector3Dbl GeneratedOrbitPlaneSlope => this.Sun.GeneratedOrbitPlaneSlope;
 
         #region HasTrabants
         internal override bool HasTrabants => true;
@@ -261,7 +260,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #endregion
         private readonly CQuadrantTileDescriptor QuadrantTileDescriptor;
         protected override CVector3Dbl GenerateOriginalWorldPos()
-            => this.QuadrantTileDescriptor.QuadrantSpriteData.Center; // TODO
+            => this.GenerateDefaultWorldPos(); // this.QuadrantTileDescriptor.QuadrantSpriteData.Center; // TODO
         internal Vector3 OrbitAxis => new Vector3(1, 1, 1);
         internal override CDoubleRange BumperRadiusMax => this.World.SunRadiusMax;
 

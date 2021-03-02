@@ -58,7 +58,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         {
             this.MonoFacade = aMonoFacade;
             var aGame = this.Game;            
-            this.Game.AvatarChanged += this.UpdateBasicEffect;
+            //this.Game.AvatarChanged += this.UpdateBasicEffect;
             this.SpriteDataM = aSpriteData;
 
             this.BasicEffect = new BasicEffect(aGame.GraphicsDevice);
@@ -66,7 +66,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         protected override void Init()
         {
             base.Init();
-            // this.UpdateBasicEffect();
+          // this.UpdateBasicEffect();
 
         }
 
@@ -77,7 +77,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             => this.Delete();
         protected virtual void Delete()
         {
-            this.Game.AvatarChanged -= this.UpdateBasicEffect;
+           this.Game.AvatarChanged -= this.UpdateBasicEffect;
         }
         #endregion
         internal readonly CMonoFacade MonoFacade;
@@ -118,7 +118,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
         internal virtual void OnDraw()
         {
-            this.UpdateBasicEffect();
+           this.UpdateBasicEffect();
             foreach (var aEffectPass in this.BasicEffect.CurrentTechnique.Passes)
             {
                 aEffectPass.Apply();
@@ -127,7 +127,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
         internal virtual void Draw()
         {
-
+            
             this.OnDraw();
         }
         void ISprite.Draw()
@@ -497,7 +497,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 if (aKeyboardState.IsKeyDown(Keys.Left))
                     aRotX -= 1.0f;
                 var aRadians1 = MathHelper.ToRadians((float)(aRotX * this.CamSpeedRy * aGameTime.ElapsedGameTime.TotalSeconds));
-                var aRadians2 = this.DebugWindowUpdate.LookLeftRight;
+                var aRadians2 = this.DebugWindowUpdate.LookLeftRight.Retrieve();
                 var aRadians = aRadians1 + aRadians2;
                 if (aRadians != 0.0f)
                 {
@@ -513,7 +513,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 if (aKeyboardState.IsKeyDown(Keys.Up))
                     aRotY -= 1.0f;
                 var aRadians1 = MathHelper.ToRadians((float)(aRotY * this.CamSpeedRx * aGameTime.ElapsedGameTime.TotalSeconds));
-                var aRadians2 = this.DebugWindowUpdate.LookUpDown;
+                var aRadians2 = this.DebugWindowUpdate.LookUpDown.Retrieve();
                 var aRadians = aRadians1 + aRadians2;
                 if (aRadians != 0f)
                 {
@@ -596,7 +596,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.DebugWindowUpdate.RunUpdateActions();            
             this.UpdateInput(aGameTime);
             this.UpdateWorld(aGameTime);
-            this.DebugWindowUpdate = new CDebugWindowUpdate();
+         //   this.DebugWindowUpdate = new CDebugWindowUpdate();
             base.Update(aGameTime);
         }
         private Point? MousePosition;
@@ -725,9 +725,48 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         #region DebugWindow
         internal sealed class CDebugWindowUpdate
         {
-            internal float LookLeftRight { get; set; }
-            internal float LookUpDown { get; set; }
-            private List<Action> Actions = new List<Action>();
+            internal CDebugWindowUpdate()
+            {
+                this.LookLeftRight = new CValueContainer<float>(this);
+                this.LookUpDown = new CValueContainer<float>(this);
+            }
+            internal sealed class CValueContainer<T>
+            {
+                internal CValueContainer(CDebugWindowUpdate aWindow)
+                {
+                    this.Window = aWindow;
+                }
+                private readonly CDebugWindowUpdate Window;
+                private T ValueM;
+                internal T Value
+                {
+                    get => this.ValueM;
+                    set
+                    {
+                        lock(this)
+                        {
+                            this.ValueM = value;
+                        }
+                    }
+                }
+                internal T Retrieve()
+                {
+                    lock(this)
+                    { 
+                        var aValue = this.Value;
+                        this.Value = default;
+                        return aValue;
+                    }
+                }
+                internal void EnqueueSet(T aValue)
+                {
+                    this.Window.AddAction(delegate () { this.Value = aValue; });
+                }
+
+            }
+            internal readonly CValueContainer<float> LookLeftRight;
+            internal readonly CValueContainer<float> LookUpDown;
+            private readonly  List<Action> Actions = new List<Action>();
             internal void AddAction(Action aAction)
             {
                 lock(this.Actions)
@@ -741,8 +780,9 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 lock(this.Actions)
                 {
                     aActions = this.Actions.ToArray();
+                    this.Actions.Clear();
                 }
-                foreach(var aAction in this.Actions)
+                foreach(var aAction in aActions)
                 {
                     aAction();
                 }

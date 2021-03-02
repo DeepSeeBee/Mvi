@@ -15,7 +15,7 @@ namespace MviMono.Models
     internal sealed class CColors
     {
         internal static readonly Color QuadrantGridGray = new Color(0.1f, 0.1f, 0.1f, 1f);
-        internal static readonly Color OrbitGray = new Color(0.2f, 0.2f, 0.2f, 1f);
+        internal static readonly Color OrbitGray = new Color(0.4f, 0.4f, 0.4f, 1f);
 
     }
     internal sealed class CMonoModels : CServiceLocatorNode

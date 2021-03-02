@@ -74,7 +74,7 @@ namespace CharlyBeck.Mvi.Sprites.Quadrant
         internal static readonly CFeatureDeclaration QuadrantFeatureDeclaration = new CFeatureDeclaration(new Guid("4af89c99-2734-4c25-a8d5-9417a2d17b77"), "Quadrant");
         public readonly CFeature QuadrantFeature;
         #endregion
-        public override CVector3Dbl WorldPos => this.GetWorldPos(this.AbsoluteCubeCoordinates);
+        public override CVector3Dbl WorldPos => this.GetWorldPos(this.CubePosAbs);
         internal override ISprite NewSprite()
            => this.NewSprite<CQuadrantSpriteData>(this);
         internal override int ChangesCount => 0;

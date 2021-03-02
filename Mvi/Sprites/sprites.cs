@@ -111,7 +111,10 @@ namespace CharlyBeck.Mvi.Sprites
         private CMultiverseCube MultiverseCubeM;
         private CMultiverseCube MultiverseCube => CLazyLoad.Get(ref this.MultiverseCubeM, () => this.ServiceContainer.GetService<CMultiverseCube>());
         #endregion
-
+        #region Cube
+        private CCube CubeM;
+        internal CCube Cube => CLazyLoad.Get(ref this.CubeM, () => this.ServiceContainer.GetService<CCube>());
+        #endregion
         internal CVector3Dbl GetWorldPos(CCubePos aCubePos)
             => this.MultiverseCube.GetWorldPos(aCubePos);
     }
@@ -123,7 +126,7 @@ namespace CharlyBeck.Mvi.Sprites
             this.WorldGenerator = aTileBuilder.WorldGenerator;
             this.Facade = aTileBuilder.Facade;
             this.Changes = new BitArray(this.ChangesCount);
-            this.AbsoluteCubeCoordinates = aTileBuilder.Tile.AbsoluteCubeCoordinates;
+            this.CubePosAbs = aTileBuilder.Tile.AbsoluteCubeCoordinates;
             aTileDescriptor.SpriteRegistry.Add(this);
         }
 
@@ -134,7 +137,7 @@ namespace CharlyBeck.Mvi.Sprites
                 yield return new CTranslateAndRotate(this.WorldPos, new CVector3Dbl(0));
             }
         }
-        public readonly CCubePos AbsoluteCubeCoordinates;
+        public readonly CCubePos CubePosAbs;
         public abstract CVector3Dbl WorldPos { get; } // => this.World.GetWorldPos(this.AbsoluteCubeCoordinates);
 
         protected override void OnBuildSprite()
@@ -195,7 +198,7 @@ namespace CharlyBeck.Mvi.Sprites
         public double GetAlpha(CVector3Dbl aCameraPos)
         {
             var d = this.WorldPos.GetDistance(aCameraPos);
-            var dmax = this.World.EdgeLen; // * ((this.World.Cube.EdgeLength - 1) / 2);
+            var dmax = (this.Cube.Depth -1) / 2; // ; ; // * ((this.World.Cube.EdgeLength - 1) / 2);
             var df = Math.Min(1d, Math.Max(0d, d / dmax));
             //var em = 1.0d;
             var a = 1d - df; // 1 - (Math.Exp(df * em) / Math.Pow( Math.E ,em));
@@ -204,10 +207,15 @@ namespace CharlyBeck.Mvi.Sprites
 
         internal virtual void UpdateBeforeFrameInfo(CVector3Dbl aAvatarPos)
         {
-            this.DistanceToAvatar = aAvatarPos.GetDistance(this.WorldPos);
+            this.DistanceToAvatarM = default;
+            this.AvatarIsInCubeM = default;
         }
 
-        public double DistanceToAvatar { get; private set; }
+        private double? DistanceToAvatarM;
+        public double DistanceToAvatar { get=>CLazyLoad.Get(ref this.DistanceToAvatarM, () => this.FrameInfo.AvatarWorldPos.GetDistance(this.WorldPos)); }
+        private bool? AvatarIsInCubeM;
+        public bool AvatarIsInTile => CLazyLoad.Get(ref this.AvatarIsInCubeM, () => this.Cube.CubePosAbs == this.CubePosAbs);
+        internal CFrameInfo FrameInfo => this.World.FrameInfo;
 
         //public virtual Matrix WorldMatrix => Matrix.CreateTranslation(this.WorldPos.ToVector3());
     }

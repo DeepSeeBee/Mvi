@@ -181,7 +181,7 @@ namespace CharlyBeck.Mvi.World
         #region ctor
         internal CWorld(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.CubeBorder = 1;
+            this.CubeBorder = 2;
             this.EdgeLen = 1.0d;
             this.EdgeLenAsPos = new CVector3Dbl(this.EdgeLen);
             this.TileBumperCountMin = 3;
@@ -267,7 +267,7 @@ namespace CharlyBeck.Mvi.World
         internal readonly int TileBumperCountMax;
         internal readonly CDoubleRange DefaultBumperRadiusMax = new CDoubleRange(0.00001d, 0.01d);
         internal readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.05d);
-        internal readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.1d, 0.5d);
+        internal readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.3d, 0.7d);
         internal readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.1d, 0.2d);
 
         internal readonly double BumperGravityRadiusMax;
@@ -276,7 +276,7 @@ namespace CharlyBeck.Mvi.World
         internal readonly Int64 CubeBorder;
         internal double OrbDayDurationMin => 1d;
         internal double OrbDayDurationMax => 20d;
-        internal CDoubleRange PlanetYearDurationRange => new CDoubleRange(0.01d, 10d); // new CDoubleRange(0.01d, 20d);
+        internal CDoubleRange PlanetYearDurationRange => new CDoubleRange(0.1d, 0.3d); // new CDoubleRange(0.01d, 20d);
         internal CDoubleRange MoonYearDurationRange => new CDoubleRange(40d, 90d);
         internal CIntegerRange PlanetMoonCountRange => new CIntegerRange(0, 2);
         internal double PlanetHasMoonsProbability => 0.3d;
@@ -335,7 +335,7 @@ namespace CharlyBeck.Mvi.World
         internal CFrameInfo(CWorld aWorld, CVector3Dbl aWorldPos)
         {
             this.World = default;
-            this.WorldPos = default;
+            this.AvatarWorldPos = default;
             this.SpriteDatas = default;
             this.SpriteDistances = default;
             this.NearestBumperSpriteDataAndDistance = default;
@@ -345,10 +345,10 @@ namespace CharlyBeck.Mvi.World
             this.CubePositionsM = default;
 
             this.World = aWorld;
-            this.WorldPos = aWorldPos;
+            this.AvatarWorldPos = aWorldPos;
             var aCube = aWorld.Cube;
 
-            this.SpriteDatas = aCube.SpriteDatas.ToArray(); // (from aTile in aWorld.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData).ToArray();
+            this.SpriteDatas = aCube.SpriteDatas.ToArray(); 
             this.SpriteDistances = (from aSpriteData in this.SpriteDatas select new Tuple<CSpriteData, double>(aSpriteData, aSpriteData.DistanceToAvatar)).ToArray().OrderBy(aDist=>aDist.Item2).ToArray();
             this.NearestBumperSpriteDataAndDistance = ( from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSpriteData) select new Tuple<CBumperSpriteData, double>((CBumperSpriteData)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();
             this.CubePositions = this.World.Cube.CubePositions;
@@ -359,7 +359,7 @@ namespace CharlyBeck.Mvi.World
         }
 
         public readonly CWorld World;
-        public readonly CVector3Dbl WorldPos;
+        public readonly CVector3Dbl AvatarWorldPos;
         public readonly CSpriteData[] SpriteDatas;
         public readonly CSpriteDistance[] SpriteDistances;
         public IEnumerable<CSpriteData> SpriteDatasOrderedByDistance => from aItem in this.SpriteDistances select aItem.Item1;

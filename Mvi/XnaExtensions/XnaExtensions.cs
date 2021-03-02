@@ -192,12 +192,14 @@ namespace CharlyBeck.Mvi.XnaExtensions
 
         public static void DrawLineList(this VertexBuffer aVertexBuffer, GraphicsDevice aGraphicsDevice)
         {
+            //aGraphicsDevice.SetVertexBuffer(aVertexBuffer);
+            //var aCount = aVertexBuffer.VertexCount / 2;
+            //for (var aIdx = 0; aIdx < aCount; ++aIdx)
+            //{
+            //    aGraphicsDevice.DrawPrimitives(PrimitiveType.LineList, aIdx * 2, 1);
+            //}
             aGraphicsDevice.SetVertexBuffer(aVertexBuffer);
-            var aCount = aVertexBuffer.VertexCount / 2;
-            for (var aIdx = 0; aIdx < aCount; ++aIdx)
-            {
-                aGraphicsDevice.DrawPrimitives(PrimitiveType.LineList, aIdx * 2, 1);
-            }
+            aGraphicsDevice.DrawPrimitives(PrimitiveType.LineList, 0, aVertexBuffer.VertexCount);
         }
         public static void DrawLineStrip(this VertexBuffer aVertexBuffer, GraphicsDevice aGraphicsDevice)
         {
@@ -210,12 +212,14 @@ namespace CharlyBeck.Mvi.XnaExtensions
         }
         public static void DrawTriangleList(this VertexBuffer aVertexBuffer, GraphicsDevice aGraphicsDevice)
         {
+            //aGraphicsDevice.SetVertexBuffer(aVertexBuffer);
+            //var aCount = aVertexBuffer.VertexCount / 3;
+            //for (var aIdx = 0; aIdx < aCount; ++aIdx)
+            //{
+            //    aGraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, aIdx * 3, 1);
+            //}
             aGraphicsDevice.SetVertexBuffer(aVertexBuffer);
-            var aCount = aVertexBuffer.VertexCount / 3;
-            for (var aIdx = 0; aIdx < aCount; ++aIdx)
-            {
-                aGraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, aIdx * 3, 1);
-            }
+            aGraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, aVertexBuffer.VertexCount);
         }
         public static void DrawTriangleStrip(this VertexBuffer aVertexBuffer, GraphicsDevice aGraphicsDevice)
         {

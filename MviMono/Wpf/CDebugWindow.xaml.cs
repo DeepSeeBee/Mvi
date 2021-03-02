@@ -80,22 +80,22 @@ namespace CharlyBeck.Mvi.Mono.Wpf
 
         private void LookLeft(object sender, RoutedEventArgs e)
         {
-            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookLeftRight = (-LookDegreesF).ToRadians(); });
+            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookLeftRight.Value = (-LookDegreesF).ToRadians(); });
         }
 
         private void LookUp(object sender, RoutedEventArgs e)
         {
-            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookUpDown = (-LookDegreesF).ToRadians(); });
+            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookUpDown.Value = (-LookDegreesF).ToRadians(); });
         }
 
         private void LookRight(object sender, RoutedEventArgs e)
         {
-            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookLeftRight = (LookDegreesF).ToRadians(); });
+            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookLeftRight.Value = (LookDegreesF).ToRadians(); });
         }
 
         private void LookDown(object sender, RoutedEventArgs e)
         {
-            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookUpDown = (LookDegreesF).ToRadians(); });
+            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookUpDown.Value = (LookDegreesF).ToRadians(); });
         }
 
         private readonly CGameState GameState;
@@ -131,7 +131,7 @@ namespace CharlyBeck.Mvi.Mono.Wpf
                 var aFrameInfo = this.Game.World.FrameInfo;
                 this.NearestBumperNullable = aFrameInfo.NearestBumperIsDefined ? aFrameInfo.NearestBumper : default;
                 this.CubePositions = aFrameInfo.CubePositions;
-                this.Speed = this.Game.World.Speed;
+               // this.Speed = this.Game.World.Speed;
             }
         }
 

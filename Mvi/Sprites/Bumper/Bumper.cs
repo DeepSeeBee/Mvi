@@ -126,7 +126,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
         public override CVector3Dbl WorldPos => this.OriginalWorldPos;
         internal CVector3Dbl OriginalWorldPos { get; private set; }
-
+        internal bool WarpIsActive { get; set; }
         public double Radius { get; private set; }
         public CVector3Dbl Color { get; private set; }
         internal CAccelerateEnum[] AccelerateEnums { get; private set; }
@@ -184,10 +184,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
             this.IsNearestBumperToAvatar = aFrameInfo.NearestBumperIsDefined
                                         && aFrameInfo.NearestBumper.RefEquals<CBumperSpriteData>(this);
-            if (this.IsBelowSurface)
-            {
-                this.MultiverseCubes.Swap(this);
-            }
+            this.MultiverseCubes.Swap(this);
         }
 
         #region Cube

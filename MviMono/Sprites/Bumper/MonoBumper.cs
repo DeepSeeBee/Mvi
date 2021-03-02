@@ -62,7 +62,8 @@ namespace MviMono.Sprites.Bumper
 
             this.BlendState = new BlendState();
             this.BlendState.ColorSourceBlend = Blend.BlendFactor;
-            this.BlendState.AlphaBlendFunction = BlendFunction.Add; // test
+            this.BlendState.AlphaBlendFunction = BlendFunction.Subtract; // test
+            this.BlendState.AlphaSourceBlend = Blend.BlendFactor;
 
             var aRasterizerState = new RasterizerState();
             aRasterizerState.CullMode = CullMode.CullClockwiseFace;
@@ -109,7 +110,8 @@ namespace MviMono.Sprites.Bumper
         private void DrawSphere(CBumperSprite aBumperSprite)
         {
             var aBumperSpriteData = aBumperSprite.BumperSpriteData;
-            var aAlpha = 1.0d; // aBumperSpriteData.GetAlpha(this.Game.Avatar.WorldPos);
+            var aAlpha = aBumperSpriteData.GetAlpha(this.Game.Avatar.WorldPos); // TODO_OPT
+            var aInvertedAlpha = (float)(1d - aAlpha);
             var aBasicEffect = aBumperSprite.BasicEffect;
             var aOldAlpha = aBasicEffect.Alpha;
             var aOldWorldMatrix = this.Game.WorldMatrix;
@@ -118,6 +120,7 @@ namespace MviMono.Sprites.Bumper
             var aWorldMatrix = aOldWorldMatrix * aScaleMatrix * aTranslateMatrix;
             aBasicEffect.Alpha = (float)aAlpha;
             aBasicEffect.World = aWorldMatrix;
+            var aAvatarIsInTile = aBumperSpriteData.AvatarIsInTile;
             var aAvatarDistanceToSurface = aBumperSpriteData.AvatarDistanceToSurface;
             var aVertexBufferIndex = this.MviBumperModel.GetSphereIdx(aAvatarDistanceToSurface);
             var aLineListVertexBuffer = this.SphereLineListVertexBuffers[aVertexBufferIndex]; // this.GetSphereLineListVertexBuffer(aAvatarDistanceToSurface);
@@ -126,8 +129,7 @@ namespace MviMono.Sprites.Bumper
             var aIsNearest = aBumperSpriteData.IsNearest;
             var aIsBelowSurface = aBumperSpriteData.IsBelowSurface;
 
-//            aAlpha = 1d;
-            var aBumperColor = aBumperSpriteData.Color.ToColor().SetAlpha((float)aAlpha);
+            var aBumperColor = aBumperSpriteData.Color.ToColor().SetAlpha(aInvertedAlpha);
             var aBumperColorWhite = Color.White.SetAlpha((float)aAlpha);
 
             var aGraphicsDevice = this.Game.GraphicsDevice;
@@ -156,11 +158,7 @@ namespace MviMono.Sprites.Bumper
             || aIsBelowSurface)
             { // LineList
                // aBasicEffect.Alpha = 0.0f;
-                aGraphicsDevice.BlendFactor = aBumperColorWhite;
-                if(aIsNearest)
-                {
-                    this.Load();
-                }
+                aGraphicsDevice.BlendFactor = aBumperColorWhite.SetAlpha(aInvertedAlpha);
                 foreach (var aPass in aBasicEffect.CurrentTechnique.Passes)
                 {
                     aPass.Apply();
@@ -193,18 +191,30 @@ namespace MviMono.Sprites.Bumper
                 
                 var aBasicEffect = this.Game.BasicEffect;
                 var aOldWorldMatrix = aBasicEffect.World;
-
+                
                 var aWorldMatrix = aOldWorldMatrix * aScaleMatrix *aRotateMatrix * aTranslateMatrix ;
-
+                
                 aBasicEffect.World = aWorldMatrix;
+                
                 var aVertexBuffer = this.CircleVertexBuffers.GetShapeByRadius(aOrbitRadius * 1000);
+
+
+
+
+                var aOldAlpha = aBasicEffect.Alpha;
+                var aAlpha = aBumperSpriteData.GetAlpha(this.Game.Avatar.WorldPos); // TODO_OPT
+                aBasicEffect.Alpha = (float)aAlpha;
+
+
 
                 foreach (var aPass in aBasicEffect.CurrentTechnique.Passes)
                 {
                     aPass.Apply();
                     aVertexBuffer.DrawLineList(aGraphicsDevice);
                 }
+
                 aBasicEffect.World = aOldWorldMatrix;
+                aBasicEffect.Alpha = aOldAlpha;
             }
         }
 

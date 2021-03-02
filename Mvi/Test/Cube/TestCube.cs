@@ -126,7 +126,7 @@ namespace CharlyBeck.Mvi.Test.Cube
             internal void AssertSprites<T>(CCubePos aCoords) where T : ISprite
             {
                 var aSprites = this.GetSprites<T>();
-                var aMatches = from aSprite in aSprites where aSprite.SpriteData.AbsoluteCubeCoordinates.IsEqual(aCoords) select aSprite;
+                var aMatches = from aSprite in aSprites where aSprite.SpriteData.CubePosAbs.IsEqual(aCoords) select aSprite;
                 var aOk = aMatches.Count() == 1;
                 Test(aOk);
             }

@@ -85,7 +85,7 @@ namespace CharlyBeck.Mvi.Cube
             var r = aMax - aMin + 1; // +1 weil fast nie genau 1.0 rauskommt.
             var i = (int)(d * (double)r);
             aNext = aMin + i;
-            if (aNext > aMin)
+            if (aNext > aMax)
                 aNext = aMax; // für den fall, das tatsächlich genau 1.0 rausgekommen ist.
             return aNext;
         }
@@ -1289,6 +1289,8 @@ namespace CharlyBeck.Mvi.Cube
             return aServiceContainer;
         }
         #endregion
+        internal bool ContainsAvatar => this.AbsoluteCubeCoordinates == this.Cube.CubePosAbs;
+
         internal override int DimensionIdx => 0;
         internal override int AllocateSubDimensionsSize => 0;
 
@@ -1335,7 +1337,7 @@ namespace CharlyBeck.Mvi.Cube
         private CCube(CServiceLocatorNode aParent) : base(aParent)
         {
             this.DimensionCoordinates = new CDimPos();
-            this.CubePos = this.NewCubeCoordinates();
+            this.CubePosAbs = this.NewCubeCoordinates();
             this.World = this.ServiceContainer.GetService<CWorld>();
             this.Init();
         }
@@ -1367,7 +1369,7 @@ namespace CharlyBeck.Mvi.Cube
         void ICube.Update(CVector3Dbl aAvatarPos) => this.Update(aAvatarPos);
         void ICube.Update(CFrameInfo aFrameInfo) => this.Update(aFrameInfo);
         IEnumerable<CSpriteData> ICube.SpriteDatas => this.SpriteDatas;
-        IEnumerable<CCubePos> ICube.CubePositions { get { yield return this.CubePos; } }
+        IEnumerable<CCubePos> ICube.CubePositions { get { yield return this.CubePosAbs; } }
         void ICube.MoveTo(CCubePos aCubePos, bool aTranslateAvatarPos) => this.MoveTo(aCubePos, aTranslateAvatarPos);
         #endregion
         internal IEnumerable<CSpriteData> SpriteDatas => from aTile in this.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData;
@@ -1418,12 +1420,12 @@ namespace CharlyBeck.Mvi.Cube
                     throw new ArgumentException();
             }
         }
-        internal CCubePos CubePos { get; private set; }
-        internal CTile Tile => (from aTile in this.Tiles where aTile.AbsoluteCubeCoordinates == this.CubePos select aTile).First(); // TODO_OPT
+        internal CCubePos CubePosAbs { get; private set; }
+        internal CTile Tile => (from aTile in this.Tiles where aTile.AbsoluteCubeCoordinates == this.CubePosAbs select aTile).First(); // TODO_OPT
 
 
         internal CCubePos TileAbsoluteCoordinates(CCubePos aTileRelativeCubeCoordinates)
-            => this.CubePos.Add(aTileRelativeCubeCoordinates);
+            => this.CubePosAbs.Add(aTileRelativeCubeCoordinates);
         
         #region Move
         internal CCubePos CenterOffset => this.NewCoords((this.Depth - 1) / 2);
@@ -1436,7 +1438,7 @@ namespace CharlyBeck.Mvi.Cube
                          ? aCenteredOrAvatar.Subtract(this.CenterOffset)
                          : aCenteredOrAvatar
                          ;
-            if (aNewCubePos.IsEqual(this.CubePos))
+            if (aNewCubePos.IsEqual(this.CubePosAbs))
             {
                 // no change
             }
@@ -1448,7 +1450,7 @@ namespace CharlyBeck.Mvi.Cube
                 var aLeafs2 = (from aLeaf in aLeafs1 select new Tuple<CCubePosKey, CTile, CTileDescriptor>(aLeaf.AbsoluteCubeCoordinates.GetKey(this.Depth), aLeaf, aLeaf.TileDescriptor)).ToArray();
                 foreach (var aLeaf in aLeafs2)
                     aDic.Add(aLeaf.Item1, aLeaf);
-                this.CubePos = aNewCubePos;
+                this.CubePosAbs = aNewCubePos;
                 foreach (var aLeaf in aLeafs1)
                 {
                     var aAbsIndex = aLeaf.AbsoluteCubeCoordinates;
@@ -1517,7 +1519,7 @@ namespace CharlyBeck.Mvi.Cube
         internal void Update(CVector3Dbl aAvatarPos) => this.Cube.Update(aAvatarPos);
         internal void Update(CFrameInfo aFrameInfo) => this.Cube.Update(aFrameInfo);
         internal IEnumerable<CSpriteData> SpriteDatas => this.Cube.SpriteDatas;
-        internal IEnumerable<CCubePos> CubePositions { get { yield return this.Cube.CubePos; } }
+        internal IEnumerable<CCubePos> CubePositions { get { yield return this.Cube.CubePosAbs; } }
 
         internal CCubePos CubePosOffset { get; set; }
         internal void MoveTo(CCubePos aCubePos, bool aTranslateToCenter)
@@ -1604,15 +1606,18 @@ namespace CharlyBeck.Mvi.Cube
         internal void Swap(CBumperSpriteData aSource)
         {
             if (aSource.Cube.RefEquals<CCube>(this[0].Cube)
-                && aSource.IsBelowSurface)
+            && aSource.IsBelowSurface
+            && !aSource.WarpIsActive)
             {
+                aSource.WarpIsActive = true;
                 this[1].CubePosOffset = aSource.TargetCubePos;
                 this[1].MoveTo(new CCubePos(), true);
                 //this[1].Active = true;
             }
 
-             if(aSource.Cube.RefEquals<CCube>(this[0].Cube)
-                 && aSource.IsBelowSurfaceInWarpArea)
+            if(aSource.Cube.RefEquals<CCube>(this[0].Cube)
+            && !aSource.IsBelowSurface
+            && aSource.WarpIsActive)
             {
                 var aFirst = this[0];
                 var aSecond = this[1];
@@ -1620,6 +1625,7 @@ namespace CharlyBeck.Mvi.Cube
                 aSecond.Active = true;
                 this[0] = aSecond;
                 this[1] = aFirst;
+                aSource.WarpIsActive = false;
             }
         }
         internal void MoveTo(CCubePos aCubePos, bool aTranslateToCenter)
