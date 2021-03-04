@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CharlyBeck.Mvi.Mono.Wpf"
+             xmlns:hid="clr-namespace:CharlyBeck.Mvi.Mono.Input.Hid"
              mc:Ignorable="d" 
         SizeToContent="Manual"
         Top="0"
@@ -30,12 +31,9 @@
                 <Button Content="Down" Click="LookDown"/>
             </UniformGrid>
             <GroupBox DockPanel.Dock="Top" Header="Quadrant" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
-                <UniformGrid Columns="2">
-                    <TextBlock Text="Coordinates" />
                     <TextBlock Text="{Binding VmCubePos}"/>
-                </UniformGrid>
             </GroupBox>
-            <GroupBox DockPanel.Dock="Top" Header="Object" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
+            <GroupBox DockPanel.Dock="Top" Header="Closest Object" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
                 <UniformGrid Columns="2">
                     <TextBlock Text="Category" />
                     <TextBlock Text="{Binding VmNearestBumperNullable.VmCategoryName}"/>
@@ -52,17 +50,24 @@
 
                 </Slider>
             </GroupBox>
+            <Expander Header="Controller" DockPanel.Dock="Top">
+                <hid:CHidDevicesGui x:Name="HidDevicesGui">
+                </hid:CHidDevicesGui>
+            </Expander>
             <GroupBox DockPanel.Dock="Bottom" Header="Features" >
-                <ItemsControl  DockPanel.Dock="Top" ItemsSource="{Binding VmMonoFacade.VmFeatures}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox IsChecked="{Binding VmEnabled}" Content="{Binding VmFeatureDeclaration.VmName}">
-                                </CheckBox>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Stretch" TextAlignment="Center" Text="ESC to uncapture Mouse/Exit Fullscreen" FontSize="9"/>
+                    <ItemsControl  DockPanel.Dock="Top" ItemsSource="{Binding VmMonoFacade.VmFeatures}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding VmEnabled}" Content="{Binding VmFeatureDeclaration.VmName}">
+                                    </CheckBox>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
             </GroupBox>
 
         </DockPanel>

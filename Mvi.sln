@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils3", "Utils3\Utils3.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MviMono", "MviMono\MviMono.csproj", "{61ACF06F-3D12-4938-921C-C43076D7E5CA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HidLibrary", "HidLibrary\src\HidLibrary\HidLibrary.csproj", "{33CF9E24-D55C-41B3-A3D4-5F56095772F8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{61ACF06F-3D12-4938-921C-C43076D7E5CA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{61ACF06F-3D12-4938-921C-C43076D7E5CA}.Release|x64.ActiveCfg = Release|Any CPU
 		{61ACF06F-3D12-4938-921C-C43076D7E5CA}.Release|x64.Build.0 = Release|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.Debug|x64.Build.0 = Debug|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.DebugExternBin|Any CPU.ActiveCfg = Debug|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.DebugExternBin|Any CPU.Build.0 = Debug|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.DebugExternBin|x64.ActiveCfg = Debug|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.DebugExternBin|x64.Build.0 = Debug|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.Release|x64.ActiveCfg = Release|Any CPU
+		{33CF9E24-D55C-41B3-A3D4-5F56095772F8}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

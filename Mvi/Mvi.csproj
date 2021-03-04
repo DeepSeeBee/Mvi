@@ -101,10 +101,15 @@
     <Compile Include="Models\Model.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Story\Gems\CGems.cs" />
+    <None Include="Story\Parameters\CParameters.cs" />
+    <None Include="Story\Quest\CQuest.cs" />
     <Compile Include="Sprites\Bumper\Bumper.cs" />
     <Compile Include="Sprites\Quadrant\Quadrant.cs" />
     <Compile Include="Sprites\SolarSystem\CSolarSystem.cs" />
     <Compile Include="Sprites\sprites.cs" />
+    <Compile Include="Story\Propability\Propability.cs" />
+    <Compile Include="Story\Value\CValue.cs" />
     <Compile Include="Test\Cube\TestCube.cs" />
     <Compile Include="World\World.cs" />
     <Compile Include="XnaExtensions\XnaExtensions.cs" />

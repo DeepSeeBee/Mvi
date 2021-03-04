@@ -32,7 +32,9 @@ namespace CharlyBeck.Utils3.ServiceLocator
         }
         public const CNoParentEnum NoParent = CNoParentEnum.NoParent;
 
-        public abstract T Throw<T>(Exception aException);
+        public virtual T Throw<T>(Exception aException)
+            => aException.Throw<T>();
+
         public void Throw(Exception aExc)
            => this.Throw<object>(aExc);
 

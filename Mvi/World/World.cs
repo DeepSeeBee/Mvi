@@ -181,11 +181,11 @@ namespace CharlyBeck.Mvi.World
         #region ctor
         internal CWorld(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.CubeBorder = 2;
+            this.CubeBorder = 1;
             this.EdgeLen = 1.0d;
             this.EdgeLenAsPos = new CVector3Dbl(this.EdgeLen);
-            this.TileBumperCountMin = 3;
-            this.TileBumperCountMax = 7;
+            this.TileBumperCountMin = 5;
+            this.TileBumperCountMax = 20;
             this.BumperGravityRadiusMax = 1.0d;
             this.BumperGravityStrengthMax = 1.0d;
             this.NearBumperSpeedMin = 0.0001;
@@ -267,8 +267,8 @@ namespace CharlyBeck.Mvi.World
         internal readonly int TileBumperCountMax;
         internal readonly CDoubleRange DefaultBumperRadiusMax = new CDoubleRange(0.00001d, 0.01d);
         internal readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.05d);
-        internal readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.3d, 0.7d);
-        internal readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.1d, 0.2d);
+        internal readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.5d, 0.8d);
+        internal readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.3d, 0.6d);
 
         internal readonly double BumperGravityRadiusMax;
         internal readonly double BumperGravityStrengthMax;
@@ -277,8 +277,8 @@ namespace CharlyBeck.Mvi.World
         internal double OrbDayDurationMin => 1d;
         internal double OrbDayDurationMax => 20d;
         internal CDoubleRange PlanetYearDurationRange => new CDoubleRange(0.1d, 0.3d); // new CDoubleRange(0.01d, 20d);
-        internal CDoubleRange MoonYearDurationRange => new CDoubleRange(40d, 90d);
-        internal CIntegerRange PlanetMoonCountRange => new CIntegerRange(0, 2);
+        internal CDoubleRange MoonYearDurationRange => new CDoubleRange(0.01d, 0.5d);
+        internal CIntegerRange PlanetMoonCountRange => new CIntegerRange(0, 3);
         internal double PlanetHasMoonsProbability => 0.3d;
         internal CDoubleRange PlanetOrbitRange => new CDoubleRange(2d, 3d);
         internal CDoubleRange MoonOrbitRange => new CDoubleRange(4.0d, 5.0d);

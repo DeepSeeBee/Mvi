@@ -115,7 +115,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #endregion
         #region Features
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration OrbitPlaneSlopeFeatureDeclaration = new CFeatureDeclaration(new Guid("4f7f5808-f120-4e66-acb5-ac3f0bfa3429"), "SolarSystem.Orbits.PlaneSlope");
+        private static readonly CFeatureDeclaration OrbitPlaneSlopeFeatureDeclaration = new CFeatureDeclaration(new Guid("4f7f5808-f120-4e66-acb5-ac3f0bfa3429"), "SolarSystem.Orbits.PlaneSlope", true);
         private CFeature OrbitPlaneSlopeFeatureM;
         private CFeature OrbitPlaneSlopeFeature => CLazyLoad.Get(ref this.OrbitPlaneSlopeFeatureM, () => CFeature.Get(this, OrbitPlaneSlopeFeatureDeclaration));
         #endregion
@@ -207,7 +207,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #endregion
         #region Features
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration PlanetsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("3412f4ab-14f3-447d-81fe-923f57993019"), "SolarSystem.Planets.Visible");
+        private static readonly CFeatureDeclaration PlanetsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("3412f4ab-14f3-447d-81fe-923f57993019"), "SolarSystem.Planets.Visible", true);
         private CFeature PlanetsVisibleFeatureM;
         private CFeature PlanetsVisibleFeature => CLazyLoad.Get(ref this.PlanetsVisibleFeatureM, () => CFeature.Get(this, PlanetsVisibleFeatureDeclaration));
         internal override CFeature OrbVisibleFeature => this.PlanetsVisibleFeature;
@@ -238,7 +238,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         internal override bool Visible => base.Visible && this.MoonsVisibleFeature.Enabled;
         #region Features
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration MoonsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("7962faea-31d9-482d-aab4-60667b797d54"), "SolarSystem.Moons.Visible");
+        private static readonly CFeatureDeclaration MoonsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("7962faea-31d9-482d-aab4-60667b797d54"), "SolarSystem.Moons.Visible", true);
         private CFeature MoonsVisibleFeatureM;
         private CFeature MoonsVisibleFeature => CLazyLoad.Get(ref this.MoonsVisibleFeatureM, () => CFeature.Get(this, MoonsVisibleFeatureDeclaration));
         internal override CFeature OrbVisibleFeature => this.MoonsVisibleFeature;
@@ -288,7 +288,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #endregion
         #region Features
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration SunsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("afeb49da-5453-49d5-87ac-94d703e6cb3b"), "SolarSystem.Suns.Visible");
+        private static readonly CFeatureDeclaration SunsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("afeb49da-5453-49d5-87ac-94d703e6cb3b"), "SolarSystem.Suns.Visible", true);
         private CFeature SunsVisibleFeatureM;
         private CFeature SunsVisibleFeature => CLazyLoad.Get(ref this.SunsVisibleFeatureM, () => CFeature.Get(this, SunsVisibleFeatureDeclaration));
         internal override CFeature OrbVisibleFeature => this.SunsVisibleFeature;
@@ -335,7 +335,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #endregion
         #region Features
         [CFeatureDeclaration]
-        private static CFeatureDeclaration AnimateSolarSystemFeatureDeclaration = new CFeatureDeclaration(new Guid("cb53ccd6-dc7e-496f-a720-cbab040e5234"), "SolarSystem.Animate");
+        private static CFeatureDeclaration AnimateSolarSystemFeatureDeclaration = new CFeatureDeclaration(new Guid("cb53ccd6-dc7e-496f-a720-cbab040e5234"), "SolarSystem.Animate", true);
         private CFeature AnimateSolarSystemFeatureM;
         internal CFeature AnimateSolarSystemFeature => CLazyLoad.Get(ref this.AnimateSolarSystemFeatureM, () => CFeature.Get(this, AnimateSolarSystemFeatureDeclaration));
         #endregion

@@ -231,7 +231,7 @@ namespace MviMono.Sprites.Bumper
 
         #region Features
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration DrawOrbitsFeatureDeclaration = new CFeatureDeclaration(new Guid("54570387-102d-48a8-aac9-a68044fefc54"), "SolarSystem.Orbits.Draw");
+        private static readonly CFeatureDeclaration DrawOrbitsFeatureDeclaration = new CFeatureDeclaration(new Guid("54570387-102d-48a8-aac9-a68044fefc54"), "SolarSystem.Orbits.Draw", true);
         private CFeature DrawOrbitsFeatureM;
         private CFeature DrawOrbitsFeature => CLazyLoad.Get(ref this.DrawOrbitsFeatureM, () => CFeature.Get(this, DrawOrbitsFeatureDeclaration));
         #endregion

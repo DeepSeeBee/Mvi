@@ -217,8 +217,8 @@ namespace CharlyBeck.Mvi.Cube
         internal readonly Int64 z;
 
 
-        internal static readonly CCubePos Min = new CCubePos(-1000); // TODO
-        internal static readonly CCubePos Max = new CCubePos(+1000);
+        internal static readonly CCubePos Min = new CCubePos(-100000); // TODO
+        internal static readonly CCubePos Max = new CCubePos(+100000);
 
         public override string ToString() => this.x.ToString() + "|" + this.y.ToString() + "|" + this.z.ToString() + "|";
         public static bool operator ==(CCubePos lhs, CCubePos rhs)
@@ -1634,11 +1634,11 @@ namespace CharlyBeck.Mvi.Cube
 
         #region Features
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration Cube1VisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("bc921412-a77a-4942-92f4-dc304f59a767"), "Multiverse.Cube1.Visible");
+        private static readonly CFeatureDeclaration Cube1VisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("bc921412-a77a-4942-92f4-dc304f59a767"), "Wormhole.Cube1.Visible", true);
         private CFeature Cube1VisibleFeatureM;
         private CFeature Cube1VisibleFeature => CLazyLoad.Get(ref this.Cube1VisibleFeatureM, () => CFeature.Get(this, Cube1VisibleFeatureDeclaration));
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration Cube2VisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("34928767-f86a-4a65-8bb8-09c0fe04f1ca"), "Multiverse.Cube2.Visible");
+        private static readonly CFeatureDeclaration Cube2VisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("34928767-f86a-4a65-8bb8-09c0fe04f1ca"), "Wormhole.Cube2.Visible", true);
         private CFeature Cube2VisibleFeatureM;
         private CFeature Cube2VisibleFeature => CLazyLoad.Get(ref this.Cube2VisibleFeatureM, () => CFeature.Get(this, Cube2VisibleFeatureDeclaration));
         #endregion

@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{61ACF06F-3D12-4938-921C-C43076D7E5CA}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>MviMono</RootNamespace>
-    <AssemblyName>MviMono</AssemblyName>
+    <RootNamespace>CharlyBeck.Mvi.Mono</RootNamespace>
+    <AssemblyName>CharlyBeck.Mvi.Mono</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -72,6 +72,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -82,7 +84,14 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Input\Mouse\CMouse.cs" />
+    <Compile Include="GameViewModel\CGameVm.cs" />
+    <Compile Include="Input\Hid\CHidDevicesGui.xaml.cs">
+      <DependentUpon>CHidDevicesGui.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Input\Hid\CHidDevicesVm.cs" />
     <Compile Include="Models\MonoModels.cs" />
+    <Compile Include="Sfx\Sfx.cs" />
     <Compile Include="Sprites\Bumper\MonoBumper.cs" />
     <Compile Include="Sprites\Quadrant\q.cs" />
     <Compile Include="Wpf\CDebugWindow.xaml.cs">
@@ -107,6 +116,10 @@
     <Content Include="Docu\Docu.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HidLibrary\src\HidLibrary\HidLibrary.csproj">
+      <Project>{33cf9e24-d55c-41b3-a3d4-5f56095772f8}</Project>
+      <Name>HidLibrary</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Mvi\Mvi.csproj">
       <Project>{bad70f47-b3a4-4f9d-8516-f06f53a2b90f}</Project>
       <Name>Mvi</Name>
@@ -117,6 +130,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Input\Hid\CHidDevicesGui.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Wpf\CDebugWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

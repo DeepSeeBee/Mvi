@@ -71,7 +71,7 @@ namespace CharlyBeck.Mvi.Sprites.Quadrant
 
         #region Features
         [CFeatureDeclaration]
-        internal static readonly CFeatureDeclaration QuadrantFeatureDeclaration = new CFeatureDeclaration(new Guid("4af89c99-2734-4c25-a8d5-9417a2d17b77"), "Quadrant");
+        internal static readonly CFeatureDeclaration QuadrantFeatureDeclaration = new CFeatureDeclaration(new Guid("4af89c99-2734-4c25-a8d5-9417a2d17b77"), "Quadrant.GridLines", false);
         public readonly CFeature QuadrantFeature;
         #endregion
         public override CVector3Dbl WorldPos => this.GetWorldPos(this.CubePosAbs);

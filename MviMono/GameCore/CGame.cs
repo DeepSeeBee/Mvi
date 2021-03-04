@@ -29,6 +29,9 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Sprites.Quadrant;
     using MviMono.Sprites.Quadrant;
     using CharlyBeck.Mvi.Feature;
+    using CharlyBeck.Mvi.Mono.GameViewModel;
+    using CharlyBeck.Mvi.Mono.Input.Mouse;
+    using CharlyBeck.Mvi.Mono.Input.Hid;
 
     internal abstract class CBase : CServiceLocatorNode
     {
@@ -364,33 +367,29 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         internal CVector3Dbl WorldPos => this.CamPos.GetGameCoordinates();
     }
 
-    internal struct CGameAvatar
-    {
-        internal CGameAvatar(CGame aGame)
-        {
-            this.Game = aGame;
-        }
-        internal readonly CGame Game;
-        internal  CWorld World => this.Game.World;
-        internal CAvatar Avatar => this.Game.Avatar;
-        internal bool GetCubeCoordinatesIsDefined()
-            => true; //this.World.GetCubeCoordinatesIsDefined(this.Avatar.WorldPos);
-        //internal CCubePos GetCubeCoordinates()
-        //    => this.World.GetCubePos(this.Avatar.WorldPos);
-        internal CVector3Dbl WorldPos => this.Avatar.WorldPos;
-
-    }
     internal sealed class CGame : Game
     {
-        internal CGame()
+        internal CGame(CServiceLocatorNode aParentNullable = null)
         {
+            this.RootServiceLocatorNode = aParentNullable;
+
             this.GraphicsDeviceManager = new GraphicsDeviceManager(this);
             //this.GraphicsDeviceManager.IsFullScreen = true;
             this.Content.RootDirectory = "Content\\bin";
-            this.RootServiceLocatorNode.ServiceContainer.AddService<CGame>(() => this);
             this.MonoFacade = new CMonoFacade(this.RootServiceLocatorNode, this);
             this.OriginFeature = CFeature.Get(this.ServiceLocatorNode, OriginFeatureDeclaration);
+
+            this.RegisterComponentServices(this.RootServiceLocatorNode.ServiceContainer);
         }
+
+        #region GameVm
+        private CGameVm GameVmM;
+        private CGameVm GameVm => CLazyLoad.Get(ref this.GameVmM, () => new CGameVm(this.ServiceLocatorNode));
+        #endregion
+        #region Joystick
+        private CJoystick1 Joystick1M;
+        private CJoystick1 Joystick1 => CLazyLoad.Get(ref this.Joystick1M, () => new CJoystick1(this.RootServiceLocatorNode));
+        #endregion
 
         protected override void EndRun()
         {
@@ -398,9 +397,20 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.Avatar.Save();
         }
 
-        private readonly CServiceLocatorNode RootServiceLocatorNode = new CDefaultServiceLocatorNode();
+        #region ServiceLocator
+        private CServiceLocatorNode RootServiceLocatorNodeM;
+        internal CServiceLocatorNode RootServiceLocatorNode
+        {
+            get => CLazyLoad.Get(ref this.RootServiceLocatorNodeM, () => new CDefaultServiceLocatorNode());
+            private set => this.RootServiceLocatorNodeM = value;
+        }
         internal CServiceLocatorNode ServiceLocatorNode => this.MonoFacade;
-
+        internal void RegisterComponentServices(CServiceContainer aServiceContainer)
+        {
+            this.GameVm.RegisterComponentServices(aServiceContainer);
+            aServiceContainer.AddService<CGame>(() => this);
+        }
+        #endregion
         internal readonly CMonoFacade MonoFacade;
         public object VmMonoFacade => this.MonoFacade;
 
@@ -450,23 +460,40 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         #region Features
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration SlowDownNearObjectFeatureDeclaration = new CFeatureDeclaration(new Guid("4c4030e4-4477-4350-be27-3ad0db397e40"), "Game.SlowDownNearObject");
+        private static readonly CFeatureDeclaration SlowDownNearObjectFeatureDeclaration = new CFeatureDeclaration(new Guid("4c4030e4-4477-4350-be27-3ad0db397e40"), "Game.SlowDownNearObject", false);
         private CFeature SlowDownNearObjectFeatureM;
         private CFeature SlowDownNearObjectFeature => CLazyLoad.Get(ref this.SlowDownNearObjectFeatureM, () => CFeature.Get(this.World, SlowDownNearObjectFeatureDeclaration));
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration XnaMouseEnabledFeatureDeclaration = new CFeatureDeclaration(new Guid("99e270ec-f288-4a86-8cde-caaf8af85cff"), "Mouse.Xna", false);
+        private CFeature XnaMouseEnabledFeatureM;
+        private CFeature XnaMouseEnabledFeature => CLazyLoad.Get(ref this.XnaMouseEnabledFeatureM, () => CFeature.Get(this.World, XnaMouseEnabledFeatureDeclaration));
+      [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration FullScreenFeatureDeclaration = new CFeatureDeclaration(new Guid("99a83ab0-c037-4d78-9d2d-2adc1bcd627e"), "FullScreen", false);
+        private CFeature FullScreenFeatureM;
+        private CFeature FullScreenFeature => CLazyLoad.Get(ref this.FullScreenFeatureM, () => CFeature.Get(this.World, FullScreenFeatureDeclaration));
         #endregion
+        #region Mouse
+        private CMouse MouseM;
+        private CMouse Mouse => CLazyLoad.Get(ref this.MouseM, () => new CMouse(this.ServiceLocatorNode));
+        #endregion
+
         private void UpdateInput(GameTime aGameTime)
         {
-            var aEnableMouseMove = false;
+            var aXnaMouse = this.XnaMouseEnabledFeature.Enabled;
 
+            var aJoystick = this.Joystick1;
+            var aMouse = this.Mouse;
             var aKeyboardState = Keyboard.GetState();
             var aAvatar = this.Avatar;
             bool aChanged = false;
 
-            var aMouseState = Mouse.GetState();
             var aMouseDx = 0f;
             var aMouseDy = 0f;
-            if (aEnableMouseMove)
+            var aMouseThroodle = 0f;
+
+            if (aXnaMouse)
             {
+                var aMouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
                 var aMousePosition = aMouseState.Position;
                 if (this.MousePosition.HasValue)
                 {
@@ -481,14 +508,17 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
                 }
                 this.MousePosition = aMousePosition;
-
+                if (aMouseState.RightButton == ButtonState.Pressed)
+                {
+                    aMouseThroodle = -1.0f;
+                }
             }
-            var aMouseThroodle = 0f;
-            if (aMouseState.RightButton == ButtonState.Pressed)
+
             {
-                aMouseThroodle = -1.0f;
+                var aOffset = this.Mouse.Offset;
+                aMouseDx = (float)aOffset.Item1;
+                aMouseDy = (float)aOffset.Item2;
             }
-
 
             {
                 var aRotX = aMouseDx * 0.5f;
@@ -496,6 +526,9 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                     aRotX += 1.0f;
                 if (aKeyboardState.IsKeyDown(Keys.Left))
                     aRotX -= 1.0f;
+
+                aRotX += (float)aJoystick.GetAxis(CJoystick1.CAxisEnum.Z);
+
                 var aRadians1 = MathHelper.ToRadians((float)(aRotX * this.CamSpeedRy * aGameTime.ElapsedGameTime.TotalSeconds));
                 var aRadians2 = this.DebugWindowUpdate.LookLeftRight.Retrieve();
                 var aRadians = aRadians1 + aRadians2;
@@ -506,12 +539,16 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 }
             }
 
+
             {
                 var aRotY = aMouseDy * 0.5f;
                 if (aKeyboardState.IsKeyDown(Keys.Down))
                     aRotY += 1.0f;
                 if (aKeyboardState.IsKeyDown(Keys.Up))
                     aRotY -= 1.0f;
+
+                //aRotY += (float)aJoystick.GetAxis(CJoystick1.CAxisEnum.Y);
+
                 var aRadians1 = MathHelper.ToRadians((float)(aRotY * this.CamSpeedRx * aGameTime.ElapsedGameTime.TotalSeconds));
                 var aRadians2 = this.DebugWindowUpdate.LookUpDown.Retrieve();
                 var aRadians = aRadians1 + aRadians2;
@@ -527,6 +564,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 aThroodle -= 1.0f;
             if (aKeyboardState.IsKeyDown(Keys.NumPad5))
                 aThroodle += 1.0f;
+
+
+            aThroodle += (float)(-aJoystick.GetThroodle() * 2.0d);
+
             if (aThroodle != 0f)
             {
                 var aDistance1 = (float)(aThroodle * this.CamSpeedThroodle * aGameTime.ElapsedGameTime.TotalSeconds);
@@ -563,32 +604,46 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             }
 
 
+            if (aKeyboardState.IsKeyDown(Keys.Escape))
+            {
+                this.Escape();
+            }
+            //var aController = new SharpDX.XInput.Controller(0);
+            //var aIsConnected = aController.IsConnected;
 
-
+            //if(Joystick.IsSupported)
+            //{
+            //    var aJoystickState = Joystick.GetState(0);
+            //    var aAxes = aJoystickState.Axes[0];
+            //    //aJoystickState.Axes.Length
+            //}
+            //var aState = GamePad.GetState(0);
+           
 
             if (aChanged)
             {
                 this.Avatar = aAvatar;
             }
         }
+
+        protected override void EndDraw()
+        {
+            
+            
+            base.EndDraw();
+            this.GraphicsDeviceManager.IsFullScreen = this.FullScreenFeature.Enabled;
+
+        }
+
+        internal void Escape()
+        {
+            this.XnaMouseEnabledFeature.Enabled = false;
+            this.Mouse.WinFormMouseEnabledFeature.Enabled = false;
+            this.FullScreenFeature.Enabled = false;
+        }
         private void UpdateWorld(GameTime aGameTime)
         {
-            var aGameAvatar = this.GameAvatar;
-            var aNew = true;
-            if (aNew)
-            {
-                this.MonoFacade.WorldPos = aGameAvatar.WorldPos;
-            }
-            else
-            {
-                throw new NotImplementedException();
-                //var aCubeCoordinatesIsDefined = aGameAvatar.GetCubeCoordinatesIsDefined();
-                //if (aCubeCoordinatesIsDefined)
-                //{
-                //    this.MonoFacade.SetCubeCoordinates(aGameAvatar.GetCubeCoordinates());
-                //}
-            }
-
+            this.MonoFacade.WorldPos = this.Avatar.WorldPos; // aGameAvatar.WorldPos;
             this.World.Update(this.Avatar.WorldPos, aGameTime);
         }
         protected override void Update(GameTime aGameTime)
@@ -596,7 +651,11 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.DebugWindowUpdate.RunUpdateActions();            
             this.UpdateInput(aGameTime);
             this.UpdateWorld(aGameTime);
-         //   this.DebugWindowUpdate = new CDebugWindowUpdate();
+            //   this.DebugWindowUpdate = new CDebugWindowUpdate();
+            //       this.Joystick1.BeginUpdate();
+
+            this.Mouse.NextFrame();
+
             base.Update(aGameTime);
         }
         private Point? MousePosition;
@@ -620,7 +679,6 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             }
         }
         internal event Action AvatarChanged;
-        internal CGameAvatar GameAvatar => new CGameAvatar(this);
         #endregion
 
         #region Camera
@@ -815,7 +873,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             return aVertexBuffer;
         }
         [CFeatureDeclaration]
-        internal static readonly CFeatureDeclaration OriginFeatureDeclaration = new CFeatureDeclaration(new Guid("64f3ce9c-9960-443c-9553-a10c395695a0"), "OriginCoordinates");
+        internal static readonly CFeatureDeclaration OriginFeatureDeclaration = new CFeatureDeclaration(new Guid("64f3ce9c-9960-443c-9553-a10c395695a0"), "OriginCoordinates", true);
         private readonly CFeature OriginFeature;
 
         private void DrawCoordinates()

@@ -43,15 +43,17 @@ namespace CharlyBeck.Mvi.Feature
 
     public sealed class CFeatureDeclaration 
     {
-        public CFeatureDeclaration(Guid aGuid, string aName)
+        public CFeatureDeclaration(Guid aGuid, string aName, bool aDefaultEnabled)
         {
             this.Guid = aGuid;
             this.Name = aName;
+            this.DefaultEnabled = aDefaultEnabled;
         }
 
         public string Name { get; private set; }
         public object VmName => this.Name;
         internal readonly Guid Guid;
+        internal bool DefaultEnabled;
     }
 
     public sealed class CFeature :  CChangeNotifier
@@ -59,7 +61,7 @@ namespace CharlyBeck.Mvi.Feature
         public CFeature(CServiceLocatorNode aServiceLocatorNode, CFeatureDeclaration aFeatureDeclaration) :base(aServiceLocatorNode)
         {
             this.FeatureDeclaration = aFeatureDeclaration;
-            this.Enabled = true;
+            this.Enabled = aFeatureDeclaration.DefaultEnabled;
         }
         public static CFeature Get(CServiceLocatorNode aParent, CFeatureDeclaration aFeatureDeclaration)
             => aParent.ServiceContainer.GetService<CFeatures>().GetFeature(aFeatureDeclaration);
@@ -82,13 +84,11 @@ namespace CharlyBeck.Mvi.Feature
                 }
             }
         }
-        private bool? VmEnabledM;
         public bool VmEnabled 
         {
-            get => CLazyLoad.Get(ref this.VmEnabledM, () => this.Enabled); 
+            get => this.Enabled; 
             set 
             {
-                this.VmEnabledM = value;
                 this.ServiceContainer.GetService<CAddInGameTheradAction>()(delegate () { this.Enabled = (bool)value; });
             }
         }

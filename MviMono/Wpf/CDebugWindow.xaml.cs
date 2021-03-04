@@ -1,6 +1,7 @@
 ﻿using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Feature;
 using CharlyBeck.Mvi.Mono.GameCore;
+using CharlyBeck.Mvi.Mono.Input.Hid;
 using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.Sprites.Quadrant;
 using CharlyBeck.Mvi.XnaExtensions;
@@ -39,6 +40,13 @@ namespace CharlyBeck.Mvi.Mono.Wpf
             this.Game = aGame;
             this.GameState = new CGameState(this.Game.ServiceLocatorNode);
             this.DataContext = aGame;
+            this.HidDevicesGui.DataContext = aGame.RootServiceLocatorNode.ServiceContainer.GetService<CHidDevicesVm>();
+
+            this.PreviewKeyDown += delegate(object aSender, KeyEventArgs a)
+            {
+                if (a.Key == Key.Escape)
+                    this.Game.Escape();
+            };
         }
         public static new void Show()
         {
