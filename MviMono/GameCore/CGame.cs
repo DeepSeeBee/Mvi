@@ -273,11 +273,11 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         public CAvatar LookLeftRight(float aRadians)
         {
-            var m = Matrix.CreateRotationY(aRadians);
+            var m = Matrix.CreateFromAxisAngle(this.AxisY, aRadians);
             var u = m.Rotate(this.UpVector);
             var t = this.CamPos + m.Rotate(this.CamTargetOffset);
             var x = m.Rotate(this.AxisX);
-            var y =  this.AxisY;
+            var y = this.AxisY;
             var a = new CAvatar(this.CamPos, t, u, x, y);
             return a;
         }
