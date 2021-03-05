@@ -1,9 +1,10 @@
 ﻿using CharlyBeck.Mvi.Cube;
+using CharlyBeck.Mvi.Cube.Mvi;
 using CharlyBeck.Mvi.Extensions;
 using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Internal;
-using CharlyBeck.Mvi.Sprites.Bumper;
-using CharlyBeck.Mvi.Sprites.Quadrant;
+using CharlyBeck.Mvi.Sprites.Asteroid;
+using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Mvi.XnaExtensions;
@@ -18,126 +19,66 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Utils3.Asap;
 
 namespace CharlyBeck.Mvi.Sprites
 {
     using CTranslateAndRotate = Tuple<CVector3Dbl, CVector3Dbl>;
 
-    public abstract class CBuildable : CServiceLocatorNode
+
+    internal struct CSpriteBuildArgs
     {
-        #region ctor
-        internal CBuildable(CServiceLocatorNode aParent, CTileBuilder aTileBuilder) : base(aParent)
+        internal CSpriteBuildArgs(CQuadrantBuildArgs aQuadrantBuildArgs)
         {
-            this.TileBuilder = aTileBuilder;
+            this.QuadrantBuildArgs = aQuadrantBuildArgs;
         }
-        #endregion
-        #region Build
-        protected virtual void OnBuildSprite() { }
-        protected virtual void OnUpdate() { }
-        public void Update() 
-        {
-            this.CheckBuildIsDone();
-            this.OnUpdate();
-        }
-        protected void Build()
-        {
-            this.CheckNotBuildIsDone();
-            this.OnBuild();
-            this.OnBuildSprite();
-            this.TileBuilder = default;
-            this.BuildIsDone = true;
-            this.Update();
-        }
-        protected abstract void OnBuild();
-        private void CheckNotBuildIsDone()
-        {
-            if (this.BuildIsDone)
-                throw new InvalidOperationException();
-        }
-        private void CheckBuildIsDone()
-        {
-            if (!this.BuildIsDone)
-                throw new InvalidOperationException();
-        }
-        private bool BuildIsDone;
-        private CTileBuilder TileBuilderM;
-        internal CTileBuilder TileBuilder
-        {
-            get
-            {
-                this.CheckNotBuildIsDone();
-                return this.TileBuilderM;
-            }
-            private set { this.TileBuilderM = value; }
-        }
-        internal CTile Tile => this.TileBuilder.Tile;
-        protected virtual void OnDraw()
-        { }
-        public void Draw()
-        {
-            this.CheckBuildIsDone();
-            if(this.Visible)
-            { 
-                this.OnDraw();
-            }
-        }
-        #endregion  
-        internal virtual bool Visible => true;
-        #region Unload
-        internal virtual void OnUnload()
-        {
-        }
-        private bool IsUnloaded;
-        internal void Unload()
-        {
-            if(!this.IsUnloaded)
-            {
-                this.OnUnload();
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
-        }
-        #endregion
-        #region SpriteRegistry
-        private CSpriteRegistry SpriteRegistryM;
-        internal CSpriteRegistry SpriteRegistry => CLazyLoad.Get(ref this.SpriteRegistryM, () => this.ServiceContainer.GetService<CSpriteRegistry>());
-        #endregion
+
+        internal readonly CQuadrantBuildArgs QuadrantBuildArgs;
+
     }
 
-    public abstract class CTileDescriptorBuildable : CBuildable
+    public abstract class CSprite : CReuseable // CTileDescriptorBuildable
     {
-        internal CTileDescriptorBuildable(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) : base(aParent, aTileBuilder)
+        internal CSprite(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.TileDescriptor = aTileDescriptor;
-        }
- 
-        internal readonly CTileDescriptor TileDescriptor;
-
-        #region MultiverseCube
-        private CMultiverseCube MultiverseCubeM;
-        private CMultiverseCube MultiverseCube => CLazyLoad.Get(ref this.MultiverseCubeM, () => this.ServiceContainer.GetService<CMultiverseCube>());
-        #endregion
-        #region Cube
-        private CCube CubeM;
-        internal CCube Cube => CLazyLoad.Get(ref this.CubeM, () => this.ServiceContainer.GetService<CCube>());
-        #endregion
-        internal CVector3Dbl GetWorldPos(CCubePos aCubePos)
-            => this.MultiverseCube.GetWorldPos(aCubePos);
-    }
-
-    public abstract class CSpriteData : CTileDescriptorBuildable
-    {
-        internal CSpriteData(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor):base(aParent, aTileBuilder, aTileDescriptor)
-        {
-            this.WorldGenerator = aTileBuilder.WorldGenerator;
-            this.Facade = aTileBuilder.Facade;
-            this.Changes = new BitArray(this.ChangesCount);
-            this.CubePosAbs = aTileBuilder.Tile.AbsoluteCubeCoordinates;
-            aTileDescriptor.SpriteRegistry.Add(this);
+            this.Facade = this.ServiceContainer.GetService<CFacade>();
+            this.SpritePool = this.ServiceContainer.GetService<CSpritePool>();
+            this.Sprite = this.NewSprite();
+            this.TileCubePos = new CCubePos(0);
+            this.GetWorldPosByCubePosFunc = this.ServiceContainer.GetService<CGetWorldPosByCubePosFunc>();
         }
 
+        internal readonly CSpritePool SpritePool;
+
+        internal void Build(CQuadrantBuildArgs a)
+        {
+            var aSpriteBuildArgs = new CSpriteBuildArgs(a);
+            this.Build(aSpriteBuildArgs);
+        }
+
+        internal virtual void Build(CSpriteBuildArgs a)
+        {
+            this.TileCubePos = a.QuadrantBuildArgs.TileCubePos;
+            this.TileWorldPos = this.GetWorldPos(a.QuadrantBuildArgs.TileCubePos);
+            this.Sprite.Reposition();
+        }
+
+        protected override void OnEndUse()
+        {
+            base.OnEndUse();
+
+            //this.Sprite.Deallocate();
+            this.IsNearestM = default;
+            this.TileCubePos = default;
+            this.TileWorldPos = default;
+        }
+        internal virtual void Draw()
+        {
+            if (this.Visible)
+                this.Sprite.Draw();
+        }
+        internal CCubePos? TileCubePos { get; private set; }
+        public CVector3Dbl? TileWorldPos { get; private set; }
         internal IEnumerable<CTranslateAndRotate> TranslateAndRotates
         {
             get
@@ -145,61 +86,53 @@ namespace CharlyBeck.Mvi.Sprites
                 yield return new CTranslateAndRotate(this.WorldPos, new CVector3Dbl(0));
             }
         }
-        public readonly CCubePos CubePosAbs;
         public abstract CVector3Dbl WorldPos { get; } // => this.World.GetWorldPos(this.AbsoluteCubeCoordinates);
 
-        protected override void OnBuildSprite()
-        {
-            base.OnBuildSprite();
-            this.Sprite = this.NewSprite();
-        }
+        //protected override void OnBuildSprite()
+        //{
+        //    base.OnBuildSprite();
+        //    this.Sprite = this.NewSprite();
+        //}
         internal readonly CFacade Facade;
         internal CWorld World => this.Facade.World;
-        internal readonly CWorldGenerator WorldGenerator;
+        //internal readonly CRandomGenerator RandomGenerator;
         internal abstract ISprite NewSprite();
         internal ISprite<TData> NewSprite<TData>(TData aData)
             => this.Facade.NewSprite<TData>(aData);
         internal virtual int ChangesCount => 0;
-        internal ISprite Sprite { get; private set; }
-        internal readonly BitArray Changes;
-        protected override void OnUpdate()
-        {
-            base.OnUpdate();
-            //if (this.Sprite is object)
-            //{
-            //    this.Sprite.Update(this.Changes);
-            //}
-            //this.Changes.SetAll(false);
-        }
+        internal readonly ISprite Sprite;
+        internal virtual bool Visible => true;
+        //internal readonly BitArray Changes;
+        //protected override void OnUpdate()
+        //{
+        //    base.OnUpdate();
+        //    if (this.Sprite is object)
+        //    {
+        //        this.Sprite.Update(this.Changes);
+        //    }
+        //    this.Changes.SetAll(false);
+        //}
 
 
-        protected override void OnDraw()
-        {
-            base.OnDraw();
-            if (this.Visible
-            && this.Sprite is object) // hack
-            {
-                this.Sprite.Draw();
-            }
-        }
+        //protected override void OnDraw()
+        //{
+        //    base.OnDraw();
+        //    if (this.Visible) // hack
+        //    {
+        //        this.Sprite.Draw();
+        //    }
+        //}
 
-        internal override void OnUnload()
-        {
-            base.OnUnload();
-            if (this.Sprite is object)
-            {
-                this.Sprite.Unload();
-                this.Sprite = default;
-            }
-        }
+        //internal override void OnUnload()
+        //{
+        //    base.OnUnload();
+        //    this.Sprite.Unload();
+        //    this.Sprite = default;
+        //}
 
-        public bool IsNearest;
-
-        internal virtual void UpdateAfteFrameInfo(CFrameInfo aFrameInfo)
-        {
-            this.IsNearest = this.World.FrameInfo.SpriteDatasOrderedByDistance.OfType<CSpriteData>().First().RefEquals<CSpriteData>(this);
-        }
-
+        private bool? IsNearestM;
+        public bool IsNearest => CLazyLoad.Get(ref this.IsNearestM, () =>this.World.FrameInfo.SpriteDatasOrderedByDistance.OfType<CSprite>().First().RefEquals<CSprite>(this));
+        internal virtual void Update(CFrameInfo aFrameInfo) { }
         private CModel ModelM;
         public CModel Model => CLazyLoad.Get(ref this.ModelM, this.NewModel);
         internal virtual CModel NewModel() => throw new NotImplementedException();
@@ -215,48 +148,30 @@ namespace CharlyBeck.Mvi.Sprites
             return a;
         }
 
-        internal virtual void UpdateBeforeFrameInfo(CVector3Dbl aAvatarPos)
+        internal virtual void Update(CVector3Dbl aAvatarPos)
         {
             this.DistanceToAvatarM = default;
             this.AvatarIsInCubeM = default;
+            this.IsNearestM = default;
         }
 
         private double? DistanceToAvatarM;
         public double DistanceToAvatar { get=>CLazyLoad.Get(ref this.DistanceToAvatarM, () => this.FrameInfo.AvatarWorldPos.GetDistance(this.WorldPos)); }
         private bool? AvatarIsInCubeM;
-        public bool AvatarIsInTile => CLazyLoad.Get(ref this.AvatarIsInCubeM, () => this.Cube.CubePosAbs == this.CubePosAbs);
+        public bool AvatarIsInQuadrant => CLazyLoad.Get(ref this.AvatarIsInCubeM, () => this.Cube.CubePos == this.TileCubePos.Value);
         internal CFrameInfo FrameInfo => this.World.FrameInfo;
 
-        //public virtual Matrix WorldMatrix => Matrix.CreateTranslation(this.WorldPos.ToVector3());
-    }
-
-    internal abstract class CRootTileDescriptor : CTileDescriptor
-    {
-        #region ctor
-        internal CRootTileDescriptor(CServiceLocatorNode aParent, CTileBuilder aTileBuilder) : base(aParent,aTileBuilder)
-        {
-        }
-
-        internal static Type[] TileDescriptorTypes = new Type[] 
-        {
-            typeof(CBumpersTileDescriptor), 
-            typeof(CSolarSystem),
-        };
-        internal static CRootTileDescriptor New(CServiceLocatorNode aParent, CTileBuilder aTileBuilder)
-        {
-            var aWorld = aTileBuilder.World;
-            var aTile = aTileBuilder.Tile;
-            var aWorldGenerator = aTileBuilder.WorldGenerator;
-            aWorldGenerator.Begin(aTile);
-            var aTypes = TileDescriptorTypes;
-            var aType = aWorldGenerator.NextItem(aTypes);
-            var aTileDescriptor = (CRootTileDescriptor)Activator.CreateInstance(aType, aParent, aTileBuilder);
-            aWorldGenerator.End();
-            return aTileDescriptor;
-        }
+        #region Cube
+        private CCube CubeM;
+        internal CCube Cube => CLazyLoad.Get(ref this.CubeM, () => this.ServiceContainer.GetService<CCube>());
         #endregion
-        internal override bool OwnSpriteRegistryIsDefined => true;
+        #region GetWorldPos
+        private CGetWorldPosByCubePosFunc GetWorldPosByCubePosFunc;
+        internal CVector3Dbl GetWorldPos(CCubePos aCubePos)
+            => this.GetWorldPosByCubePosFunc(aCubePos);
+        #endregion
     }
+
 
     public static class CExtensions
     {
@@ -273,9 +188,73 @@ namespace CharlyBeck.Mvi.Sprites
             yield return aPrevious;
             yield return aFirst;
         }
-
     }
 
+    internal sealed class CSpritePool : CMultiObjectPool
+    {
+        internal CSpritePool(CServiceLocatorNode aParent)
+        {
+            this.ServiceLocatorNode = aParent;
+            this.SunPool.NewFunc = new Func<CSun>(() => new CSun(this.ServiceLocatorNode));
+            this.PlanetPool.NewFunc = new Func<CPlanet>(() => new CPlanet(this.ServiceLocatorNode));
+            this.MoonPool.NewFunc = new Func<CMoon>(() => new CMoon(this.ServiceLocatorNode));
+            this.AsteroidPool.NewFunc = new Func<CAsteroid>(() => new CAsteroid(this.ServiceLocatorNode));
+        }
 
+        private bool ReserveIsDone;
+        internal void Reserve()
+        {
+            bool aEnableReserve = false;
+            if(!this.ReserveIsDone
+            && aEnableReserve)
+            {
+                System.Diagnostics.Debugger.Break();
+                this.AsteroidPool.Reserve(600);
+                this.AsteroidPool.Locked = true;
+                this.SunPool.Reserve(600);
+                this.SunPool.Locked = true;
+                this.PlanetPool.Reserve(600);
+                this.PlanetPool.Locked = true;
+                this.MoonPool.Reserve(600);
+                this.MoonPool.Locked = true;
+                this.ReserveIsDone = true;
+            }
+        }
+
+        private readonly CServiceLocatorNode ServiceLocatorNode;
+
+        #region Sun
+        private readonly CObjectPool<CSun> SunPool = new CObjectPool<CSun>();
+        internal CSun AllocateSun()
+        {
+            this.Reserve();
+            return this.SunPool.Allocate();
+        }
+        #endregion
+        #region Planet
+        private readonly CObjectPool<CPlanet> PlanetPool = new CObjectPool<CPlanet>();
+        internal CPlanet NewPlanet()
+        {
+            this.Reserve();
+            return this.PlanetPool.Allocate();
+        }
+        #endregion
+        #region Moon
+        private readonly CObjectPool<CMoon> MoonPool = new CObjectPool<CMoon>();
+        internal CMoon NewMoon()
+        {
+            this.Reserve();
+            return this.MoonPool.Allocate(); 
+        }
+        #endregion
+        #region Asteroid
+        private readonly CObjectPool<CAsteroid> AsteroidPool = new CObjectPool<CAsteroid>();
+        internal CAsteroid NewAsteroid()
+        {
+            this.Reserve();
+            return this.AsteroidPool.Allocate();
+        }
+        #endregion
+    }
 
 }

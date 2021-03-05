@@ -1,8 +1,13 @@
 ﻿using CharlyBeck.Mvi.Mono.GameCore;
+using CharlyBeck.Mvi.Mono.Sprites.Cube;
+using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.ServiceLocator;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Mvi.Models;
+using MviMono.Sprites.Asteroid;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,39 +28,26 @@ namespace MviMono.Models
         #region ctor
         internal CMonoModels(CServiceLocatorNode aParent) : base(aParent)
         {
-        }
-        public override T Throw<T>(Exception aException)
-            => aException.Throw<T>();
-        #endregion
-        #region Models
-        private Dictionary<object, CMonoModel> Dic = new Dictionary<object, CMonoModel>();
-        internal T LoadMonoModel<T>(object aKey, Func<CServiceLocatorNode, T> aNew) where T : CMonoModel
-        {
-            if (this.Dic.ContainsKey(aKey))
-                return (T)(object)this.Dic[aKey];
-            else
-            {
-                var aNewModel = aNew(this);
-                this.Dic.Add(aKey, aNewModel);
-                return aNewModel;
-            }
+            this.MonoCubeModel = new CMonoCubeModel(this);
+            this.MonoAsteroidModel = new CMonoBumperModel(this);
         }
         #endregion
+
+        internal readonly CMonoCubeModel MonoCubeModel;
+        internal readonly CMonoBumperModel MonoAsteroidModel;
 
     }
 
     internal abstract class CMonoModel : CServiceLocatorNode
     {
         internal CMonoModel(CServiceLocatorNode aParent) : base(aParent)
-        { }
+        {
+            this.Game = this.ServiceContainer.GetService<CGame>();
+        }
+        internal readonly CGame Game;
+        internal CWorld World => this.Game.World;
+        internal CModels Models => this.World.Models;
+        internal GraphicsDevice GraphicsDevice => this.Game.GraphicsDevice;
 
-        #region Game
-        private CGame GameM;
-        internal CGame Game => CLazyLoad.Get(ref this.GameM, ()=>this.ServiceContainer.GetService<CGame>());
-        #endregion
-        //#region Draw
-        //internal virtual void Draw() { }
-        //internal virtual void DrawPrimitives() { }
-        //#endregion
     }
 }

@@ -24,15 +24,15 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using global::Mvi.Models;
     using CharlyBeck.Mvi.Sprites;
     using MviMono.Models;
-    using CharlyBeck.Mvi.Sprites.Bumper;
-    using MviMono.Sprites.Bumper;
-    using CharlyBeck.Mvi.Sprites.Quadrant;
-    using MviMono.Sprites.Quadrant;
+    using CharlyBeck.Mvi.Sprites.Asteroid;
+    using MviMono.Sprites.Asteroid;
+    using CharlyBeck.Mvi.Sprites.Cube;
     using CharlyBeck.Mvi.Feature;
     using CharlyBeck.Mvi.Mono.GameViewModel;
     using CharlyBeck.Mvi.Mono.Input.Mouse;
     using CharlyBeck.Mvi.Mono.Input.Hid;
     using CharlyBeck.Mvi.Mono.Sprites;
+    using CharlyBeck.Mvi.Sprites.Bumper;
 
     internal abstract class CBase : CServiceLocatorNode
     {
@@ -65,24 +65,40 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
     internal sealed class CMonoFacade : CFacade
     {
+        #region ctor
         internal CMonoFacade(CServiceLocatorNode aParent, CGame aGame) : base(aParent)
         {
             this.Game = aGame;
             this.SpritePool = new CSpritePool(this);
         }
-        public override T Throw<T>(Exception aException)
-            => aException.Throw<T>();
+        #endregion
+        #region ServiceLocator
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            aServiceContainer.AddService<CMonoModels>(() => this.MonoModels);
+            aServiceContainer.AddService<CGame>(() => this.Game);
+            this.GameVm.RegisterComponentServices(aServiceContainer);
+            return aServiceContainer;
+        }
+        #endregion
 
+        #region GameVm
+        private CGameVm GameVmM;
+        private CGameVm GameVm => CLazyLoad.Get(ref this.GameVmM, () => new CGameVm(this));
+        #endregion
         internal readonly CGame Game;
         public override ISprite<T> NewSprite<T>(T aData)
         {
-            if (typeof(T) == typeof(CBumperSpriteData))
+            if (typeof(T) == typeof(CBumperSprite))
             {
-                return (ISprite<T>)(object)this.SpritePool.AllocateBumperSprite((CBumperSpriteData)(object)aData);
+                return (ISprite<T>)(object)this.SpritePool.AllocateAsteroidSprite((CBumperSprite)(object)aData);
             }
-            else if (typeof(T) == typeof(CQuadrantSpriteData))
+            else if (typeof(T) == typeof(Mvi.Sprites.Cube.CCubeSprite))
             {
-                return (ISprite<T>)(object)this.SpritePool.AllocateQuadrantSprite((CQuadrantSpriteData)(object)aData);
+                return (ISprite<T>)(object)this.SpritePool.AllocateQuadrantSprite((Mvi.Sprites.Cube.CCubeSprite)(object)aData);
             }
             else
             {
@@ -93,6 +109,14 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             => this.Game.DebugWindowUpdate.AddAction(aAction);
         #region SpritePool
         private readonly CSpritePool SpritePool;
+        #endregion
+        #region Models
+        private CMonoModels MonoModelsM;
+        internal CMonoModels MonoModels => CLazyLoad.Get(ref this.MonoModelsM, () => new CMonoModels(this));
+        #endregion
+        #region Joystick
+        private CJoystick1 Joystick1M;
+        internal CJoystick1 Joystick1 => CLazyLoad.Get(ref this.Joystick1M, () => new CJoystick1(this));
         #endregion
     }
 
@@ -240,27 +264,18 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
     internal sealed class CGame : Game
     {
-        internal CGame(CServiceLocatorNode aParentNullable = null)
+        internal CGame(CServiceLocatorNode aParent)
         {
-            this.RootServiceLocatorNode = aParentNullable;
-
+            this.Parent = aParent;
             this.GraphicsDeviceManager = new GraphicsDeviceManager(this);
-            //this.GraphicsDeviceManager.IsFullScreen = true;
             this.Content.RootDirectory = "Content\\bin";
-            this.MonoFacade = new CMonoFacade(this.RootServiceLocatorNode, this);
             this.OriginFeature = CFeature.Get(this.ServiceLocatorNode, OriginFeatureDeclaration);
-
-            this.RegisterComponentServices(this.RootServiceLocatorNode.ServiceContainer);
+        }
+        internal CGame():this(new CDefaultServiceLocatorNode())
+        {
         }
 
-        #region GameVm
-        private CGameVm GameVmM;
-        private CGameVm GameVm => CLazyLoad.Get(ref this.GameVmM, () => new CGameVm(this.ServiceLocatorNode));
-        #endregion
-        #region Joystick
-        private CJoystick1 Joystick1M;
-        private CJoystick1 Joystick1 => CLazyLoad.Get(ref this.Joystick1M, () => new CJoystick1(this.ServiceLocatorNode));
-        #endregion
+
 
         protected override void EndRun()
         {
@@ -269,22 +284,14 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
 
         #region ServiceLocator
-        private CServiceLocatorNode RootServiceLocatorNodeM;
-        internal CServiceLocatorNode RootServiceLocatorNode
-        {
-            get => CLazyLoad.Get(ref this.RootServiceLocatorNodeM, () => new CDefaultServiceLocatorNode());
-            private set => this.RootServiceLocatorNodeM = value;
-        }
+        private CServiceLocatorNode Parent;
         internal CServiceLocatorNode ServiceLocatorNode => this.MonoFacade;
-        internal void RegisterComponentServices(CServiceContainer aServiceContainer)
-        {
-            this.GameVm.RegisterComponentServices(aServiceContainer);
-            aServiceContainer.AddService<CGame>(() => this);
-        }
         #endregion
-        internal readonly CMonoFacade MonoFacade;
+        #region MonoFacade
+        private CMonoFacade MonoFacadeM;
+        internal CMonoFacade MonoFacade => CLazyLoad.Get(ref this.MonoFacadeM, () => new CMonoFacade(this.Parent, this));
         public object VmMonoFacade => this.MonoFacade;
-
+        #endregion
         internal CWorld World => this.MonoFacade.World;
         private readonly GraphicsDeviceManager GraphicsDeviceManager;
         private SpriteBatch SpriteBatch;
@@ -352,7 +359,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         {
             var aXnaMouse = this.XnaMouseEnabledFeature.Enabled;
 
-            var aJoystick = this.Joystick1;
+            var aJoystick = this.MonoFacade.Joystick1;
             var aMouse = this.Mouse;
             var aKeyboardState = Keyboard.GetState();
             var aAvatar = this.Avatar;
@@ -744,7 +751,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             return aVertexBuffer;
         }
         [CFeatureDeclaration]
-        internal static readonly CFeatureDeclaration OriginFeatureDeclaration = new CFeatureDeclaration(new Guid("64f3ce9c-9960-443c-9553-a10c395695a0"), "OriginCoordinates", true);
+        internal static readonly CFeatureDeclaration OriginFeatureDeclaration = new CFeatureDeclaration(new Guid("64f3ce9c-9960-443c-9553-a10c395695a0"), "OriginCoordinates", CStaticParameters.Feature_Origin_Visible);
         private readonly CFeature OriginFeature;
 
         private void DrawCoordinates()
@@ -773,23 +780,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         private void Draw3d()
         {
             GraphicsDevice.Clear(Color.Black);
-
-            //this.DrawTriangle();
-
-
             this.MonoFacade.Draw();
-
-
-
             this.DrawCoordinates();
-
         }
-
-
         #endregion
-        #region Models
-        private CMonoModels ModelsM;
-        public CMonoModels Models => CLazyLoad.Get(ref this.ModelsM, () => new CMonoModels(this.ServiceLocatorNode));
-        #endregion
+
     }
 }

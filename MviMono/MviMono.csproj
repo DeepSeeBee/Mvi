@@ -93,7 +93,7 @@
     <Compile Include="Models\MonoModels.cs" />
     <Compile Include="Sfx\Sfx.cs" />
     <Compile Include="Sprites\Bumper\MonoBumper.cs" />
-    <Compile Include="Sprites\Quadrant\q.cs" />
+    <Compile Include="Sprites\Cube\MonoCube.cs" />
     <Compile Include="Sprites\sprites.cs" />
     <Compile Include="Wpf\CDebugWindow.xaml.cs">
       <DependentUpon>CDebugWindow.xaml</DependentUpon>

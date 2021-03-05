@@ -36,7 +36,7 @@
             <GroupBox DockPanel.Dock="Top" Header="Closest Object" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
                 <UniformGrid Columns="2">
                     <TextBlock Text="Category" />
-                    <TextBlock Text="{Binding VmNearestBumperNullable.VmCategoryName}"/>
+                    <TextBlock Text="{Binding VmNearestAsteroidNullable.VmCategoryName}"/>
                 </UniformGrid>
             </GroupBox>
             <!--<GroupBox DockPanel.Dock="Top" Header="Avatar" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">

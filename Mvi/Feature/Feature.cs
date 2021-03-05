@@ -1,5 +1,5 @@
 ﻿using CharlyBeck.Mvi.Facade;
-using CharlyBeck.Mvi.Sprites.Quadrant;
+using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.ServiceLocator;

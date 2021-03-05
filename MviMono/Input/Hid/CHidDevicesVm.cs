@@ -167,13 +167,10 @@ namespace CharlyBeck.Mvi.Mono.Input.Hid
             ;
         #endregion
         #region Feature
-
-
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration HidJoystickEnabledFeatureDeclaration = new CFeatureDeclaration(new Guid("e9f664f7-1fba-43e1-84ce-265fb7fd8d02"), "Jostick (HID)", false);
+        private static readonly CFeatureDeclaration HidJoystickEnabledFeatureDeclaration = new CFeatureDeclaration(new Guid("e9f664f7-1fba-43e1-84ce-265fb7fd8d02"), "Jostick (HID)", CStaticParameters.Feature_Joystick);
         private CFeature HidJoystickEnabledFeatureM;
         internal CFeature HidJoystickEnabledFeature => CLazyLoad.Get(ref this.HidJoystickEnabledFeatureM, () => CFeature.Get(this, HidJoystickEnabledFeatureDeclaration));
-
         #endregion
     }
 

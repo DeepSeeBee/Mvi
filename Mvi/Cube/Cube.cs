@@ -17,15 +17,17 @@ using CharlyBeck.Mvi.Internal;
 using CDoubleRange = System.Tuple<double, double>;
 using CIntegerRange = System.Tuple<int, int>;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
-using CharlyBeck.Mvi.Sprites.Bumper;
+using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Feature;
+using Utils3.Asap;
+using CharlyBeck.Mvi.Sprites.Bumper;
 
 namespace CharlyBeck.Mvi.Cube
 {
-    using CMoveTile = Tuple<CCubePos, bool, CTileDataLoadProxy>;
+    // using CMoveTile = Tuple<CCubePos, bool, CTileDataLoadProxy>;
+    internal delegate CVector3Dbl CGetWorldPosByCubePosFunc(CCubePos aCubePos);
 
-
-    internal abstract class CRandomGenerator : CBase
+    internal sealed class CRandomGenerator : CBase
     {
         #region ctor
         internal CRandomGenerator(CServiceLocatorNode aParent) : base(aParent)
@@ -41,10 +43,11 @@ namespace CharlyBeck.Mvi.Cube
             set; 
         }
         private bool IsPending => this.Random is object;
-        internal void Begin(CTile aTile)
+
+        internal CCubePos CubePos => throw new NotImplementedException();
+        internal void Begin(UInt64 aSeed)
         {
             this.CheckNotPending();
-            var aSeed = aTile.Cube.GetRandomSeed(aTile);
             this.Random = new Random((int)aSeed);
         }
 
@@ -279,72 +282,6 @@ namespace CharlyBeck.Mvi.Cube
         //}
     }
 
-    public sealed class CCoordinates<T> : IEnumerable<T> // TODO_OPT
-    {
-        internal CCoordinates() : this(new T[] { })
-        {
-        }
-        public CCoordinates(params T[] aIds)
-        {
-            this.Ids = aIds;
-        }
-        internal static CCoordinates<T> NewN(T aValue, int aSize)
-        {
-            var aIds = new T[aSize];
-            for (var aIdx = 0; aIdx < aSize; ++aIdx)
-            {
-                aIds[aIdx] = aValue;
-            }
-            return new CCoordinates<T>(aIds);
-        }
-
-        internal CCoordinates<T1> To<T1>(Func<T, T1> aConvert)
-            => new CCoordinates<T1>((from aCoord in this select aConvert(aCoord)).ToArray());
-
-        public override int GetHashCode()
-            => this[0].GetHashCode();
-
-        public override bool Equals(object obj)
-        {
-            if (obj is CCoordinates<T>)
-            {
-                var rhs = (CCoordinates<T>)obj;
-                return this.Ids.ElementsAreEqual<T>(rhs.Ids);
-            }
-            return false;
-        }
-
-        internal CCoordinates(CCoordinates<T> aParent, T aId)
-        {
-            this.Ids = aParent.Ids.Concat(new T[] { aId }).ToArray();
-        }
-        internal CCoordinates(CCoordinates<T> aRhs)
-        {
-            this.Ids = aRhs.Ids.ToArray();
-        }
-
-        public T this[int aIdx]
-        {
-            get => this.Ids[aIdx];
-            set => this.Ids[aIdx] = value;
-        }
-
-        internal readonly T[] Ids;
-
-        internal int Length => this.Ids.Length;
-        internal int CommonLength(CCoordinates<T> aRhs)
-           => this.Length; // TODO
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-           => this.Ids.Cast<T>().GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator()
-           => this.Ids.GetEnumerator();
-        public override string ToString()
-           => "(" + (from aId in this select aId.ToString()).JoinString("|") + ")";
-
-    }
-
-
     internal static class CCoordinatesExtensions
     {
 
@@ -366,6 +303,10 @@ namespace CharlyBeck.Mvi.Cube
         internal static CVector3Dbl Multiply(this CVector3Dbl aLhs, CVector3Dbl aRhs) => aLhs * aRhs;
         internal static CVector3Dbl Divide(this CVector3Dbl aLhs, CVector3Dbl aRhs) => aLhs / aRhs;
         internal static CVector3Dbl Subtract(this CVector3Dbl aLhs, CVector3Dbl aRhs) => aLhs - aRhs;
+        internal static CVector3Dbl Abs(this CVector3Dbl v)
+            => new CVector3Dbl(Math.Abs(v.x), Math.Abs(v.y), Math.Abs(v.z));
+        internal static CVector3Dbl Sign(this CVector3Dbl v)
+            => new CVector3Dbl(Math.Sign(v.x), Math.Sign(v.y), Math.Sign(v.z));
 
         internal static CCubePos GetCubeCoordinates(this CDimPos aDimensionCoordinates, CCubePos aCubeCoordinates, int aEdgeLength)
         {
@@ -391,8 +332,48 @@ namespace CharlyBeck.Mvi.Cube
             => radians * 180 / Math.PI;
     }
 
+    internal delegate CQuadrant CNewQuadrantFunc(CServiceLocatorNode aParent);
 
-    internal abstract class CDimension : CBase, IDrawable
+    internal struct CQuadrantBuildArgs
+    {
+        internal CQuadrantBuildArgs(CRandomGenerator aRanomdGenerator, CCubePos aTileCubePos, CVector3Dbl aTileWorldPos)
+        {
+            this.RandomGenerator = aRanomdGenerator;
+            this.TileCubePos = aTileCubePos;
+            this.TileWorldPos = aTileWorldPos;
+        }
+        internal readonly CRandomGenerator RandomGenerator;
+        internal readonly CCubePos TileCubePos;
+        internal readonly CVector3Dbl TileWorldPos;
+    }
+
+    internal abstract class CQuadrant  : CReuseable
+    {
+        internal CQuadrant(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.Cube = this.ServiceContainer.GetService<CCube>();
+        }
+        internal readonly CCube Cube;
+        internal CCubePos? TileCubePos { get; private set; }
+        internal CVector3Dbl? TileWorldPos { get; private set; }
+
+        protected override void OnEndUse()
+        {
+            base.OnEndUse();
+
+            this.TileCubePos = default;
+            this.TileWorldPos = default;
+        }
+
+        internal virtual void Build(CQuadrantBuildArgs a)
+        {
+            this.TileCubePos = a.TileCubePos;
+            this.TileWorldPos = a.TileWorldPos;
+        }
+
+
+    }
+    internal abstract class CDimension : CBase//, IDrawable
     {
         #region ctor
         internal CDimension(CServiceLocatorNode aParent) : base(aParent)
@@ -404,34 +385,10 @@ namespace CharlyBeck.Mvi.Cube
             this.RootDimension = this.ServiceContainer.GetService<CRootDimension>();
             this.ParentDimensionNullable = this.ParentServiceLocatorNode.ServiceContainer.GetServiceNullable<CDimension>();
         }
-        public override void Load()
-        {
-            base.Load();
-            foreach (var aDim in this.LoadedSubDimensions)
-                aDim.Load();
-
-            if (this.HasData)
-            {
-                var aWait = true;
-                this.DimensionDataLoadProxy.LoadAsyncable(aWait);
-            }
-        }
-        void IDrawable.Unload()
-        {
-            if (this.HasData)
-            {
-                this.DimensionDataLoadProxy.Unload();
-            }
-        }
         #endregion
         #region SubDimensions
         internal abstract bool SubDimensionsIsDefined { get; }
-        internal CDimensionLoadProxy[] DimensionLoadProxys { get; private set; }
-
-        internal IEnumerable<CDimension> GetSubDimensions(bool aLoaded)
-           => from aSubDimensionLoadProxy in this.DimensionLoadProxys select aSubDimensionLoadProxy.GetLoadable(aLoaded);
-        internal IEnumerable<CDimension> LoadedSubDimensions => this.GetSubDimensions(true);
-        internal IEnumerable<CDimension> LoadeableSubDimensions => this.GetSubDimensions(false);
+        internal CDimension[] Dimensions { get; private set; }
         private bool AllocateSubDimensionsDone;
         internal void AllocateSubDimensions(int aSize)
         {
@@ -441,13 +398,14 @@ namespace CharlyBeck.Mvi.Cube
             }
             else
             {
-                var aSubs = new CDimensionLoadProxy[aSize];
+                 var aSubs = new CDimension[aSize];
                 for (int aIdx = 0; aIdx < aSize; ++aIdx)
                 {
-                    var aSubCoordinates = new CDimPos(this.DimensionCoordinates, aIdx); // new CCoordinates<Int64>(this.DimensionCoordinates, (Int64)aIdx);
-                    aSubs[aIdx] = this.NewSubDimensionLoadProxy(aSubCoordinates);
+                    var aDimPos = new CDimPos(this.DimensionCoordinates, aIdx); 
+                    var aDimension = this.RootDimension.NewDimension(this, aDimPos);
+                    aSubs[aIdx] = aDimension;
                 }
-                this.DimensionLoadProxys = aSubs;
+                this.Dimensions = aSubs;
                 this.Size = aSize;
                 this.AllocateSubDimensionsDone = true;
             }
@@ -457,18 +415,6 @@ namespace CharlyBeck.Mvi.Cube
             this.AllocateSubDimensions(this.AllocateSubDimensionsSize);
         }
         internal abstract int AllocateSubDimensionsSize { get; } 
-        #endregion
-        #region Draw
-        internal virtual void Draw()
-        {
-            foreach (var aDim in this.LoadeableSubDimensions)
-                aDim.Draw();
-            if (this.HasData)
-            {
-                this.DimensionDataLoadProxy.Draw();
-            }
-        }
-        void IDrawable.Draw() => this.Draw();
         #endregion
         private int PositionM;
         internal int Position
@@ -482,7 +428,7 @@ namespace CharlyBeck.Mvi.Cube
         }
         internal virtual void UpdateCubePositions()
         {
-            foreach (var aSubDimension in this.LoadedSubDimensions)
+            foreach (var aSubDimension in this.Dimensions)
             {
                 aSubDimension.UpdateCubePositions();
             }
@@ -501,9 +447,6 @@ namespace CharlyBeck.Mvi.Cube
         }
         internal CRootDimension RootDimension { get; private set; }
 
-        internal CDimensionLoadProxy NewSubDimensionLoadProxy(CDimPos aDimPos)
-           => new CDimensionLoadProxy(this, aDimPos);
-
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
@@ -512,26 +455,6 @@ namespace CharlyBeck.Mvi.Cube
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CDimension>(() => this);
             return aServiceContainer;
-        }
-        #endregion
-        #region Load
-        internal void BeginLoadAsyncable()
-        {
-            foreach (var aDimensionLoadProxy in this.DimensionLoadProxys)
-            {
-                aDimensionLoadProxy.BeginLoadAsyncable();
-            }
-            if (this.HasData)
-            {
-                this.DimensionDataLoadProxy.BeginLoadAsyncable();
-            }
-        }
-        internal void WaitLoaded()
-        {
-            foreach (var aDimensionLoadProxy in this.DimensionLoadProxys)
-            {
-                aDimensionLoadProxy.WaitUntilLoaded();
-            }
         }
         #endregion
         #region IsLeaf
@@ -576,14 +499,13 @@ namespace CharlyBeck.Mvi.Cube
         }
         #endregion
         #region Data
-        internal virtual bool HasData { get; }
-        internal virtual CLoadProxy DimensionDataLoadProxy => this.Throw<CLoadProxy>(new NotImplementedException());
+        internal virtual bool HasData => false;
         #endregion
         #region LeafDimensions
         internal bool IsLeafContainer => this.DimensionIdx == 1;
         internal virtual IEnumerable<CLeafDimension> GetLeafDimensions(bool aLoaded)
         {
-            foreach (var aSubDimension in this.GetSubDimensions(aLoaded))
+            foreach (var aSubDimension in this.Dimensions)
                 foreach (var aLeafDimension in aSubDimension.GetLeafDimensions(aLoaded))
                     yield return aLeafDimension;
         }
@@ -615,7 +537,6 @@ namespace CharlyBeck.Mvi.Cube
         #endregion
     }
 
-
     internal delegate Int64 CNewBorderFunc();
 
     internal abstract class CNodeDimension : CDimension
@@ -633,362 +554,6 @@ namespace CharlyBeck.Mvi.Cube
         internal override bool IsRoot => false;
     }
 
-    internal sealed class CLoadingDimension : CDimension
-    {
-        #region ctor
-        internal CLoadingDimension(CServiceLocatorNode aParent) : base(aParent)
-        {
-            this.Init();
-        }
-        protected override void Init()
-        {
-            base.Init();
-        }
-        public override T Throw<T>(Exception aException)
-           => aException.Throw<T>();
-        #endregion
-        #region DimensionIdx
-        internal override int DimensionIdx => this.ParentDimension.DimensionIdx - 1;
-        #endregion
-        internal override bool SubDimensionsIsDefined => false;
-        internal override bool IsRoot => false;
-        internal override int AllocateSubDimensionsSize => 0;
-    }
-
-    internal interface IDrawable
-    {
-        void Draw();
-        void Unload();
-    }
-
-
-    internal delegate void CWaitAction();
-
-    internal abstract class CWorker : CServiceLocatorNode
-    {
-        internal CWorker(CServiceLocatorNode aParent) : base(aParent)
-        {
-            this.Thread = new Thread(this.Run);
-            this.Thread.Priority = ThreadPriority.Lowest;
-            this.Thread.Start();
-        }
-        private Thread Thread;
-        private readonly List<CWorkItem> WorkItems = new List<CWorkItem>();
-        private void CheckNotRunning()
-        { if (this.IsRunning) throw new InvalidOperationException(); }
-
-        private void Enqueue(CWorkItem aWorkItem)
-        {
-            this.Wait();
-            this.CheckNotRunning();
-            this.WorkItems.Add(aWorkItem);               
-        }
-
-        private readonly AutoResetEvent DoWorkEvent = new AutoResetEvent(false);
-        private bool StopRequested;
-        private void Run()
-        {
-            while(!this.StopRequested)
-            {
-                this.DoWorkEvent.WaitOne();
-                lock(this.WorkingSyncObject) // Race Condition
-                {
-                    foreach (var aItem in this.WorkItems)
-                        aItem.DoWork();
-                    this.WorkItems.Clear();
-                    this.IsRunning = false;
-                }
-            }
-        }
-
-
-        internal CWaitAction Enqueue(Action aDoWorkAction)
-        {
-            this.Wait();
-            var aWorkItem = new CWorkItem(this, aDoWorkAction);
-            this.Enqueue(aWorkItem);
-            return new CWaitAction(aWorkItem.Wait);
-        }
-
-        private sealed class CWorkItem
-        {
-            internal CWorkItem(CWorker aWorker, Action aDoWorkAction)
-            {
-                this.Worker = aWorker;
-                this.DoWorkAction = aDoWorkAction;
-            }
-            private readonly AutoResetEvent FinishedEvent = new AutoResetEvent(false);
-            private readonly CWorker Worker;
-            private readonly Action DoWorkAction;
-            internal void DoWork()
-            {
-                this.DoWorkAction();
-                this.FinishedEvent.Set(); // RaceCondition2
-            }
-            internal void Wait()
-            {
-                if(!this.Worker.IsRunning)
-                {
-                    this.Worker.Start();
-                    Thread.Sleep(20); // RaceCondition2
-                }
-                this.FinishedEvent.WaitOne();
-            }
-        }
-
-        private bool IsRunning;
-        private readonly object WorkingSyncObject = new object();
-
-        private void Wait()
-        {
-            lock(this.WorkingSyncObject) // Race Condition
-            {
-            }
-        }
-        internal void Start()
-        {
-            this.Wait();
-            this.IsRunning = true;
-            this.DoWorkEvent.Set();            
-        }
-
-        internal void Stop()
-        {
-            this.StopRequested = true;
-            this.Start();
-        }
-    }
-
-    internal sealed class CTileDataLoadProxyWorker : CWorker
-    {
-        internal CTileDataLoadProxyWorker(CServiceLocatorNode aParent): base(aParent)
-        {
-        }
-        public override T Throw<T>(Exception aException)
-            => aException.Throw<T>();
-    }
-
-    internal abstract class CLoadProxy : CBase
-    {
-        #region ctor
-        internal CLoadProxy(CServiceLocatorNode aParent) : base(aParent)
-        {
-        }
-        protected override void Init()
-        {
-            base.Init();
-            this.ParentDimension = this.ServiceContainer.GetService<CDimension>();
-            this.RootDimension = this.ServiceContainer.GetService<CRootDimension>();
-        }
-        internal void Unload()
-        {
-            this.Dispose();
-        }
-        internal bool IsDisposed { get; private set; }
-        internal void Dispose()
-        {
-            if (this.IsDisposed)
-                throw new ObjectDisposedException(this.ToString());
-            if (this.IsLoading
-           || this.IsLoaded)
-                this.OnUnload();
-            this.IsDisposed = true;
-        }
-        protected abstract void OnUnload();
-        #endregion
-        #region Services
-        internal CDimension ParentDimension { get; private set; }
-        internal CRootDimension RootDimension { get; private set; }
-        #endregion
-        #region Load
-        public void LoadAsyncable(bool aWait)
-        {
-            if (!this.IsLoaded
-            && !this.IsLoading) // hack
-            {
-                this.BeginLoadAsyncable();
-                if (aWait)
-                    this.WaitUntilLoaded();
-            }
-        }
-        internal abstract void LoadTemplate();
-        public override void Load()
-        {
-            base.Load();
-
-            if (this.IsLoaded)
-            {
-               // Hack... Eigentlich:
-                // this.Throw(new InvalidOperationException());
-            }
-            else if (!this.IsLoading)
-            {
-                this.Throw(new InvalidOperationException());
-            }
-            else
-            {
-                this.LoadTemplate();
-                this.IsLoading = false;
-                this.WaitAction = default;
-                this.IsLoaded = true;
-            }
-        }
-        public bool IsLoaded { get; protected set; }
-        internal void WaitUntilLoaded()
-        {
-            if (this.IsLoading)
-            {
-                this.WaitAction();
-            }
-        }
-        internal abstract bool LoadAsyncIsEnabled { get; }
-        internal void BeginLoadAsyncable()
-        {
-            if (this.IsLoaded)
-            {
-                this.Throw(new InvalidOperationException());
-            }
-            else if (this.IsLoading)
-            {
-                this.Throw(new InvalidOperationException());
-            }
-            else if (this.LoadAsyncIsEnabled)
-            {
-                this.IsLoading = true;
-                this.WaitAction = this.Worker.Enqueue(delegate () { this.Load(); });
-                //if (!DisableTask)
-                //{
-                //    var aTask = Task.Factory.StartNew(delegate () { (); });
-                //    this.LoadAsyncResult = aTask; // TODO-RaceCondition
-                //}
-            }
-            else
-            {
-                this.IsLoading = true;
-                this.Load();
-            }
-        }
-        //private static bool DisableTask = false;
-        //private IAsyncResult LoadAsyncResult;
-        internal bool IsLoading { get; private set; }
-        #endregion
-        #region Draw
-        internal virtual void Draw()
-        {
-        }
-        #endregion
-        #region Worker
-        private CWorker WorkerM;
-        private CWorker Worker => CLazyLoad.Get(ref this.WorkerM, () => this.NewWorker());
-        internal abstract CWorker NewWorker();
-        private CWaitAction WaitAction;
-        #endregion
-    }
-    internal abstract class CLoadProxy<TData, TLoadingData, TLoadedData> : CLoadProxy
-       where TData : IDrawable
-       where TLoadingData : TData
-       where TLoadedData : TData
-    {
-        #region ctor
-        internal CLoadProxy(CServiceLocatorNode aParent) : base(aParent)
-        {
-        }
-        protected override void OnUnload()
-        {
-            this.Loaded.Unload();
-            this.IsLoaded = false;
-            this.Loaded = default;
-        }
-        #endregion
-        #region Load
-        internal abstract TLoadedData NewLoaded();
-        internal override void LoadTemplate()
-        {
-            this.LoadedNullable = this.NewLoaded();
-        }
-        internal abstract TLoadingData Loading { get; }
-        private TLoadedData LoadedNullable;
-        private TLoadedData PrivateLoaded
-        {
-            get
-            {
-                if (this.LoadedNullable is object)
-                    return this.LoadedNullable;
-                return this.Throw<TLoadedData>(new InvalidOperationException());
-            }
-        }
-        internal TData LoadedOrLoading => this.IsLoading ? (TData)this.Loading : (TData)this.PrivateLoaded;
-        public TLoadedData Loaded
-        {
-            get
-            {
-                if (this.IsLoaded)
-                    return this.PrivateLoaded;
-                else if (!this.IsLoading)
-                    this.BeginLoadAsyncable();
-                this.WaitUntilLoaded();
-                return this.PrivateLoaded;
-            }
-            protected set
-            {
-                if (this.IsLoading)
-                    throw new InvalidOperationException();
-                else if (this.IsLoaded)
-                    throw new InvalidOperationException();
-                this.LoadedNullable = value;
-                this.IsLoaded = true;
-            }
-        }
-        internal TData GetLoadable(bool aLoaded)
-           => aLoaded || this.IsLoaded ? (TData)this.Loaded : (TData)this.Loading;
-        #endregion
-        #region Draw
-        internal override void Draw()
-        {
-            base.Draw();
-
-            if (this.IsLoaded)
-            {
-                this.Loaded.Draw();
-            }
-            else
-            {
-                this.Loading.Draw();
-            }
-        }
-        #endregion
-    }
-
-    internal sealed class CDimensionLoadProxy : CLoadProxy<CDimension, CLoadingDimension, CDimension>
-    {
-        #region ctor
-        internal CDimensionLoadProxy(CServiceLocatorNode aParent, CDimPos aDimPos) : base(aParent)
-        {
-            this.DimPos = aDimPos;
-            this.Init();
-        }
-        protected override void Init()
-        {
-            base.Init();
-            this.LoadingDimension = new CLoadingDimension(this);
-        }
-        public override T Throw<T>(Exception aException)
-           => throw aException;
-        #endregion
-        #region Loading
-        internal override CWorker NewWorker()=> throw new NotImplementedException();
-        internal override bool LoadAsyncIsEnabled => false;
-        private CLoadingDimension LoadingDimension { get; set; }
-        internal override CLoadingDimension Loading => this.LoadingDimension;
-        #endregion
-        internal override CDimension NewLoaded()
-        {
-            var aLoadedDimension = this.RootDimension.NewDimension(this, this.DimPos);
-            aLoadedDimension.BeginLoadAsyncable();
-            return aLoadedDimension;
-        }
-        internal CDimPos DimPos;
-    }
 
     internal abstract class CLeafDimension : CNodeDimension
     {
@@ -1009,201 +574,13 @@ namespace CharlyBeck.Mvi.Cube
         #endregion
     }
 
-    internal abstract class CDimensionData : CBase, IDrawable
-    {
-        #region ctor
-        internal CDimensionData(CServiceLocatorNode aParent) : base(aParent)
-        {
-        }
-        #endregion
-        #region Draw
-        internal virtual void Draw()
-        {
-        }
-        void IDrawable.Draw() => this.Draw();
-        internal abstract void Unload();
-        void IDrawable.Unload()
-            => this.Unload();
-        #endregion
-    }
-
-    internal interface ILoadableData { }
-
-    internal abstract class CDimensionDataLoadProxy<TData, TLoadingData, TLoadedData>
-    :
-       CLoadProxy<TData, TLoadingData, TLoadedData>
-       where TData : IDrawable
-       where TLoadingData : TData
-       where TLoadedData : TData
-    {
-        #region ctor
-        internal CDimensionDataLoadProxy(CServiceLocatorNode aParent) : base(aParent)
-        {
-        }
-        protected override void Init()
-        {
-            base.Init();
-        }
-        public override T Throw<T>(Exception aException)
-           => aException.Throw<T>();
-        #endregion
-    }
-
-    internal sealed class CSpriteRegistry : CServiceLocatorNode, IEnumerable<CSpriteData>
-    {
-        internal CSpriteRegistry(CServiceLocatorNode aParent) : base(aParent)
-        {
-
-        }
-        public override T Throw<T>(Exception aException)
-            => aException.Throw<T>();
-        internal void Unload()
-        {
-            foreach (var aSpriteData in this.SpriteDatas)
-            {
-                aSpriteData.Unload();
-            }
-        }
-        private readonly List<CSpriteData> SpriteDatas = new List<CSpriteData>();
-        internal void Add(CSpriteData aSpriteData)
-            => this.SpriteDatas.Add(aSpriteData);
-        public IEnumerator<CSpriteData> GetEnumerator() => this.SpriteDatas.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-    }
-
-    internal abstract partial class CTileDescriptor : CBuildable
-    {
-        internal CTileDescriptor(CServiceLocatorNode aParent, CTileBuilder aTileBuilder) : base(aParent, aTileBuilder)
-        {
-            this.AbsoluteCubeCoordinates = aTileBuilder.Tile.AbsoluteCubeCoordinates;
-        }
-
-        internal readonly CCubePos AbsoluteCubeCoordinates;
-
-        #region SubTileDescriptors
-        internal virtual IEnumerable<CTileDescriptor> SubTileDescriptors => Array.Empty<CTileDescriptor>();
-        #endregion
-        #region SpriteRegistry
-        private CSpriteRegistry OwnSpriteRegistryM;
-        private CSpriteRegistry OwnSpriteRegistry => CLazyLoad.Get(ref this.OwnSpriteRegistryM, () => new CSpriteRegistry(this));
-        #endregion
-        internal virtual bool OwnSpriteRegistryIsDefined => false;    
-        #region ServiceContainer
-        private CServiceContainer ServiceContainerM;
-        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
-        private CServiceContainer NewServiceContainer()
-        {
-            var aServiceContainer = base.ServiceContainer.Inherit(this);
-            aServiceContainer.AddService<CSpriteRegistry>(() => this.OwnSpriteRegistryIsDefined ? this.OwnSpriteRegistry : base.ServiceContainer.GetService<CSpriteRegistry>());
-            return aServiceContainer;
-        }
-        #endregion
-        internal override void OnUnload()
-        {
-            base.OnUnload();
-            if(this.OwnSpriteRegistryIsDefined)
-            {
-                this.OwnSpriteRegistry.Unload();
-            }
-        }
-    }
-
-
-    internal abstract class CTileData : CDimensionData
-    {
-        #region ctor
-        internal CTileData(CServiceLocatorNode aParent) : base(aParent)
-        {
-
-        }
-        #endregion
-    }
-
-    internal sealed class CLoadingTileData : CTileData
-    {
-        #region ctor
-        internal CLoadingTileData(CServiceLocatorNode aParent) : base(aParent)
-        {
-        }
-        public override T Throw<T>(Exception aException)
-           => aException.Throw<T>();
-        #endregion
-        internal override void Unload()
-        {
-            throw new NotImplementedException();
-        }
-    }
-    internal sealed class CLoadedTileData : CTileData
-    {
-        #region ctor
-        private CLoadedTileData(CServiceLocatorNode aParent) : base(aParent)
-        {
-            this.Init();
-        }
-
-        internal static CLoadedTileData New(CServiceLocatorNode aParent, CTileDescriptor aTileDescriptor)
-        {
-            var aLoadedTileData = new CLoadedTileData(aParent);
-            aLoadedTileData.TileDescriptor = aTileDescriptor;
-            return aLoadedTileData;
-        }
-        public override T Throw<T>(Exception aException)
-           => aException.Throw<T>();
-        internal override void Unload()
-        {
-            this.TileDescriptor.Unload();
-            this.TileDescriptor = default;
-        }
-        #endregion
-
-        internal CTileDescriptor TileDescriptor { get; private set; }
-        internal CCubePos AbsoluteCubeCoordinates => this.TileDescriptor.AbsoluteCubeCoordinates;
-
-        internal override void Draw()
-        {
-            base.Draw();
-            this.TileDescriptor.Draw();
-        }
-
-    }
-    internal sealed partial class CTileDataLoadProxy : CDimensionDataLoadProxy<CTileData, CLoadingTileData, CLoadedTileData>
-    {
-        #region ctor
-        private CTileDataLoadProxy(CServiceLocatorNode aParent) : base(aParent)
-        {
-            this.Init();
-        }
-        internal static CTileDataLoadProxy New(CServiceLocatorNode aParent, CLoadedTileData aLoadedTileData)
-        {
-            var aTileDataLoadProxy = new CTileDataLoadProxy(aParent);
-            aTileDataLoadProxy.Loaded = aLoadedTileData;
-            return aTileDataLoadProxy;
-        }
-        internal static CTileDataLoadProxy New(CServiceLocatorNode aParent)
-        {
-            var aTileDataLoadProxy = new CTileDataLoadProxy(aParent);
-            return aTileDataLoadProxy;
-        }
-        protected override void Init()
-        {
-            base.Init();
-            this.LoadingTileData = new CLoadingTileData(this);
-        }
-        #endregion
-        #region Load
-        internal override bool LoadAsyncIsEnabled => false;
-        internal override CWorker NewWorker() => this.ServiceContainer.GetService<CTileDataLoadProxyWorker>();
-        private CLoadingTileData LoadingTileData { get; set; }
-        internal override CLoadingTileData Loading => this.LoadingTileData;
-        #endregion
-    }
-
     internal sealed partial class CTile : CLeafDimension
     {
         #region ctor
         internal CTile(CServiceLocatorNode aParent) : base(aParent)
         {
             this.Init();
+            this.Quadrant = this.ServiceContainer.GetService<CNewQuadrantFunc>()(this.Cube);
         }
         internal static CTile New(CServiceLocatorNode aParent, CDimPos aCoordinates)
         {
@@ -1220,7 +597,7 @@ namespace CharlyBeck.Mvi.Cube
 
             this.Cube = this.ServiceContainer.GetService<CCube>();
 
-            this.TileDataLoadProxy = this.NewTileDataLoadProxy();
+           // this.TileDataLoadProxy = this.NewTileDataLoadProxy();
         }
         public override T Throw<T>(Exception aException) => aException.Throw<T>();
         #endregion
@@ -1228,56 +605,15 @@ namespace CharlyBeck.Mvi.Cube
         internal CCube Cube { get; private set; }
         internal CCubePos RelativeCubeCoordinates
             => this.DimensionCoordinates.GetCubeCoordinates(this.Cube.NewCoords(0), (int)this.Depth);
-        internal CCubePos AbsoluteCubeCoordinates
-        => this.Cube.TileAbsoluteCoordinates(this.RelativeCubeCoordinates);
+        internal CCubePos TileCubePos
+        => this.Cube.GetTileCubePos(this.RelativeCubeCoordinates);
         private Int64 GetIndex(CCubePos aCoord)
             => (aCoord.x + aCoord.y * this.Depth + aCoord.z * this.Depth * this.Depth);
         internal Int64 RelativeIndex =>
             this.GetIndex(this.RelativeCubeCoordinates);
         #endregion
         #region TileData
-        private CLoadedTileData NewLoadedTileData(CTileDescriptor aTileDescriptor)
-           => CLoadedTileData.New(this, aTileDescriptor);
-        internal CTileDataLoadProxy NewTileDataLoadProxy()
-           => CTileDataLoadProxy.New(this);
-        internal CTileDataLoadProxy NewTileDataLoadProxy(CTileDescriptor aTileDescriptor)
-            => this.NewTileDataLoadProxy(this.NewLoadedTileData(aTileDescriptor));
-        internal CTileDataLoadProxy NewTileDataLoadProxy(CLoadedTileData aTileData)
-           => CTileDataLoadProxy.New(this, aTileData);
         internal override bool HasData => true;
-        internal CTileDataLoadProxy TileDataLoadProxy { get; set; }
-
-        private void UnloadTileDataLoadProxy()
-        {
-            this.TileDataLoadProxy.Unload();
-            this.TileDataLoadProxy = default;
-        }
-        internal Action ReplaceTileData()
-        {
-            //this.UnloadTileDataLoadProxy();
-            //var aTileDataLoadProxy = this.NewTileDataLoadProxy();
-            //this.TileDataLoadProxy = aTileDataLoadProxy;
-            //aTileDataLoadProxy.BeginLoadAsyncable();
-            this.UnloadTileDataLoadProxy();
-            var aTileDataLoadProxy = this.NewTileDataLoadProxy();
-            aTileDataLoadProxy.BeginLoadAsyncable();
-            return new Action(delegate () 
-            {                
-                this.TileDataLoadProxy = aTileDataLoadProxy;                
-            });
-        }       
-        internal Action ReplaceTileData(CTileDescriptor aTileDescriptor)
-        {
-            this.UnloadTileDataLoadProxy();
-            var aTileDataLoadProxy = this.NewTileDataLoadProxy(aTileDescriptor);
-            return new Action(delegate ()
-            {
-             this.TileDataLoadProxy = aTileDataLoadProxy;
-            });
-        }
-        internal CTileData TileData => this.TileDataLoadProxy.Loaded;
-        internal CTileDescriptor TileDescriptor => this.TileDataLoadProxy.Loaded.TileDescriptor;
-        internal override CLoadProxy DimensionDataLoadProxy => this.TileDataLoadProxy;
         #endregion
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
@@ -1289,20 +625,55 @@ namespace CharlyBeck.Mvi.Cube
             return aServiceContainer;
         }
         #endregion
-        internal bool ContainsAvatar => this.AbsoluteCubeCoordinates == this.Cube.CubePosAbs;
+        internal bool ContainsAvatar => this.TileCubePos == this.Cube.CubePos;
 
         internal override int DimensionIdx => 0;
         internal override int AllocateSubDimensionsSize => 0;
 
         #region MultiverseCube
-        private CMultiverseCube MultiVerseCubeM;
-        private CMultiverseCube MultiVerseCube => CLazyLoad.Get(ref this.MultiVerseCubeM, () => this.ServiceContainer.GetService<CMultiverseCube>());
+        private CWormholeCube MultiVerseCubeM;
+        private CWormholeCube MultiVerseCube => CLazyLoad.Get(ref this.MultiVerseCubeM, () => this.ServiceContainer.GetService<CWormholeCube>());
         #endregion
-
         #region WorldPos
-        internal CVector3Dbl WorldPos => this.MultiVerseCube.GetWorldPos(this.AbsoluteCubeCoordinates);
+        internal CVector3Dbl WorldPos => this.MultiVerseCube.GetWorldPos(this.TileCubePos);
         #endregion
+        #region Quadrant
+        private CQuadrant QuadrantM;
+        internal CQuadrant Quadrant 
+        {
+            get => this.QuadrantM;
+            set
+            {
+                this.QuadrantM = value;
+                this.BuildIsDone = false;
+            }
+        }
+        internal bool BuildIsDone { get; private set; }
+        internal void Build(UInt64 aSeed)
+        {
+            var aCube = this.Cube;
+            var aRandomGenerator = aCube.RandomGenerator;
+            aRandomGenerator.Begin(aSeed);
+            try
+            {
+                var aTileCubePos = this.TileCubePos;
+                var aTileWorldPos = this.GetWorldPosByCubePos(aTileCubePos);
+                var aQuadrantBuildArgs = new CQuadrantBuildArgs(aRandomGenerator, aTileCubePos, aTileWorldPos);
+                this.Quadrant.Build(aQuadrantBuildArgs);
+            }
+            finally
+            {
+                aRandomGenerator.End();
+            }
+            this.BuildIsDone = true;
+        }
+        #endregion
+        #region GetWorldPosByCubePos
+        private CGetWorldPosByCubePosFunc GetWorldPosByCubePosM;
+        private CGetWorldPosByCubePosFunc GetWorldPosByCubePos => CLazyLoad.Get(ref this.GetWorldPosByCubePosM, () => 
+        this.ServiceContainer.GetService<CGetWorldPosByCubePosFunc>());
 
+        #endregion
 
     }
 
@@ -1336,11 +707,14 @@ namespace CharlyBeck.Mvi.Cube
         #region ctor
         private CCube(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.SpritePool = new CSpritePool(this);
+            this.RandomGenerator = new CRandomGenerator(this);
             this.DimensionCoordinates = new CDimPos();
-            this.CubePosAbs = this.NewCubeCoordinates();
-            this.World = this.ServiceContainer.GetService<CWorld>();
+            this.CubePos = this.NewCubeCoordinates();
             this.Init();
         }
+        private readonly CSpritePool SpritePool;
+
         private CCubePos NewCubeCoordinates()
             => new CCubePos(0);
         internal static CCube New(CServiceLocatorNode aParent)
@@ -1348,10 +722,6 @@ namespace CharlyBeck.Mvi.Cube
             var aCube = new CCube(aParent);
             aCube.Allocate();
             return aCube;
-        }
-        protected override void Init()
-        {
-            base.Init();
         }
         public override void Load()
         {
@@ -1365,46 +735,24 @@ namespace CharlyBeck.Mvi.Cube
         => aException.Throw<T>();
         #endregion
         #region ICube
-        void ICube.Draw() => this.Draw();
-        void ICube.Update(CVector3Dbl aAvatarPos) => this.Update(aAvatarPos);
-        void ICube.Update(CFrameInfo aFrameInfo) => this.Update(aFrameInfo);
-        IEnumerable<CSpriteData> ICube.SpriteDatas => this.SpriteDatas;
-        IEnumerable<CCubePos> ICube.CubePositions { get { yield return this.CubePosAbs; } }
+         IEnumerable<CQuadrant> ICube.Quadrants => this.Quadrants;
+        IEnumerable < CCubePos > ICube.CubePositions { get { yield return this.CubePos; } }
         void ICube.MoveTo(CCubePos aCubePos, bool aTranslateAvatarPos) => this.MoveTo(aCubePos, aTranslateAvatarPos);
         #endregion
-        internal IEnumerable<CSpriteData> SpriteDatas => from aTile in this.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData;
-        internal void Update(CVector3Dbl aAvatarPos)
-        {
-            var aSpriteDatas = this.SpriteDatas;
-            foreach (var aSpriteData in aSpriteDatas)
-            {
-                aSpriteData.UpdateBeforeFrameInfo(aAvatarPos);
-            }
-        }
-        internal void Update(CFrameInfo aFrameInfo)
-        {
-            var aSpriteDatas = this.SpriteDatas;
-            foreach (var aSpriteData in aSpriteDatas)
-            {
-                aSpriteData.UpdateAfteFrameInfo(aFrameInfo);
-            }
-        }
-
-
-        private readonly CWorld World;
-        //internal override Int64 Depth => 3u;
-
+        internal IEnumerable<CQuadrant> Quadrants => from aLeaf in this.GetLeafDimensions(true).OfType<CTile>() select aLeaf.Quadrant;
         internal override bool IsRoot => true;
         internal override int DimensionIdx => 2;
         internal override int AllocateSubDimensionsSize => (int)this.Depth;
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
+        internal readonly CRandomGenerator RandomGenerator;
+
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
         private CServiceContainer NewServiceContainer()
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CCube>(() => this);
-            aServiceContainer.AddService<CTileDataLoadProxyWorker>(() => this.LoadProxyWorker);
+            aServiceContainer.AddService<CSpritePool>(() => this.SpritePool);
             return aServiceContainer;
         }
         #endregion
@@ -1420,93 +768,181 @@ namespace CharlyBeck.Mvi.Cube
                     throw new ArgumentException();
             }
         }
-        internal CCubePos CubePosAbs { get; private set; }
-        internal CTile Tile => (from aTile in this.Tiles where aTile.AbsoluteCubeCoordinates == this.CubePosAbs select aTile).First(); // TODO_OPT
+        internal CCubePos CubePos { get; private set; }
 
 
-        internal CCubePos TileAbsoluteCoordinates(CCubePos aTileRelativeCubeCoordinates)
-            => this.CubePosAbs.Add(aTileRelativeCubeCoordinates);
+        internal CCubePos GetTileCubePos(CCubePos aTileRelativeCubeCoordinates)
+            => this.CubePos.Add(aTileRelativeCubeCoordinates);
+
         
+        private void Build(CTile aTile)
+        {
+            var aSeed = this.GetRandomSeed(aTile);
+            aTile.Build(aSeed);
+        }
         #region Move
         internal CCubePos CenterOffset => this.NewCoords((this.Depth - 1) / 2);
 
-        private readonly Dictionary<CCubePosKey, Tuple<CCubePosKey, CTile, CTileDescriptor>> MoveDic = new Dictionary<CCubePosKey, Tuple<CCubePosKey, CTile, CTileDescriptor>>();
-        
+
         internal void MoveTo(CCubePos aCenteredOrAvatar, bool aTranslateAvatarPos)
         {
             var aNewCubePos = aTranslateAvatarPos
                          ? aCenteredOrAvatar.Subtract(this.CenterOffset)
                          : aCenteredOrAvatar
                          ;
-            if (aNewCubePos.IsEqual(this.CubePosAbs))
+            if (aNewCubePos.IsEqual(this.CubePos))
             {
                 // no change
             }
             else
             {
-                var aDic = this.MoveDic;
-                aDic.Clear();
-                var aLeafs1 = (from aLeaf in this.LoadedLeafDimensions.OfType<CTile>() select aLeaf).ToArray();
-                var aLeafs2 = (from aLeaf in aLeafs1 select new Tuple<CCubePosKey, CTile, CTileDescriptor>(aLeaf.AbsoluteCubeCoordinates.GetKey(this.Depth), aLeaf, aLeaf.TileDescriptor)).ToArray();
-                foreach (var aLeaf in aLeafs2)
-                    aDic.Add(aLeaf.Item1, aLeaf);
-                this.CubePosAbs = aNewCubePos;
-                foreach (var aLeaf in aLeafs1)
+                this.CubePos = aNewCubePos;
+                foreach (var aTile in this.GetLeafDimensions(false).OfType<CTile>())
                 {
-                    var aAbsIndex = aLeaf.AbsoluteCubeCoordinates;
-                    var aAbsIndexKey = new CCubePosKey(aAbsIndex, this.Depth);
-                    var aExists = aDic.ContainsKey(aAbsIndexKey);
-                    if (aExists)
-                    {
-                        var aOldData = aDic[aAbsIndexKey];
-                        var aTileDescriptor = aOldData.Item3;
-                        aLeaf.ReplaceTileData(aTileDescriptor)();
-                    }
-                    else
-                    {
-                        aLeaf.ReplaceTileData()();
-                    }
+                    this.Build(aTile); // TODO_OPT
                 }
+
+                //#region InitQuadrants
+                //private bool InitQuadrantsDone;
+                //private void InitQuadrants()
+                //{
+                //    if(!this.InitQuadrantsDone)
+                //    {
+                //        foreach (var aTile in this.GetLeafDimensions(true).OfType<CTile>())
+                //        {
+                //            if (!aTile.BuildIsDone)
+                //            {
+                //                this.Build(aTile);
+                //            }
+                //        }
+                //        this.InitQuadrantsDone = true;
+                //    }
+                //}
+                //#endregion
+                //private readonly Dictionary<CCubePosKey, Tuple<CCubePosKey, CTile, CTileDescriptor>> MoveDic = new Dictionary<CCubePosKey, Tuple<CCubePosKey, CTile, CTileDescriptor>>();
+                //private readonly List<CQuadrant> MoveQuadrantList = new List<CQuadrant>();
+                //private readonly List<CTile> MoveTileList = new List<CTile>();
+                //private readonly Dictionary<CCubePosKey, Tuple<CCubePosKey, CTile, CQuadrant>> MoveDic = new Dictionary<CCubePosKey, Tuple<CCubePosKey, CTile, CQuadrant>>();
+                //private readonly List<CTile> BuildTileList = new List<CTile>();
+                //try
+                //{
+                //    this.MoveTileList.Clear();
+                //    this.MoveQuadrantList.Clear();
+                //    this.MoveDic.Clear();
+                //    this.BuildTileList.Clear();
+
+                //    var aDic = this.MoveDic;
+                //    var aLeafs1 = (from aLeaf in this.LoadedLeafDimensions.OfType<CTile>() select aLeaf).ToArray();
+                //    var aLeafs2 = (from aLeaf in aLeafs1 select new Tuple<CCubePosKey, CTile, CQuadrant>(aLeaf.TileCubePos.GetKey(this.Depth), aLeaf, aLeaf.Quadrant)).ToArray();
+                //    foreach (var aLeaf in aLeafs2)
+                //        aDic.Add(aLeaf.Item1, aLeaf);
+                //    this.CubePos = aNewCubePos;
+                //    foreach (var aLeaf in aLeafs1)
+                //    {
+                //        var aAbsIndex = aLeaf.TileCubePos;
+                //        var aAbsIndexKey = new CCubePosKey(aAbsIndex, this.Depth);
+                //        var aExists = aDic.ContainsKey(aAbsIndexKey);
+                //        if (aExists)
+                //        {
+                //            var aOldData = aDic[aAbsIndexKey];
+                //            var aQaudrant = aOldData.Item3;
+                //            this.MoveQuadrantList.Add(aLeaf.Quadrant);
+                //            this.MoveTileList.Add(aOldData.Item2);
+                //            aLeaf.Quadrant = aQaudrant;
+                //            this.Build(aLeaf);
+                //        }
+                //        else
+                //        {
+                //            this.BuildTileList.Add(aLeaf);
+                //        }
+                //    }
+                //    foreach(var aBuildTile in this.BuildTileList)
+                //    {
+                //        this.Build(aBuildTile);
+                //    }
+
+                //    //if (false)
+                //    //{
+                //    //    foreach (var aTile in this.MoveTileList)
+                //    //    {
+                //    //        var aQuadrant = this.MoveQuadrantList[0];
+                //    //        this.MoveQuadrantList.RemoveAt(0);
+                //    //        aTile.Quadrant = aQuadrant;
+                //    //        this.Build(aTile);
+                //    //    }
+                //    //}
+                //}
+                //finally
+                //{
+                //    this.MoveTileList.Clear();
+                //    this.MoveQuadrantList.Clear();
+                //    this.MoveDic.Clear();
+                //}
+                //this.InitQuadrants();
             }
+
+
+
+            // throw new NotImplementedException();
+            //var aNewCubePos = aTranslateAvatarPos
+            //             ? aCenteredOrAvatar.Subtract(this.CenterOffset)
+            //             : aCenteredOrAvatar
+            //             ;
+            //if (aNewCubePos.IsEqual(this.CubePosAbs))
+            //{
+            //    // no change
+            //}
+            //else
+            //{
+            //    var aDic = this.MoveDic;
+            //    aDic.Clear();
+            //    var aLeafs1 = (from aLeaf in this.LoadedLeafDimensions.OfType<CTile>() select aLeaf).ToArray();
+            //    var aLeafs2 = (from aLeaf in aLeafs1 select new Tuple<CCubePosKey, CTile, CTileDescriptor>(aLeaf.AbsoluteCubeCoordinates.GetKey(this.Depth), aLeaf, aLeaf.TileDescriptor)).ToArray();
+            //    foreach (var aLeaf in aLeafs2)
+            //        aDic.Add(aLeaf.Item1, aLeaf);
+            //    this.CubePosAbs = aNewCubePos;
+            //    foreach (var aLeaf in aLeafs1)
+            //    {
+            //        var aAbsIndex = aLeaf.AbsoluteCubeCoordinates;
+            //        var aAbsIndexKey = new CCubePosKey(aAbsIndex, this.Depth);
+            //        var aExists = aDic.ContainsKey(aAbsIndexKey);
+            //        if (aExists)
+            //        {
+            //            var aOldData = aDic[aAbsIndexKey];
+            //            var aTileDescriptor = aOldData.Item3;
+            //            aLeaf.ReplaceTileData(aTileDescriptor)();
+            //        }
+            //        else
+            //        {
+            //            aLeaf.ReplaceTileData()();
+            //        }
+            //    }
+            //}
         }
 
         internal CCubePos NewCoords(Int64 aCoord)
             => new CCubePos(aCoord);
 
         internal UInt64 GetRandomSeed(CTile aTile)
-            => aTile.AbsoluteCubeCoordinates.GetSeed(this.Depth);
+            => aTile.TileCubePos.GetSeed(this.Depth);
 
 
         #endregion
         internal override bool SubDimensionsIsDefined => true;
-
-        #region LoadProxyWorker
-        private CTileDataLoadProxyWorker LoadProxyWorkerM;
-        private CTileDataLoadProxyWorker LoadProxyWorker => CLazyLoad.Get(ref this.LoadProxyWorkerM, () => new CTileDataLoadProxyWorker(this));
-
-        public IEnumerable<CTile> Tiles => this.LoadedLeafDimensions.OfType<CTile>();
-
-        //public CVector3Dbl WorldPos {  set => this.MoveToCubeCoordinatesOnDemand(this.GetCubePos(value)); }
-        #endregion
     }
 
     internal interface ICube
     {
-        //CVector3Dbl WorldPos { set; }
-        void Draw();
         void MoveTo(CCubePos aCubePos, bool aTranslateAvatarPos);
-        void Update(CVector3Dbl aAvatarPos);
-        void Update(CFrameInfo aFrameInfo);
-        IEnumerable<CSpriteData> SpriteDatas { get; }
         IEnumerable<CCubePos> CubePositions { get; }
-
+        IEnumerable<CQuadrant> Quadrants { get; }
     }
-    internal sealed class CMultiverseCube 
+    internal sealed class CWormholeCube 
     :
         CServiceLocatorNode
     {
         #region ctor
-        internal CMultiverseCube(CServiceLocatorNode aParent) : base(aParent)
+        internal CWormholeCube(CServiceLocatorNode aParent) : base(aParent)
         {
             this.Cube = CCube.New(this);
         }
@@ -1515,11 +951,8 @@ namespace CharlyBeck.Mvi.Cube
         #endregion
         internal readonly CCube Cube;
         internal bool Active;
-        internal void Draw() => this.Cube.Draw();
-        internal void Update(CVector3Dbl aAvatarPos) => this.Cube.Update(aAvatarPos);
-        internal void Update(CFrameInfo aFrameInfo) => this.Cube.Update(aFrameInfo);
-        internal IEnumerable<CSpriteData> SpriteDatas => this.Cube.SpriteDatas;
-        internal IEnumerable<CCubePos> CubePositions { get { yield return this.Cube.CubePosAbs; } }
+        public IEnumerable<CQuadrant> Quadrants => this.Cube.Quadrants;
+        internal IEnumerable<CCubePos> CubePositions { get { yield return this.Cube.CubePos; } }
 
         internal CCubePos CubePosOffset { get; set; }
         internal void MoveTo(CCubePos aCubePos, bool aTranslateToCenter)
@@ -1533,27 +966,30 @@ namespace CharlyBeck.Mvi.Cube
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+
+
         private CServiceContainer NewServiceContainer()
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
-            aServiceContainer.AddService<CMultiverseCube>(() => this);
+            aServiceContainer.AddService<CWormholeCube>(() => this);
+            aServiceContainer.AddService<CGetWorldPosByCubePosFunc>(() => new CGetWorldPosByCubePosFunc(aCubePos => this.GetWorldPos(aCubePos)));
             return aServiceContainer;
         }
         #endregion
     }
 
-    internal sealed class CMultiverseCubes  
+    internal sealed class CWormholeCubes  
     : 
         CServiceLocatorNode
     ,   ICube
     {
         #region ctor
-        internal CMultiverseCubes(CServiceLocatorNode aParent) : base(aParent)
+        internal CWormholeCubes(CServiceLocatorNode aParent) : base(aParent)
         {
-            var aItems = new CMultiverseCube[2];
+            var aItems = new CWormholeCube[2];
             foreach(var aIdx in Enumerable.Range(0, aItems.Length))
             {
-                aItems[aIdx] = new CMultiverseCube(this);
+                aItems[aIdx] = new CWormholeCube(this);
             }
             aItems.First().Active = true;
             this.Items = aItems;
@@ -1562,38 +998,19 @@ namespace CharlyBeck.Mvi.Cube
             => aException.Throw<T>();
         #endregion
         #region Cubes
-        internal readonly CMultiverseCube[] Items;
-        internal IEnumerable<CMultiverseCube> ActiveItems => from aCube in this.Items where aCube.Active select aCube;
+        internal readonly CWormholeCube[] Items;
+        internal IEnumerable<CWormholeCube> ActiveItems => from aCube in this.Items where aCube.Active select aCube;
         internal int CubeIndex { get; set; }
         #endregion
-        internal void Draw()
-        {
-            if (this.Cube1VisibleFeature.Enabled
-            && this[0].Active)
-                this[0].Draw();
-            if (this.Cube2VisibleFeature.Enabled
-            && this[1].Active)
-                this[1].Draw();
-        }
         #region ICube
-      
-        void ICube.Draw() => this.Draw();
-        void ICube.Update(CVector3Dbl aAvatarPos)
-        {
-            foreach (var aCube in this.ActiveItems)
-                aCube.Update(aAvatarPos);
-        }
-        void ICube.Update(CFrameInfo aFrameInfo)
-        {
-            foreach (var aCube in this.ActiveItems)
-                aCube.Update(aFrameInfo);
-        }
-        IEnumerable<CSpriteData> ICube.SpriteDatas => from aItem in this.ActiveItems from aSpriteData in aItem.SpriteDatas select aSpriteData;
-        IEnumerable<CCubePos> ICube.CubePositions => (from aItem in this.ActiveItems select aItem.CubePositions).Flatten();
+
+        IEnumerable<CQuadrant> ICube.Quadrants => from aItem in this.ActiveItems from aQuadrant in aItem.Quadrants select aQuadrant;
+
+        IEnumerable < CCubePos > ICube.CubePositions => (from aItem in this.ActiveItems select aItem.CubePositions).Flatten();
         void ICube.MoveTo(CCubePos aCubePos, bool aTranslateToCenter) => this.MoveTo(aCubePos, aTranslateToCenter);
         #endregion
 
-        private CMultiverseCube this[int idx]
+        private CWormholeCube this[int idx]
         {
             get => this.Items[idx];
             set => this.Items[idx] = value;
@@ -1603,7 +1020,7 @@ namespace CharlyBeck.Mvi.Cube
             get => this[1].Active;
             set => this[1].Active = value;
         }
-        internal void Swap(CBumperSpriteData aSource)
+        internal void Swap(CBumperSprite aSource)
         {
             if (aSource.Cube.RefEquals<CCube>(this[0].Cube)
             && aSource.IsBelowSurface
@@ -1630,20 +1047,26 @@ namespace CharlyBeck.Mvi.Cube
         }
         internal void MoveTo(CCubePos aCubePos, bool aTranslateToCenter)
             => this[0].MoveTo(aCubePos, aTranslateToCenter);
+    }
 
+    internal static class CWorldPosToCubePos
+    {
+        private static bool HasDigits(double c)
+            => ((double)(Int64)c) != c;
 
-        #region Features
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration Cube1VisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("bc921412-a77a-4942-92f4-dc304f59a767"), "Wormhole.Cube1.Visible", true);
-        private CFeature Cube1VisibleFeatureM;
-        private CFeature Cube1VisibleFeature => CLazyLoad.Get(ref this.Cube1VisibleFeatureM, () => CFeature.Get(this, Cube1VisibleFeatureDeclaration));
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration Cube2VisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("34928767-f86a-4a65-8bb8-09c0fe04f1ca"), "Wormhole.Cube2.Visible", true);
-        private CFeature Cube2VisibleFeatureM;
-        private CFeature Cube2VisibleFeature => CLazyLoad.Get(ref this.Cube2VisibleFeatureM, () => CFeature.Get(this, Cube2VisibleFeatureDeclaration));
-        #endregion
-
-
-
+        private static Int64 GetCubePos(double wp)
+        {
+            var cp = wp >= 0 || !HasDigits(wp)
+                   ? (Int64)wp
+                   : ((Int64)wp) - 1
+                   ;
+            return cp;
+        }
+        internal static CCubePos GetCubePos(CVector3Dbl aWorldPos, CVector3Dbl aWorldEdgeLen)
+        {
+            var a1 = aWorldPos.Divide(aWorldEdgeLen);
+            var a2 = new CCubePos(GetCubePos(a1.x), GetCubePos(a1.y), GetCubePos(a1.z));
+            return a2;
+        }
     }
 }

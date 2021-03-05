@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CharlyBeck.Mvi.Sprites.Bumper;
+using CharlyBeck.Mvi.Sprites.Asteroid;
 using Microsoft.Xna.Framework;
 using System.Collections;
 using CharlyBeck.Mvi.XnaExtensions;
@@ -19,8 +19,9 @@ using CharlyBeck.Mvi.Models;
 using CharlyBeck.Mvi.Feature;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Mvi.Mono.Sprites;
+using CharlyBeck.Mvi.Sprites.Bumper;
 
-namespace MviMono.Sprites.Bumper
+namespace MviMono.Sprites.Asteroid
 {
     internal sealed class CCircleVertexBuffers : CShapeScales<VertexBuffer>
     {
@@ -44,22 +45,23 @@ namespace MviMono.Sprites.Bumper
 
     internal sealed class CMonoBumperModel : CMonoModel
     {
-        internal CMonoBumperModel(CServiceLocatorNode aParent, CBumperModel aMviBumperModel) : base(aParent)
+        internal CMonoBumperModel(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.OctaederLineListVertexBuffer = aMviBumperModel.Octaeder.ColoredLineList.ToVertexPositionColor().ToVertexBuffer(this.Game.GraphicsDevice);
-            this.SphereDots = aMviBumperModel.Sphere.Dots;
+            var aAsteroidModel = this.Models.AsteroidModel;
+            this.OctaederLineListVertexBuffer = aAsteroidModel.Octaeder.ColoredLineList.ToVertexPositionColor().ToVertexBuffer(this.Game.GraphicsDevice);
+            this.SphereDots = aAsteroidModel.Sphere.Dots;
             var aGraphicsDevice = this.Game.GraphicsDevice;
-            this.SphereLineListVertexBuffer = aMviBumperModel.Sphere.HorizontalOutterPolygonLineList.ToVector3s().ToVertexPositionColor(Color.White).ToVertexBuffer(aGraphicsDevice);
-            this.SphereLineListVertexBuffers = (from aSphere in aMviBumperModel.Spheres 
+            this.SphereLineListVertexBuffer = aAsteroidModel.Sphere.HorizontalOutterPolygonLineList.ToVector3s().ToVertexPositionColor(Color.White).ToVertexBuffer(aGraphicsDevice);
+            this.SphereLineListVertexBuffers = (from aSphere in aAsteroidModel.Spheres 
                                                 select aSphere.HorizontalOutterPolygonLineList.ToVector3s().ToVertexPositionColor(Color.White)
                                                 .ToVertexBuffer(aGraphicsDevice)).ToArray();
-            this.SphereTriangleListVertexBuffers = (from aSphere in aMviBumperModel.Spheres 
+            this.SphereTriangleListVertexBuffers = (from aSphere in aAsteroidModel.Spheres 
                                                     select aSphere.TriangleStrips.ToVector3s().ToVertexPositionColor(Color.White)
                                                     .ToVertexBuffer(aGraphicsDevice)).ToArray();
-            this.CircleVertexBuffers = new CCircleVertexBuffers(aGraphicsDevice, aMviBumperModel.Circles, CColors.OrbitGray);
+            this.CircleVertexBuffers = new CCircleVertexBuffers(aGraphicsDevice, aAsteroidModel.Circles, CColors.OrbitGray);
             
             
-            this.MviBumperModel = aMviBumperModel;
+            this.MviAsteroidModel = aAsteroidModel;
 
             this.BlendState = new BlendState();
             this.BlendState.ColorSourceBlend = Blend.BlendFactor;
@@ -74,7 +76,7 @@ namespace MviMono.Sprites.Bumper
         public override T Throw<T>(Exception aException)
             => aException.Throw<T>();
 
-        private readonly CBumperModel MviBumperModel;
+        private readonly CAsteroidModel MviAsteroidModel;
         private readonly VertexBuffer OctaederLineListVertexBuffer;
         private readonly VertexBuffer SphereLineListVertexBuffer;
         private readonly VertexBuffer[] SphereLineListVertexBuffers;
@@ -82,15 +84,15 @@ namespace MviMono.Sprites.Bumper
         private readonly CCircleVertexBuffers CircleVertexBuffers;
 
         private VertexBuffer GetSphereLineListVertexBuffer(double aDistanceToSurface)
-            => this.SphereLineListVertexBuffers[this.MviBumperModel.GetSphereIdx(aDistanceToSurface)];
+            => this.SphereLineListVertexBuffers[this.MviAsteroidModel.GetSphereIdx(aDistanceToSurface)];
         private VertexBuffer GetSphereTriangleStripVertexBuffer(double aDistanceToSurface)
-            => this.SphereTriangleListVertexBuffers[this.MviBumperModel.GetSphereIdx(aDistanceToSurface)];
+            => this.SphereTriangleListVertexBuffers[this.MviAsteroidModel.GetSphereIdx(aDistanceToSurface)];
 
         private CVector3Dbl[] SphereDots;
     
-        private void DrawOctaedres(CBumperSprite aBumperSprite)
+        private void DrawOctaedres(CMonoBumperSprite aAsteroidSprite)
         {
-            var aEffect = aBumperSprite.BasicEffect;
+            var aEffect = aAsteroidSprite.BasicEffect;
             var aBasicMatrix = aEffect.World;
             foreach (var aSphereDot in this.SphereDots)
             {
@@ -108,30 +110,30 @@ namespace MviMono.Sprites.Bumper
         private readonly RasterizerState RasterizerState;
 
 
-        private void DrawSphere(CBumperSprite aBumperSprite)
+        private void DrawSphere(CMonoBumperSprite aAsteroidSprite)
         {
-            var aBumperSpriteData = aBumperSprite.BumperSpriteData;
-            var aAlpha = aBumperSpriteData.GetAlpha(this.Game.Avatar.WorldPos); 
+            var aBumperSprite = aAsteroidSprite.Sprite;
+            var aAlpha = aBumperSprite.GetAlpha(this.Game.Avatar.WorldPos); 
             var aInvertedAlpha = (float)(1d - aAlpha);
-            var aBasicEffect = aBumperSprite.BasicEffect;
+            var aBasicEffect = aAsteroidSprite.BasicEffect;
             var aOldAlpha = aBasicEffect.Alpha;
             var aOldWorldMatrix = this.Game.WorldMatrix;
-            var aScaleMatrix = Matrix.CreateScale((float)aBumperSprite.BumperSpriteData.Radius);
-            var aTranslateMatrix = Matrix.CreateTranslation(aBumperSpriteData.WorldPos.ToVector3());
+            var aScaleMatrix = Matrix.CreateScale((float)aAsteroidSprite.Sprite.Radius);
+            var aTranslateMatrix = Matrix.CreateTranslation(aBumperSprite.WorldPos.ToVector3());
             var aWorldMatrix = aOldWorldMatrix * aScaleMatrix * aTranslateMatrix;
             aBasicEffect.Alpha = (float)aAlpha;
             aBasicEffect.World = aWorldMatrix;
-            var aAvatarIsInTile = aBumperSpriteData.AvatarIsInTile;
-            var aAvatarDistanceToSurface = aBumperSpriteData.AvatarDistanceToSurface;
-            var aVertexBufferIndex = this.MviBumperModel.GetSphereIdx(aAvatarDistanceToSurface);
+            var aAvatarIsInTile = aBumperSprite.AvatarIsInQuadrant;
+            var aAvatarDistanceToSurface = aBumperSprite.AvatarDistanceToSurface;
+            var aVertexBufferIndex = this.MviAsteroidModel.GetSphereIdx(aAvatarDistanceToSurface);
             var aLineListVertexBuffer = this.SphereLineListVertexBuffers[aVertexBufferIndex]; // this.GetSphereLineListVertexBuffer(aAvatarDistanceToSurface);
             var aTriangleStripVertexBuffer = this.SphereTriangleListVertexBuffers[aVertexBufferIndex];// this.GetSphereTriangleStripVertexBuffer(aAvatarDistanceToSurface);
 
-            var aIsNearest = aBumperSpriteData.IsNearest;
-            var aIsBelowSurface = aBumperSpriteData.IsBelowSurface;
+            var aIsNearest = aBumperSprite.IsNearest;
+            var aIsBelowSurface = aBumperSprite.IsBelowSurface;
 
-            var aBumperColor = aBumperSpriteData.Color.ToColor().SetAlpha(aInvertedAlpha);
-            var aBumperColorWhite = Color.White.SetAlpha((float)aAlpha);
+            var aAsteroidColor = aBumperSprite.Color.ToColor().SetAlpha(aInvertedAlpha);
+            var aAsteroidColorWhite = Color.White.SetAlpha((float)aAlpha);
 
             var aGraphicsDevice = this.Game.GraphicsDevice;
             var aBlendState = this.BlendState;
@@ -139,7 +141,7 @@ namespace MviMono.Sprites.Bumper
             var aOldBlendState = aGraphicsDevice.BlendState;
 
             aGraphicsDevice.BlendState = aBlendState;
-            aGraphicsDevice.BlendFactor = aBumperColor;
+            aGraphicsDevice.BlendFactor = aAsteroidColor;
 
             //aGraphicsDevice.BlendState = Microsoft.Xna.Framework.Graphics.BlendState.AlphaBlend;
 
@@ -159,7 +161,7 @@ namespace MviMono.Sprites.Bumper
             || aIsBelowSurface)
             { // LineList
                // aBasicEffect.Alpha = 0.0f;
-                aGraphicsDevice.BlendFactor = aBumperColorWhite.SetAlpha(aInvertedAlpha);
+                aGraphicsDevice.BlendFactor = aAsteroidColorWhite.SetAlpha(aInvertedAlpha);
                 foreach (var aPass in aBasicEffect.CurrentTechnique.Passes)
                 {
                     aPass.Apply();
@@ -172,14 +174,14 @@ namespace MviMono.Sprites.Bumper
             aGraphicsDevice.BlendState = aOldBlendState;
         }
 
-        private void DrawOrbit(CBumperSprite aBumperSprite)
+        private void DrawOrbit(CMonoBumperSprite aAsteroidSprite)
         {
-            var aBumperSpriteData = aBumperSprite.BumperSpriteData;
-            if (aBumperSpriteData.OrbitIsDefined
+            var aBumperSprite = aAsteroidSprite.Sprite;
+            if (aBumperSprite.OrbitIsDefined
             && this.DrawOrbitsFeature.Enabled)
             {
                 var aGraphicsDevice = this.Game.GraphicsDevice;
-                var aOrbit = aBumperSpriteData.Orbit;
+                var aOrbit = aBumperSprite.Orbit;
 
                 var aOrbitRadians = aOrbit.Item1;
                 var aOrbitCenter = aOrbit.Item2;
@@ -203,7 +205,7 @@ namespace MviMono.Sprites.Bumper
 
 
                 var aOldAlpha = aBasicEffect.Alpha;
-                var aAlpha = aBumperSpriteData.GetAlpha(this.Game.Avatar.WorldPos); // TODO_OPT
+                var aAlpha = aBumperSprite.GetAlpha(this.Game.Avatar.WorldPos); // TODO_OPT
                 aBasicEffect.Alpha = (float)aAlpha;
 
 
@@ -219,11 +221,11 @@ namespace MviMono.Sprites.Bumper
             }
         }
 
-        internal void Draw(CBumperSprite aBumperSprite)
+        internal void Draw(CMonoBumperSprite aAsteroidSprite)
         {
-            //this.DrawOctaedres(aBumperSprite);
-            this.DrawSphere(aBumperSprite);
-            this.DrawOrbit(aBumperSprite);    
+            //this.DrawOctaedres(aAsteroidSprite);
+            this.DrawSphere(aAsteroidSprite);
+            this.DrawOrbit(aAsteroidSprite);    
 
 
             
@@ -239,33 +241,25 @@ namespace MviMono.Sprites.Bumper
     }
 
 
-    internal sealed class CBumperSprite
+    internal sealed class CMonoBumperSprite
     :
-       CSprite<CBumperSpriteData, CMonoBumperModel>
+       CMonoSprite<CBumperSprite, CMonoBumperModel>
     {
-        internal CBumperSprite(CServiceLocatorNode aParent) : base(aParent)
+        internal CMonoBumperSprite(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.MonoModel = this.MonoModels.MonoAsteroidModel;
+            this.TranslateToTilePosition = true;
         }
 
 
-
-
-        internal CBumperSpriteData BumperSpriteData
+        internal override void Draw()
         {
-            get => (CBumperSpriteData)this.SpriteData;
-            set => this.SpriteData = value;
+            base.Draw();
+            foreach (var aEffectPass in this.BasicEffect.CurrentTechnique.Passes)
+            {
+                aEffectPass.Apply();
+                this.MonoModel.Draw(this);
+            }
         }
-
-
-        internal override void OnDraw()
-        {
-            base.OnDraw();
-
-            this.GenericMonoModel.Draw(this);
-        }
-
-        internal override bool GenericMonoModelIsDefined => true;
-        internal override CMonoBumperModel NewGenericMonoModel(CServiceLocatorNode aParent)
-            => new CMonoBumperModel(aParent, this.BumperSpriteData.BumperModel);
     }
 }

@@ -15,7 +15,7 @@ namespace CharlyBeck.Utils3.ServiceLocator
         {
             this.ParentServiceLocatorNodeNullable = aParent;
         }
-        public CServiceLocatorNode(CNoParentEnum aNoParent)
+        public CServiceLocatorNode(CNoParentEnum aNoParent = CNoParentEnum.NoParent)
         {
         }
         protected virtual void Init()

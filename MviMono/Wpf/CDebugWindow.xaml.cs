@@ -2,8 +2,9 @@
 using CharlyBeck.Mvi.Feature;
 using CharlyBeck.Mvi.Mono.GameCore;
 using CharlyBeck.Mvi.Mono.Input.Hid;
+using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sprites.Bumper;
-using CharlyBeck.Mvi.Sprites.Quadrant;
+using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
@@ -40,7 +41,7 @@ namespace CharlyBeck.Mvi.Mono.Wpf
             this.Game = aGame;
             this.GameState = new CGameState(this.Game.ServiceLocatorNode);
             this.DataContext = aGame;
-            this.HidDevicesGui.DataContext = aGame.RootServiceLocatorNode.ServiceContainer.GetService<CHidDevicesVm>();
+            this.HidDevicesGui.DataContext = aGame.ServiceLocatorNode.ServiceContainer.GetService<CHidDevicesVm>();
 
             this.PreviewKeyDown += delegate(object aSender, KeyEventArgs a)
             {
@@ -137,24 +138,24 @@ namespace CharlyBeck.Mvi.Mono.Wpf
             else
             {
                 var aFrameInfo = this.Game.World.FrameInfo;
-                this.NearestBumperNullable = aFrameInfo.NearestBumperIsDefined ? aFrameInfo.NearestBumper : default;
+                this.NearestAsteroidNullable = aFrameInfo.NearestAsteroidIsDefined ? aFrameInfo.NearestAsteroid : default;
                 this.CubePositions = aFrameInfo.CubePositions;
                // this.Speed = this.Game.World.Speed;
             }
         }
 
-        #region NearestBumper
-        private CBumperSpriteData NearestBumperNullableM;
-        private CBumperSpriteData NearestBumperNullable { get => this.NearestBumperNullableM; set
+        #region NearestAsteroid
+        private CBumperSprite NearestAsteroidNullableM;
+        private CBumperSprite NearestAsteroidNullable { get => this.NearestAsteroidNullableM; set
             {
-                if(value != this.NearestBumperNullableM)
+                if(value != this.NearestAsteroidNullableM)
                 {
-                    this.NearestBumperNullableM = value;
-                    this.NotifyChange(nameof(this.VmNearestBumperNullable));
+                    this.NearestAsteroidNullableM = value;
+                    this.NotifyChange(nameof(this.VmNearestAsteroidNullable));
                 }
             }
         }
-        public object VmNearestBumperNullable => this.NearestBumperNullable;
+        public object VmNearestAsteroidNullable => this.NearestAsteroidNullable;
         #endregion
         #region CubePos
         private IEnumerable<CCubePos> CubePositionsM = Array.Empty<CCubePos>();

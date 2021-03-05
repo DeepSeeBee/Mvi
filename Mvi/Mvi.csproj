@@ -90,6 +90,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CParameters.cs" />
+    <Compile Include="CubeMvi\CMviQuadrant.cs" />
     <Compile Include="Cube\Cube.cs" />
     <Compile Include="Extensions\ext.cs" />
     <Compile Include="Facade\CFacade.cs" />
@@ -101,12 +103,14 @@
     <Compile Include="Models\Model.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="Sprites\spritesex.cs" />
+    <Compile Include="Sprites\Asteroid\Asteroid.cs" />
     <Compile Include="Story\Gems\CGems.cs" />
     <None Include="Story\Parameters\CParameters.cs" />
     <None Include="Story\Quest\CQuest.cs" />
     <Compile Include="Sprites\Bumper\Bumper.cs" />
-    <Compile Include="Sprites\Quadrant\Quadrant.cs" />
-    <Compile Include="Sprites\SolarSystem\CSolarSystem.cs" />
+    <Compile Include="Sprites\Cube\Cube.cs" />
+    <Compile Include="Sprites\SolarSystem\SolarSystem.cs" />
     <Compile Include="Sprites\sprites.cs" />
     <Compile Include="Story\Propability\Propability.cs" />
     <Compile Include="Story\Value\CValue.cs" />

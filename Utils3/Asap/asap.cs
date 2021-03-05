@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Utils3.Asap
 {
-    public delegate CReusable CNewFunc();
+    public delegate CReuseable CNewFunc();
 
     public abstract class CObjectPool 
     {
@@ -16,12 +16,12 @@ namespace Utils3.Asap
         }
         #region Factory
         public CNewFunc NewFunc { get; set; }
-        protected virtual CReusable New()
+        protected virtual CReuseable New()
             => this.NewFunc();
         #endregion
     }
 
-    public abstract class CSimpleObjectPool : CObjectPool
+    public class CSimpleObjectPool : CObjectPool
     {
         #region ctor
         public CSimpleObjectPool()
@@ -29,34 +29,56 @@ namespace Utils3.Asap
         }
         #endregion
         #region Reusable
-        private readonly List<CReusable> Free = new List<CReusable>();
-        public CReusable Allocate()
+        public bool Locked;
+        private readonly List<CReuseable> Free = new List<CReuseable>();
+        public CReuseable Allocate()
         {
-            CReusable aReusable;
+            CReuseable aReusable;
             var aList = this.Free;
             lock(aList)
             {                
-                if(aList.Count == 0)
-                {
-                    aReusable = this.New();
-                    aReusable.SimpleObjectPool = this;
-                }
-                else
+                if(aList.Count > 0)
                 {
                     aReusable = aList[0];
                     aList.RemoveAt(0);
+                }
+                else  if(this.Locked)
+                {
+                    throw new OutOfMemoryException();
+                }
+                else
+                {
+                    aReusable = this.BuildNew();
                 }
             }
             aReusable.BeginUse();
             return aReusable;
         }
-
-        internal void Deallocate(CReusable aReusable)
+        internal CReuseable BuildNew()
+        {
+            var aNew = this.New();
+            aNew.SimpleObjectPool = this;
+            return aNew;
+        }
+        internal void Deallocate(CReuseable aReusable)
         {
             var aList = this.Free;
-            lock(aList)
+            lock (aList)
             {
                 aList.Add(aReusable);
+            }
+        }
+
+        internal void Reserve(int aCount)
+        {
+            var aList = this.Free;
+            for (var i = 0; i < aCount; ++i)
+            {
+                var aItem = this.BuildNew();
+                lock (aList)
+                {
+                    aList.Add(aItem);
+                }
             }
         }
         #endregion
@@ -106,15 +128,15 @@ namespace Utils3.Asap
         #region Reusable
         public void SetNewFunc(int i, CNewFunc aNewFunc)
             => this.MultiPoolItems[i].NewFunc = aNewFunc;
-        protected CReusable Allocate(int aPoolIdx)
+        protected CReuseable Allocate(int aPoolIdx)
             => this.MultiPoolItems[aPoolIdx].Allocate();
         #endregion
     }
 
 
-    public abstract class CReusable 
+    public abstract class CReuseable : CServiceLocatorNode
     {
-        protected CReusable() : base()
+        protected CReuseable(CServiceLocatorNode aParent) : base(aParent)
         {
         }
         internal CSimpleObjectPool SimpleObjectPool { set; get; }
@@ -151,10 +173,50 @@ namespace Utils3.Asap
         }
         public void Deallocate()
         {
-            this.EndUse();
-            this.SimpleObjectPool.Deallocate(this);
+            if (this.IsInUse)
+            {
+                this.EndUse();
+                this.SimpleObjectPool.Deallocate(this);
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
     }
 
+    public sealed class CObjectPool<T>  where T: CReuseable
+    {
+        public CObjectPool()
+        {
+            this.SimpleObjectPool = new CSimpleObjectPool();
+            this.SimpleObjectPool.NewFunc = new CNewFunc(this.New);
+        }
+        private readonly CSimpleObjectPool SimpleObjectPool;
+        public void Reserve(int aCount)
+            => this.SimpleObjectPool.Reserve(aCount);
+        public bool Locked { get => this.SimpleObjectPool.Locked; set => this.SimpleObjectPool.Locked = value; }
+        public T Allocate()
+            => (T)this.SimpleObjectPool.Allocate();
 
+        public Func<T> NewFunc { get; set; }
+        private CReuseable New() => this.NewFunc();
+    }
+    public static class CEntensions
+    {
+        public static void DeallocateItems<T>(this T[] a) where T:CReuseable
+        {
+            if (a is object)
+            {
+                for (var i = 0; i < a.Length; ++i)
+                {
+                    if (a[i] is object)
+                    {
+                        a[i].Deallocate();
+                        a[i] = default;
+                    }
+                }
+            }
+        }
+    }
 }

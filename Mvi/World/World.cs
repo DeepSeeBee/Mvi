@@ -14,25 +14,14 @@ using CharlyBeck.Utils3.Enumerables;
 using Mvi.Models;
 using CharlyBeck.Mvi.Sprites;
 using CharlyBeck.Mvi.Internal;
-using CharlyBeck.Mvi.Sprites.Quadrant;
-using CharlyBeck.Mvi.Sprites.Bumper;
+using CharlyBeck.Mvi.Sprites.Cube;
+using CharlyBeck.Mvi.Sprites.Asteroid;
 using Microsoft.Xna.Framework;
 
 using CDoubleRange = System.Tuple<double, double>;
 using CIntegerRange = System.Tuple<int, int>;
-
-namespace CharlyBeck.Mvi.Cube
-{
-    partial class CTileDataLoadProxy
-    {
-        #region TileBuilder
-        private CTileBuilder TileBuilderM;
-        internal CTileBuilder TileBuilder => CLazyLoad.Get(ref this.TileBuilderM, () => new CTileBuilder(this));
-        internal override CLoadedTileData NewLoaded()
-              => this.TileBuilder.NewLoadedTileData(this);
-        #endregion
-    }
-}
+using CharlyBeck.Mvi.Cube.Mvi;
+using CharlyBeck.Mvi.Sprites.Bumper;
 
 namespace CharlyBeck.Mvi.World
 {
@@ -104,9 +93,6 @@ namespace CharlyBeck.Mvi.World
         internal int CalcHashCode(double aEdgeLen)
             => (int)((this.x + (this.y * aEdgeLen) + this.z * aEdgeLen * aEdgeLen));
 
-        internal CCubePos ToCubePos()
-            => new CCubePos((Int64)this.x, (Int64)this.y, (Int64)this.z);
-
         public double GetRadiansXy()
             => Math.Atan(this.y / this.x);
 
@@ -115,9 +101,6 @@ namespace CharlyBeck.Mvi.World
 
         public double GetRadiansYz()
             => Math.Atan(this.y / this.z);
-
-
-
     }
 
 }
@@ -125,56 +108,42 @@ namespace CharlyBeck.Mvi.World
 namespace CharlyBeck.Mvi.World
 {
 
-    internal sealed class CWorldGenerator : CRandomGenerator
-    {
-        #region ctor
-        internal CWorldGenerator(CServiceLocatorNode aParent) : base(aParent)
-        {
-            this.Init();
-        }
-        public override T Throw<T>(Exception aException)
-           => aException.Throw<T>();
+    //internal sealed class CTileBuilder : CServiceLocatorNode
+    //{
+    //    #region ctor
+    //    internal CTileBuilder(CServiceLocatorNode aParent) : base(aParent)
+    //    {
+    //        this.RandomGenerator = new CRandomGenerator(this);
+    //        this.Facade = this.ServiceContainer.GetService<CFacade>();
+    //        this.Init();
+    //    }
+    //    public override T Throw<T>(Exception aException)
+    //       => aException.Throw<T>();
+    //    #endregion
+    //    #region Tile
+    //    private CTile TileM;
+    //    internal CTile Tile => CLazyLoad.Get(ref this.TileM, () => this.ServiceContainer.GetService<CTile>());
+    //    #endregion
+    //    #region TileDescriptor
+    //    internal CMviQuadrantUserData NewTileDescriptor() => CRootTileDescriptor.New(this, this);
 
-
-
-        #endregion
-    }
-    internal sealed class CTileBuilder : CServiceLocatorNode
-    {
-        #region ctor
-        internal CTileBuilder(CServiceLocatorNode aParent) : base(aParent)
-        {
-            this.WorldGenerator = new CWorldGenerator(this);
-            this.Facade = this.ServiceContainer.GetService<CFacade>();
-            this.Init();
-        }
-        public override T Throw<T>(Exception aException)
-           => aException.Throw<T>();
-        #endregion
-        #region Tile
-        private CTile TileM;
-        internal CTile Tile => CLazyLoad.Get(ref this.TileM, () => this.ServiceContainer.GetService<CTile>());
-        #endregion
-        #region TileDescriptor
-        internal CTileDescriptor NewTileDescriptor() => CRootTileDescriptor.New(this, this);
-
-        internal CLoadedTileData NewLoadedTileData(CTileDataLoadProxy aTileDataLoadProxy)
-        {
-          //  this.WorldGenerator.Reset(this.Tile);
-           return CLoadedTileData.New(this, this.NewTileDescriptor());
-        }
-        #endregion
-        #region World
-        private CWorld WorldM;
-        internal CWorld World => CLazyLoad.Get(ref this.WorldM, () => this.ServiceContainer.GetService<CWorld>());
-        #endregion
-        #region WorldGenerator
-        internal readonly CWorldGenerator WorldGenerator;
-        #endregion
-        #region Facade
-        internal CFacade Facade { get; private set; }
-        #endregion
-    }
+    //    //internal CLoadedTileData NewLoadedTileData(CTileDataLoadProxy aTileDataLoadProxy)
+    //    //{
+    //    //  //  this.RandomGenerator.Reset(this.Tile);
+    //    //   return CLoadedTileData.New(this, this.NewTileDescriptor());
+    //    //}
+    //    #endregion
+    //    #region World
+    //    private CWorld WorldM;
+    //    internal CWorld World => CLazyLoad.Get(ref this.WorldM, () => this.ServiceContainer.GetService<CWorld>());
+    //    #endregion
+    //    #region RandomGenerator
+    //    internal readonly CRandomGenerator RandomGenerator;
+    //    #endregion
+    //    #region Facade
+    //    internal CFacade Facade { get; private set; }
+    //    #endregion
+    //}
 
     public sealed class CWorld : CServiceLocatorNode
     {
@@ -184,12 +153,12 @@ namespace CharlyBeck.Mvi.World
             this.CubeBorder = 1;
             this.EdgeLen = 1.0d;
             this.EdgeLenAsPos = new CVector3Dbl(this.EdgeLen);
-            this.TileBumperCountMin = 5;
-            this.TileBumperCountMax = 20;
-            this.BumperGravityRadiusMax = 1.0d;
-            this.BumperGravityStrengthMax = 1.0d;
-            this.NearBumperSpeedMin = 0.0001;
-            this.NearBumperSpeedForRadius0 = 0.001;
+            this.TileAsteroidCountMin = 5;
+            this.TileAsteroidCountMax = 20;
+            this.AsteroidGravityRadiusMax = 1.0d;
+            this.AsteroidGravityStrengthMax = 1.0d;
+            this.NearAsteroidSpeedMin = 0.0001;
+            this.NearAsteroidSpeedForRadius0 = 0.001;
             this.SphereScaleCount = 25;
         }
         public override void Load()
@@ -211,15 +180,15 @@ namespace CharlyBeck.Mvi.World
         }
         #endregion
         #region Cube
-        internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
-            => aWorldPos.Divide(this.EdgeLenAsPos).ToCubePos();
+
+  
         private CCube SimpleCubeM;
         internal CCube SimpleCube => CLazyLoad.Get(ref this.SimpleCubeM, () => CCube.New(this));
         #endregion
-        #region MultiverseCubes
-        internal ICube Cube => this.MultiverseCubes; // this.SimpleCube;
-        private CMultiverseCubes MultiverseCubesM;
-        internal CMultiverseCubes MultiverseCubes => CLazyLoad.Get(ref this.MultiverseCubesM, ()=>new CMultiverseCubes(this));
+        #region WormholeCubes
+        internal ICube Cube => this.WormholeCubes; // this.SimpleCube;
+        private CWormholeCubes WormholeCubesM;
+        internal CWormholeCubes WormholeCubes => CLazyLoad.Get(ref this.WormholeCubesM, ()=>new CWormholeCubes(this));
         #endregion
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
@@ -229,19 +198,21 @@ namespace CharlyBeck.Mvi.World
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CWorld>(() => this);
             aServiceContainer.AddService<CNewBorderFunc>(() => new CNewBorderFunc(()=> this.CubeBorder));
-            aServiceContainer.AddService<CMultiverseCubes>(() => this.MultiverseCubes);
+            aServiceContainer.AddService<CWormholeCubes>(() => this.WormholeCubes);
+            aServiceContainer.AddService<CNewQuadrantFunc>(() => new CNewQuadrantFunc(aParent => new CSpaceSwitchQuadrant(aParent)));
             return aServiceContainer;
         }
         #endregion
         #region Draw
         internal void Draw()
         {
-            this.Cube.Draw();
+            foreach (var aSprite in this.Sprites)
+                aSprite.Draw();
         }
         #endregion
         #region Models
         private CModels ModelsM;
-        internal CModels Models => CLazyLoad.Get(ref this.ModelsM, () => new CModels(this));
+        public CModels Models => CLazyLoad.Get(ref this.ModelsM, () => new CModels(this));
         #endregion
         public readonly double EdgeLen;
         internal readonly CVector3Dbl EdgeLenAsPos;
@@ -252,27 +223,17 @@ namespace CharlyBeck.Mvi.World
         internal CVector3Dbl NewCoords(double xyz)
             => new CVector3Dbl(xyz);
 
-        //internal CVector3Dbl GetWorldPos(CCubePos aCubeCoordinates)
-        //   => this.GetWorldPos2(aCubeCoordinates); // .Subtract(this.CubeCenterOffset)
-
-        //internal CVector3Dbl GetWorldPos2(CCubePos aCubeCoordinates)
-        //    => aCubeCoordinates.ToWorldPos() * this.EdgeLenAsPos;
-
-        //public CCubePos GetCubePos(CVector3Dbl aWorldPos)
-        //    => this.Cube.GetCubePos(aWorldPos);
-            //=> aWorldPos.Divide(this.EdgeLenAsPos).ToCubePos();
-
-        internal readonly double NearBumperSpeedForRadius0;
-        internal readonly int TileBumperCountMin;
-        internal readonly int TileBumperCountMax;
-        internal readonly CDoubleRange DefaultBumperRadiusMax = new CDoubleRange(0.00001d, 0.01d);
+        internal readonly double NearAsteroidSpeedForRadius0;
+        internal readonly int TileAsteroidCountMin;
+        internal readonly int TileAsteroidCountMax;
+        internal readonly CDoubleRange DefaultAsteroidRadiusMax = new CDoubleRange(0.00001d, 0.01d);
         internal readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.05d);
         internal readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.5d, 0.8d);
         internal readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.3d, 0.6d);
 
-        internal readonly double BumperGravityRadiusMax;
-        internal readonly double BumperGravityStrengthMax;
-        internal readonly double NearBumperSpeedMin;
+        internal readonly double AsteroidGravityRadiusMax;
+        internal readonly double AsteroidGravityStrengthMax;
+        internal readonly double NearAsteroidSpeedMin;
         internal readonly Int64 CubeBorder;
         internal double OrbDayDurationMin => 1d;
         internal double OrbDayDurationMax => 20d;
@@ -300,12 +261,31 @@ namespace CharlyBeck.Mvi.World
 
         public double Speed = 1.0d;
 
+
+        private IEnumerable<CSpaceQuadrant> SpaceQuadrants => this.Cube.Quadrants.OfType<CSpaceQuadrant>();
+        internal IEnumerable<CSprite> Sprites => from aItem in this.SpaceQuadrants 
+                                                        from aSprite in aItem.Sprites 
+                                                        select aSprite;
+
+        
         public void Update(CVector3Dbl aAvatarPos, GameTime aGameTime)
         {
             this.GameTimeNullable = aGameTime;
-            this.Cube.Update(aAvatarPos);
+
+            var aSpaceQuadrants = this.SpaceQuadrants;
+            foreach (var aSpaceQuadrant in aSpaceQuadrants)
+            {
+                aSpaceQuadrant.Update(aAvatarPos);
+            }
             this.FrameInfo = new CFrameInfo(this, aAvatarPos);
-            this.Cube.Update(this.FrameInfo);
+            foreach (var aSpaceQuadrant in aSpaceQuadrants)
+            {
+                aSpaceQuadrant.Update(this.FrameInfo);
+            }
+            //throw new NotImplementedException();
+            //this.Cube.Update(aAvatarPos);
+            //this.FrameInfo = new CFrameInfo(this, aAvatarPos);
+            //this.Cube.Update(this.FrameInfo);
 
 
             //var aSpriteDatas = from aTile in this.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData;
@@ -322,91 +302,97 @@ namespace CharlyBeck.Mvi.World
             //}
         }
 
-
+        internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
+            => CWorldPosToCubePos.GetCubePos(aWorldPos, this.EdgeLenAsPos);
     }
 }
 
 
 namespace CharlyBeck.Mvi.World
 {
-    using CSpriteDistance = Tuple<CSpriteData, double>;
+    using CSpriteDistance = Tuple<CSprite, double>;
     public struct  CFrameInfo
     {
         internal CFrameInfo(CWorld aWorld, CVector3Dbl aWorldPos)
         {
             this.World = default;
             this.AvatarWorldPos = default;
-            this.SpriteDatas = default;
+            this.Sprites = default;
             this.SpriteDistances = default;
-            this.NearestBumperSpriteDataAndDistance = default;
-            //this.NearestBumperDistanceToSurface = default;
-            //this.NearestBumperIsEntered = default;
+            this.NearestBumperSpriteAndDistance = default;
+            //this.NearestAsteroidDistanceToSurface = default;
+            //this.NearestAsteroidIsEntered = default;
             this.NearPlanetSpeedM = default;
             this.CubePositionsM = default;
 
             this.World = aWorld;
             this.AvatarWorldPos = aWorldPos;
             var aCube = aWorld.Cube;
+            {
+                this.Sprites = this.World.Sprites.ToArray();
+                this.SpriteDistances = (from aSpriteData in this.Sprites select new Tuple<CSprite, double>(aSpriteData, aSpriteData.DistanceToAvatar)).ToArray().OrderBy(aDist => aDist.Item2).ToArray();
+                this.NearestBumperSpriteAndDistance = (from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSprite) select new Tuple<CBumperSprite, double>((CBumperSprite)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();
+                this.CubePositions = this.World.Cube.CubePositions;
+            }
 
-            this.SpriteDatas = aCube.SpriteDatas.ToArray(); 
-            this.SpriteDistances = (from aSpriteData in this.SpriteDatas select new Tuple<CSpriteData, double>(aSpriteData, aSpriteData.DistanceToAvatar)).ToArray().OrderBy(aDist=>aDist.Item2).ToArray();
-            this.NearestBumperSpriteDataAndDistance = ( from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSpriteData) select new Tuple<CBumperSpriteData, double>((CBumperSpriteData)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();
-            this.CubePositions = this.World.Cube.CubePositions;
 
-            //this.NearestBumperDistanceToSurface = this.NearestBumperIsDefined ? (this.NearestBumper.AvatarDistanceToSurface) : double.NaN;
-            //this.NearestBumperIsEntered = this.NearestBumperIsDefined ? this.NearestBumper.IsBelowSurface : false; // this.NearestBumperDistance < this.NearestBumper.Radius : false;
+
+
+
+            //this.NearestAsteroidDistanceToSurface = this.NearestAsteroidIsDefined ? (this.NearestAsteroid.AvatarDistanceToSurface) : double.NaN;
+            //this.NearestAsteroidIsEntered = this.NearestAsteroidIsDefined ? this.NearestAsteroid.IsBelowSurface : false; // this.NearestAsteroidDistance < this.NearestAsteroid.Radius : false;
             //this.NearPlanetSpeed = this.NewNearPlanetSpeed();
         }
 
         public readonly CWorld World;
         public readonly CVector3Dbl AvatarWorldPos;
-        public readonly CSpriteData[] SpriteDatas;
+        public readonly CSprite[] Sprites;
         public readonly CSpriteDistance[] SpriteDistances;
-        public IEnumerable<CSpriteData> SpriteDatasOrderedByDistance => from aItem in this.SpriteDistances select aItem.Item1;
-        public readonly Tuple<CBumperSpriteData, double> NearestBumperSpriteDataAndDistance;
-        public CBumperSpriteData NearestBumper => this.NearestBumperSpriteDataAndDistance.Item1;
+        public IEnumerable<CSprite> SpriteDatasOrderedByDistance => from aItem in this.SpriteDistances select aItem.Item1;
+        public readonly Tuple<CBumperSprite, double> NearestBumperSpriteAndDistance;
+        public CBumperSprite NearestAsteroid => this.NearestBumperSpriteAndDistance.Item1;
         private IEnumerable<CCubePos> CubePositionsM;
         public IEnumerable<CCubePos> CubePositions { get => this.CubePositionsM is object ? this.CubePositionsM : Array.Empty<CCubePos>(); private set => this.CubePositionsM = value; }
 
         
-        // public double NearestBumperDistance => this.NearestBumperSpriteDataAndDistance.Item2;
+        // public double NearestAsteroidDistance => this.NearestBumperSpriteAndDistance.Item2;
 
-       // public readonly bool NearestBumperIsEntered;
-       // public readonly double NearestBumperDistanceToSurface;       
-        public bool NearestBumperIsDefined => this.NearestBumperSpriteDataAndDistance is object && this.NearestBumperSpriteDataAndDistance.Item1 is object;
+       // public readonly bool NearestAsteroidIsEntered;
+       // public readonly double NearestAsteroidDistanceToSurface;       
+        public bool NearestAsteroidIsDefined => this.NearestBumperSpriteAndDistance is object && this.NearestBumperSpriteAndDistance.Item1 is object;
 
         public double NearPlanetSpeed { get => CLazyLoad.Get(ref this.NearPlanetSpeedM, this.NewNearPlanetSpeed); }
         public double? NearPlanetSpeedM;
         private double NewNearPlanetSpeed()
         {
-            if (!this.NearestBumperIsDefined)
+            if (!this.NearestAsteroidIsDefined)
             {
                 return 1d; // Strange...
             }
-            //else if (this.NearestBumperIsEntered)
+            //else if (this.NearestAsteroidIsEntered)
             //{
-            //    return this.World.NearBumperSpeedMin;
+            //    return this.World.NearAsteroidSpeedMin;
             //}
             //else
             {
-                var aDistance =  Math.Abs(this.NearestBumper.AvatarDistanceToSurface);
-                var rm = this.World.DefaultBumperRadiusMax.Item2;
-                var rf =  (this.NearestBumper.Radius / rm);
-                var s1 = 0; // (1d - rf) * this.World.NearBumperSpeedForRadius0;
+                var aDistance =  Math.Abs(this.NearestAsteroid.AvatarDistanceToSurface);
+                var rm = this.World.DefaultAsteroidRadiusMax.Item2;
+                var rf =  (this.NearestAsteroid.Radius / rm);
+                var s1 = 0; // (1d - rf) * this.World.NearAsteroidSpeedForRadius0;
                 var s2 = aDistance;
                 var s3 = (s1 + s2) / 2d; // s1 + s2;
-                var s = Math.Max(this.World.NearBumperSpeedMin, s3);
+                var s = Math.Max(this.World.NearAsteroidSpeedMin, s3);
                 return s;
-                //var aDistance = this.NearestBumperDistanceToSurface;
-                //var aMinDistance = this.World.NearBumperSpeedMinDistance;
-                //var aMaxDistance = this.World.NearBumperSpeedMaxDistance;
+                //var aDistance = this.NearestAsteroidDistanceToSurface;
+                //var aMinDistance = this.World.NearAsteroidSpeedMinDistance;
+                //var aMaxDistance = this.World.NearAsteroidSpeedMaxDistance;
                 //var aEffectiveDistance = Math.Min(aMaxDistance, Math.Max(aMinDistance, aDistance));
                 //var aDistanceForFkt = aEffectiveDistance - aMinDistance;
                 //var aDistanceRange1 = aMaxDistance - aMinDistance;
                 //var aDistanceFkt = aDistanceForFkt / aDistanceRange1;
-                //var aMinSpeed = this.World.NearBumperSpeedMaxDistance;
-                //var aDistanceRange2 = 1.0d - this.World.NearBumperSpeedMin;
-                //var aSpeed1 = aDistanceFkt * aDistanceRange2; // + this.World.NearBumperSpeedMin;
+                //var aMinSpeed = this.World.NearAsteroidSpeedMaxDistance;
+                //var aDistanceRange2 = 1.0d - this.World.NearAsteroidSpeedMin;
+                //var aSpeed1 = aDistanceFkt * aDistanceRange2; // + this.World.NearAsteroidSpeedMin;
                 //var aExp = (1/aDistance);
                 //var aSpeed2 = Exp(aSpeed1, aExp, 0); // Math.Exp(aSpeed1 * aExp) /Math.Pow(Math.E, aExp);
                 //return aSpeed2;

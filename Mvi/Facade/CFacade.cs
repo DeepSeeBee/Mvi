@@ -2,7 +2,7 @@
 using CharlyBeck.Mvi.Feature;
 using CharlyBeck.Mvi.Internal;
 using CharlyBeck.Mvi.Sprites;
-using CharlyBeck.Mvi.Sprites.Quadrant;
+using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.ServiceLocator;
@@ -18,11 +18,11 @@ namespace CharlyBeck.Mvi.Facade
 {
     public interface ISprite
     {
-       // void Update(BitArray aWhat);
         void Draw();
-        void Unload();
+        void Deallocate();
 
-        CSpriteData SpriteData { get; }
+        void Reposition();
+        CSprite Sprite { get; }
     }
 
     public interface ISprite<T> : ISprite
@@ -36,8 +36,11 @@ namespace CharlyBeck.Mvi.Facade
     {
         public CFacade(CServiceLocatorNode aParent) : base(aParent)
         {
+   
             this.World = new CWorld(this);
         }
+
+
         public CFacade() : this(new CDefaultServiceLocatorNode())
         {
         }
@@ -61,11 +64,6 @@ namespace CharlyBeck.Mvi.Facade
         public void Draw()
            => this.World.Draw();
 
-        //public void SetCubeCoordinates(CCubePos aCoordinates)
-        //{
-        //    this.Cube.MoveToCubeCoordinatesOnDemand(aCoordinates);
-        //}
-
         public CVector3Dbl WorldPos { set => this.Cube.MoveTo(this.World.GetCubePos(value), true); }
 
         #region Features
@@ -80,10 +78,8 @@ namespace CharlyBeck.Mvi.Facade
         }
         protected virtual void BuildFeatureRegistry(CFeatures aFeatureRegistry)
         {
-            //aFeatureRegistry.Add(typeof(CQuadrantSpriteData));
             var aAssemblies = new Assembly[] { typeof(CFacade).Assembly, this.GetType().Assembly };
             aFeatureRegistry.AddRange(aAssemblies);
-
         }
         #endregion
 

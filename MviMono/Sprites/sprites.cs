@@ -1,15 +1,18 @@
 ﻿using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Mono.GameCore;
+using CharlyBeck.Mvi.Mono.Sprites.Cube;
 using CharlyBeck.Mvi.Sprites;
+using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sprites.Bumper;
-using CharlyBeck.Mvi.Sprites.Quadrant;
+using CharlyBeck.Mvi.Sprites.Cube;
+using CharlyBeck.Mvi.World;
+using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.ServiceLocator;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MviMono.Models;
-using MviMono.Sprites.Bumper;
-using MviMono.Sprites.Quadrant;
+using MviMono.Sprites.Asteroid;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,42 +22,35 @@ using Utils3.Asap;
 
 namespace CharlyBeck.Mvi.Mono.Sprites
 {
-    internal abstract class CSprite
+    internal abstract class CMonoSprite
     :
-        CReusable
+        CReuseable
     ,   ISprite
     {
         #region ctor
-        internal CSprite(CServiceLocatorNode aParent) : base()
-        {//, CMonoFacade aMonoFacade, CSpriteData aSpriteData
-            //this.MonoFacade = aMonoFacade;
-            this.ServiceLocatorNode = aParent;
-            this.Game = this.ServiceLocatorNode.ServiceContainer.GetService<CGame>();
+        internal CMonoSprite(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.Game = this.ServiceContainer.GetService<CGame>();
+            this.MonoModels = this.ServiceContainer.GetService<CMonoModels>();
             this.BasicEffect = new BasicEffect(this.Game.GraphicsDevice);
         }
 
-        internal readonly CServiceLocatorNode ServiceLocatorNode;
+        internal readonly CGame Game;
+        internal CWorld World => this.Game.World;
+        internal readonly CMonoModels MonoModels;
 
-        public CSpriteData SpriteData { get; protected set; }
+        public abstract CSprite SpriteBase { get; }
 
-        void ISprite.Unload()
+        void ISprite.Deallocate()
             => this.Deallocate();
-        protected override void OnEndUse()
-        {
-            base.OnEndUse();
-            // this.Game.AvatarChanged -= this.UpdateBasicEffect;
-            this.SpriteData = default;
-        }
         #endregion
-        internal CGame Game { get; private set; }
         internal GraphicsDevice GraphicsDevice => this.Game.GraphicsDevice;
 
         #region BasicEffect
         internal readonly BasicEffect BasicEffect;
-        internal void UpdateBasicEffect()
+        private void UpdateBasicEffect()
         {
             var aGame = this.Game;
-            //this.BasicEffect = aGame.BasicEffect;
             this.BasicEffect.Alpha = 1f;
             this.BasicEffect.VertexColorEnabled = true;
             this.BasicEffect.World = this.WorldMatrix;
@@ -62,70 +58,62 @@ namespace CharlyBeck.Mvi.Mono.Sprites
             this.BasicEffect.Projection = aGame.ProjectionMatrix;
         }
         #endregion
-        #region WorldTranslateIsDefined
-        //internal virtual Vector3 WorldTranslate => new Vector3();
-        //internal virtual bool WorldTranslateIsDefined => false;
-        internal virtual Matrix WorldMatrix
-            => //this.WorldTranslateIsDefined
-               // ? this.Game.WorldMatrix * Matrix.CreateTranslation(this.WorldTranslate)
-               // : 
-            this.Game.WorldMatrix
-             ;
-        #endregion
-        #region Draw
-        internal virtual void DrawPrimitives()
+        #region WorldMatrix
+
+        internal bool TranslateToTilePosition;
+        private Matrix WorldMatrix = Matrix.Identity;
+
+        private void Reposition()
         {
-        }
-        internal virtual void OnDraw()
-        {
-            this.UpdateBasicEffect();
-            foreach (var aEffectPass in this.BasicEffect.CurrentTechnique.Passes)
+            var aWorldMatrix = this.Game.WorldMatrix;
+            if(this.TranslateToTilePosition)
             {
-                aEffectPass.Apply();
-                this.DrawPrimitives();
+                aWorldMatrix = aWorldMatrix * Matrix.CreateTranslation(this.SpriteBase.TileWorldPos.Value.ToVector3());
             }
+            this.WorldMatrix = aWorldMatrix;
         }
+        #endregion
+
+
+        #region Draw
         internal virtual void Draw()
         {
-
-            this.OnDraw();
+            this.UpdateBasicEffect();
         }
+        #endregion
+        #region ISprite
+        CSprite ISprite.Sprite  => this.SpriteBase; 
         void ISprite.Draw()
            => this.Draw();
+
+        void ISprite.Reposition()
+            => this.Reposition();
         #endregion
 
     }
 
-    internal abstract class CSprite<TSpriteData, TMonoModel>
+    internal abstract class CMonoSprite<TSprite, TMonoModel>
     :
-        CSprite
-    ,   ISprite<TSpriteData>
+        CMonoSprite
+    ,   ISprite<TSprite>
         where TMonoModel : CMonoModel
+        where TSprite : CSprite
     {
-        internal CSprite(CServiceLocatorNode aParent) : base(aParent)
+        internal CMonoSprite(CServiceLocatorNode aParent) : base(aParent)
         {
         }
-
+        #region Sprite
+        internal TSprite Sprite;
+        public override CSprite SpriteBase => this.Sprite;
+        #endregion
         #region GenericMonoModel
-        private TMonoModel GenericMonoModelM;
-        internal TMonoModel GenericMonoModel
-            => CLazyLoad.Get(ref this.GenericMonoModelM, this.LoadGenericMonoModel);
-        internal virtual TMonoModel NewGenericMonoModel(CServiceLocatorNode aParent)
-            => throw new NotImplementedException();
-        internal virtual bool GenericMonoModelIsDefined => false;
-        private TMonoModel LoadGenericMonoModel()
-        {
-            var aKey = this.GenericMonoModelKey;
-            var aMonoModel = this.Game.Models.LoadMonoModel<TMonoModel>(aKey, aParent => this.NewGenericMonoModel(aParent));
-            return aMonoModel;
-        }
-        internal object GenericMonoModelKey => this.SpriteData.Model;
+        public TMonoModel MonoModel { get; protected set; }
         #endregion
     }
     internal enum CSpriteEnum
     {
-        Bumper,
-        Quadrant,
+        Asteroid,
+        Cube,
 
         _Count
     }
@@ -138,24 +126,23 @@ namespace CharlyBeck.Mvi.Mono.Sprites
 
             var c = (int)CSpriteEnum._Count;
             this.AllocateObjectPool(c);
-            this.SetNewFunc((int)CSpriteEnum.Bumper, () => new CBumperSprite(this.ServiceLocatorNode));
-            this.SetNewFunc((int)CSpriteEnum.Quadrant, () => new CQuadrantSprite(this.ServiceLocatorNode));
-
+            this.SetNewFunc((int)CSpriteEnum.Asteroid, () => new CMonoBumperSprite(this.ServiceLocatorNode));
+            this.SetNewFunc((int)CSpriteEnum.Cube, () => new CMonoCubeSprite(this.ServiceLocatorNode));
         }
 
         internal readonly CServiceLocatorNode ServiceLocatorNode;
 
-        internal CBumperSprite AllocateBumperSprite(CBumperSpriteData aBumperSpriteData)
+        internal CMonoBumperSprite AllocateAsteroidSprite(CBumperSprite aBumperSprite)
         {
-            var aBumperSprite = (CBumperSprite)this.Allocate((int)CSpriteEnum.Bumper);
-            aBumperSprite.BumperSpriteData = aBumperSpriteData;
-            return aBumperSprite;
+            var aAsteroidSprite = (CMonoBumperSprite)this.Allocate((int)CSpriteEnum.Asteroid);
+            aAsteroidSprite.Sprite = aBumperSprite;
+            return aAsteroidSprite;
         }
-        internal CQuadrantSprite AllocateQuadrantSprite(CQuadrantSpriteData aQuadrantSpriteData)
+        internal CMonoCubeSprite AllocateQuadrantSprite(Mvi.Sprites.Cube.CCubeSprite aCubeSprite)
         {
-            var aQuadrantSprite = (CQuadrantSprite)this.Allocate((int)CSpriteEnum.Quadrant);
-            aQuadrantSprite.QuadrantSpriteData = aQuadrantSpriteData;
-            return aQuadrantSprite;
+            var aMonoCubeSprite = (CMonoCubeSprite)this.Allocate((int)CSpriteEnum.Cube);
+            aMonoCubeSprite.Sprite = aCubeSprite;
+            return aMonoCubeSprite;
 
         }
     }
