@@ -18,6 +18,7 @@ using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Mvi.Models;
 using CharlyBeck.Mvi.Feature;
 using CharlyBeck.Utils3.LazyLoad;
+using CharlyBeck.Mvi.Mono.Sprites;
 
 namespace MviMono.Sprites.Bumper
 {
@@ -110,7 +111,7 @@ namespace MviMono.Sprites.Bumper
         private void DrawSphere(CBumperSprite aBumperSprite)
         {
             var aBumperSpriteData = aBumperSprite.BumperSpriteData;
-            var aAlpha = aBumperSpriteData.GetAlpha(this.Game.Avatar.WorldPos); // TODO_OPT
+            var aAlpha = aBumperSpriteData.GetAlpha(this.Game.Avatar.WorldPos); 
             var aInvertedAlpha = (float)(1d - aAlpha);
             var aBasicEffect = aBumperSprite.BasicEffect;
             var aOldAlpha = aBasicEffect.Alpha;
@@ -242,60 +243,19 @@ namespace MviMono.Sprites.Bumper
     :
        CSprite<CBumperSpriteData, CMonoBumperModel>
     {
-        internal CBumperSprite(CServiceLocatorNode aParent, CMonoFacade aMonoFacade, CBumperSpriteData aBumperSpriteData) : base(aParent, aMonoFacade, aBumperSpriteData)
+        internal CBumperSprite(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.BumperSpriteData = aBumperSpriteData;
-
-            var aGame = aMonoFacade.Game;
-
-            //var aCenter2 = this.WorldTranslateIsDefined
-            //             ? default(CVector3Dbl)
-            //             : aBumperSpriteData.WorldPos
-            //             ;
-            //var aRadius = aBumperSpriteData.Radius;
-            //var a1X = aCenter2.x;
-            //var a1Y = aCenter2.y - aRadius;
-            //var a1Z = aCenter2.z;
-            //var a2X = aCenter2.x + aRadius;
-            //var a2Y = aCenter2.y + aRadius;
-            //var a2Z = aCenter2.z;
-            //var a3X = aCenter2.x - aRadius;
-            //var a3Y = aCenter2.y + aRadius;
-            //var a3Z = aCenter2.z;
-
-            //var aVertices = new VertexPositionColor[3];
-            //aVertices[0] = new VertexPositionColor(new Vector3((float)a1X, (float)a1Y, (float)a1Z), Color.Red);
-            //aVertices[1] = new VertexPositionColor(new Vector3((float)a2X, (float)a2Y, (float)a2Z), Color.Green);
-            //aVertices[2] = new VertexPositionColor(new Vector3((float)a3X, (float)a3Y, (float)a3Z), Color.Blue);
-
-            //var aVertexBuffer = new VertexBuffer(aMonoFacade.Game.GraphicsDevice, typeof(VertexPositionColor), 3, BufferUsage.WriteOnly);
-            //aVertexBuffer.SetData<VertexPositionColor>(aVertices);
-            //this.TriangleVertexBuffer = aVertexBuffer;
-
         }
 
 
 
-        //internal override bool WorldTranslateIsDefined => true;
-        //internal override Vector3 WorldTranslate => this.BumperSpriteData.WorldPos.ToVector3();
-      //  internal override Matrix WorldMatrix => this.BumperSpriteData.WorldMatrix;
-        public override T Throw<T>(Exception aException)
-              => aException.Throw<T>();
 
-        internal readonly CBumperSpriteData BumperSpriteData;
-        //internal readonly VertexBuffer TriangleVertexBuffer;
-
-        internal override void Update(BitArray aChanged)
+        internal CBumperSpriteData BumperSpriteData
         {
-
+            get => (CBumperSpriteData)this.SpriteData;
+            set => this.SpriteData = value;
         }
-        internal override void DrawPrimitives()
-        {
-            base.DrawPrimitives();
 
-            //GraphicsDevice.SetVertexBuffer(this.TriangleVertexBuffer);
-            //this.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, 3);
-        }
 
         internal override void OnDraw()
         {

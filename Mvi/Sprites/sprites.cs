@@ -87,9 +87,17 @@ namespace CharlyBeck.Mvi.Sprites
         internal virtual void OnUnload()
         {
         }
+        private bool IsUnloaded;
         internal void Unload()
         {
-
+            if(!this.IsUnloaded)
+            {
+                this.OnUnload();
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
         #endregion
         #region SpriteRegistry
@@ -157,18 +165,19 @@ namespace CharlyBeck.Mvi.Sprites
         protected override void OnUpdate()
         {
             base.OnUpdate();
-            if (this.Sprite is object)
-            {
-                this.Sprite.Update(this.Changes);
-            }
-            this.Changes.SetAll(false);
+            //if (this.Sprite is object)
+            //{
+            //    this.Sprite.Update(this.Changes);
+            //}
+            //this.Changes.SetAll(false);
         }
 
 
         protected override void OnDraw()
         {
             base.OnDraw();
-            if (this.Visible)
+            if (this.Visible
+            && this.Sprite is object) // hack
             {
                 this.Sprite.Draw();
             }
@@ -180,6 +189,7 @@ namespace CharlyBeck.Mvi.Sprites
             if (this.Sprite is object)
             {
                 this.Sprite.Unload();
+                this.Sprite = default;
             }
         }
 

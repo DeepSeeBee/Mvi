@@ -1,4 +1,5 @@
 ﻿using CharlyBeck.Mvi.Mono.GameCore;
+using CharlyBeck.Mvi.Mono.Sprites;
 using CharlyBeck.Mvi.Sprites.Quadrant;
 using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Utils3.Exceptions;
@@ -18,34 +19,44 @@ namespace MviMono.Sprites.Quadrant
     :
        CSprite<CQuadrantSpriteData, CMonoModel>
     {
-        internal CQuadrantSprite(CServiceLocatorNode aParent, CMonoFacade aMonoFacade, CQuadrantSpriteData aQuadrantSpriteData) : base(aParent, aMonoFacade, aQuadrantSpriteData)
+        internal CQuadrantSprite(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.QuadrantSpriteData = aQuadrantSpriteData;
-            var aGraphicDevice = this.GraphicsDevice;
-
-            var aVertexPositionColor = aQuadrantSpriteData.Lines2.ToVector3s().ToVertexPositionColor(CColors.QuadrantGridGray);
-            this.LinesVertexBuffer2 = aVertexPositionColor.ToVertexBuffer(aGraphicDevice);
-            
-            var aUseCornerTriangles = false;
-            if (aUseCornerTriangles)
-            {
-                var aTriangleStripes = new VertexPositionColor[]
-                {
-                    new VertexPositionColor(aQuadrantSpriteData.FrontBottomLeft2.ToVector3(), Color.White.SetAlpha(0.2f)),
-                    new VertexPositionColor(aQuadrantSpriteData.FrontTopLeft2.ToVector3(), Color.White.SetAlpha(0.2f)),
-                    new VertexPositionColor(aQuadrantSpriteData.FrontBottomRight2.ToVector3(), Color.White.SetAlpha(0.2f)),
-                };
-                this.TriangleStripesVertexBuffer = aTriangleStripes.ToVertexBuffer(aGraphicDevice);
-            }
+           // , CMonoFacade aMonoFacade, CQuadrantSpriteData aQuadrantSpriteData
         }
 
-        internal readonly VertexBuffer TriangleStripesVertexBuffer;
+       // internal readonly VertexBuffer TriangleStripesVertexBuffer;
 
-        public override T Throw<T>(Exception aException)
-           => aException.Throw<T>();
+        private VertexBuffer LinesVertexBuffer2;
+        private CQuadrantSpriteData QuadrantSpriteDataM;
+        internal CQuadrantSpriteData QuadrantSpriteData
+        {
+            get => this.QuadrantSpriteDataM;
+            set
+            {
+                this.QuadrantSpriteDataM = value;
+                var aQuadrantSpriteData = this.QuadrantSpriteData;
+                var aGraphicDevice = this.GraphicsDevice;
 
-        internal readonly VertexBuffer LinesVertexBuffer2;
-        internal readonly CQuadrantSpriteData QuadrantSpriteData;
+                if(this.LinesVertexBuffer2 is null)
+                {
+                    var aVertexPositionColor = aQuadrantSpriteData.Lines2.ToVector3s().ToVertexPositionColor(CColors.QuadrantGridGray);
+                    this.LinesVertexBuffer2 = aVertexPositionColor.ToVertexBuffer(aGraphicDevice);
+
+                }
+
+                //var aUseCornerTriangles = false;
+                //if (aUseCornerTriangles)
+                //{
+                //    var aTriangleStripes = new VertexPositionColor[]
+                //    {
+                //    new VertexPositionColor(aQuadrantSpriteData.FrontBottomLeft2.ToVector3(), Color.White.SetAlpha(0.2f)),
+                //    new VertexPositionColor(aQuadrantSpriteData.FrontTopLeft2.ToVector3(), Color.White.SetAlpha(0.2f)),
+                //    new VertexPositionColor(aQuadrantSpriteData.FrontBottomRight2.ToVector3(), Color.White.SetAlpha(0.2f)),
+                //    };
+                //    this.TriangleStripesVertexBuffer = aTriangleStripes.ToVertexBuffer(aGraphicDevice);
+                //}
+            }
+        }
 
         internal override void DrawPrimitives()
         {
@@ -61,11 +72,11 @@ namespace MviMono.Sprites.Quadrant
                 aGraphicsDevice.DrawPrimitives(PrimitiveType.LineList, 0, this.LinesVertexBuffer2.VertexCount / 2);
                 //aGraphicsDevice.BlendFactor = aOldBlendFactor;
             }
-            if (this.TriangleStripesVertexBuffer is object)
-            {
-                aGraphicsDevice.SetVertexBuffer(this.TriangleStripesVertexBuffer);
-                aGraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, this.TriangleStripesVertexBuffer.VertexCount / 3);
-            }
+            //if (this.TriangleStripesVertexBuffer is object)
+            //{
+            //    aGraphicsDevice.SetVertexBuffer(this.TriangleStripesVertexBuffer);
+            //    aGraphicsDevice.DrawPrimitives(PrimitiveType.TriangleList, 0, this.TriangleStripesVertexBuffer.VertexCount / 3);
+            //}
         }
 
 

@@ -32,6 +32,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Mono.GameViewModel;
     using CharlyBeck.Mvi.Mono.Input.Mouse;
     using CharlyBeck.Mvi.Mono.Input.Hid;
+    using CharlyBeck.Mvi.Mono.Sprites;
 
     internal abstract class CBase : CServiceLocatorNode
     {
@@ -51,139 +52,6 @@ namespace CharlyBeck.Mvi.Mono.GameCore
            => aException.Throw<T>();
     }
 
-    internal abstract class CSprite
-    :
-        CBase
-    ,   ISprite
-    {
-        #region ctor
-        internal CSprite(CServiceLocatorNode aParent, CMonoFacade aMonoFacade, CSpriteData aSpriteData) : base(aParent)
-        {
-            this.MonoFacade = aMonoFacade;
-            var aGame = this.Game;            
-            //this.Game.AvatarChanged += this.UpdateBasicEffect;
-            this.SpriteDataM = aSpriteData;
-
-            this.BasicEffect = new BasicEffect(aGame.GraphicsDevice);
-        }
-        protected override void Init()
-        {
-            base.Init();
-          // this.UpdateBasicEffect();
-
-        }
-
-        private CSpriteData SpriteDataM;
-        public CSpriteData SpriteData { get => this.SpriteDataM; }
-
-        void ISprite.Unload()
-            => this.Delete();
-        protected virtual void Delete()
-        {
-           this.Game.AvatarChanged -= this.UpdateBasicEffect;
-        }
-        #endregion
-        internal readonly CMonoFacade MonoFacade;
-        internal CGame Game => this.MonoFacade.Game;
-        internal GraphicsDevice GraphicsDevice => this.Game.GraphicsDevice;
-
-        #region BasicEffect
-        internal readonly BasicEffect BasicEffect;
-        internal void UpdateBasicEffect()
-        {
-            var aGame = this.Game;
-            //this.BasicEffect = aGame.BasicEffect;
-            this.BasicEffect.Alpha = 1f;
-            this.BasicEffect.VertexColorEnabled = true;
-            this.BasicEffect.World = this.WorldMatrix;
-            this.BasicEffect.View = aGame.ViewMatrix; 
-            this.BasicEffect.Projection = aGame.ProjectionMatrix;
-        }
-        #endregion
-        #region WorldTranslateIsDefined
-        //internal virtual Vector3 WorldTranslate => new Vector3();
-        //internal virtual bool WorldTranslateIsDefined => false;
-        internal virtual Matrix WorldMatrix
-            => //this.WorldTranslateIsDefined
-               // ? this.Game.WorldMatrix * Matrix.CreateTranslation(this.WorldTranslate)
-               // : 
-            this.Game.WorldMatrix
-             ;
-        #endregion
-        #region Update
-        internal virtual void Update(BitArray aChanged) { }
-        void ISprite.Update(BitArray aChanged)
-           => this.Update(aChanged);
-        #endregion
-        #region Draw
-        internal virtual void DrawPrimitives()
-        {
-        }
-        internal virtual void OnDraw()
-        {
-           this.UpdateBasicEffect();
-            foreach (var aEffectPass in this.BasicEffect.CurrentTechnique.Passes)
-            {
-                aEffectPass.Apply();
-                this.DrawPrimitives();
-            }
-        }
-        internal virtual void Draw()
-        {
-            
-            this.OnDraw();
-        }
-        void ISprite.Draw()
-           => this.Draw();
-        #endregion
-
-    }
-
-    internal abstract class CSprite<TSpriteData, TMonoModel>
-    :
-       CSprite
-    ,  ISprite<TSpriteData>
-        where TMonoModel : CMonoModel 
-    {
-        internal CSprite(CServiceLocatorNode aParent, CMonoFacade aMonoFacade, CSpriteData aSpriteData) : base(aParent, aMonoFacade, aSpriteData)
-        {
-        }
-
-        #region GenericMonoModel
-        private TMonoModel GenericMonoModelM;
-        internal TMonoModel GenericMonoModel
-            => CLazyLoad.Get(ref this.GenericMonoModelM, this.LoadGenericMonoModel);
-        internal virtual TMonoModel NewGenericMonoModel(CServiceLocatorNode aParent)
-            => this.Throw<TMonoModel>(new NotImplementedException());
-        internal virtual bool GenericMonoModelIsDefined => false;
-        private TMonoModel LoadGenericMonoModel()
-        {
-            var aKey = this.GenericMonoModelKey;
-            var aMonoModel = this.Game.Models.LoadMonoModel<TMonoModel>(aKey, aParent => this.NewGenericMonoModel(aParent));
-            return aMonoModel;
-        }
-        internal object GenericMonoModelKey => this.SpriteData.Model;
-        #endregion
-        #region Draw
-        internal override void OnDraw()
-        {
-            base.OnDraw();
-            //if(this.GenericMonoModelIsDefined)
-            //{
-            //    this.GenericMonoModel.Draw();
-            //}
-        }
-        internal override void DrawPrimitives()
-        {
-            base.DrawPrimitives();
-            //if (this.GenericMonoModelIsDefined)
-            //{
-            //    this.GenericMonoModel.DrawPrimitives();
-            //}
-        }
-        #endregion
-    }
-
 
 
     internal static class CMonoWorldExtensions
@@ -200,6 +68,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         internal CMonoFacade(CServiceLocatorNode aParent, CGame aGame) : base(aParent)
         {
             this.Game = aGame;
+            this.SpritePool = new CSpritePool(this);
         }
         public override T Throw<T>(Exception aException)
             => aException.Throw<T>();
@@ -209,11 +78,11 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         {
             if (typeof(T) == typeof(CBumperSpriteData))
             {
-                return (ISprite<T>)(object)new CBumperSprite(this, this, (CBumperSpriteData)(object)aData);
+                return (ISprite<T>)(object)this.SpritePool.AllocateBumperSprite((CBumperSpriteData)(object)aData);
             }
             else if (typeof(T) == typeof(CQuadrantSpriteData))
             {
-                return (ISprite<T>)(object)new CQuadrantSprite(this, this, (CQuadrantSpriteData)(object)aData);
+                return (ISprite<T>)(object)this.SpritePool.AllocateQuadrantSprite((CQuadrantSpriteData)(object)aData);
             }
             else
             {
@@ -222,7 +91,9 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
         public override void AddInGameThreadAction(Action aAction)
             => this.Game.DebugWindowUpdate.AddAction(aAction);
-
+        #region SpritePool
+        private readonly CSpritePool SpritePool;
+        #endregion
     }
 
     internal struct CAvatar
@@ -246,10 +117,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         #endregion
 
         internal static CAvatar Default
-            => new CAvatar(Vector3.Zero, 
-                           new Vector3(0, 0, MoveVectorLength), 
-                           Vector3.Up, 
-                           new Vector3(1, 0,0),
+            => new CAvatar(Vector3.Zero,
+                           new Vector3(0, 0, MoveVectorLength),
+                           Vector3.Up,
+                           new Vector3(1, 0, 0),
                            new Vector3(0, 1, 0)
                             );
 
@@ -260,10 +131,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
 
 
-        internal CAvatar LookUpDown( float aRadians)
+        internal CAvatar LookUpDown(float aRadians)
         {
             var m = Matrix.CreateFromAxisAngle(this.AxisX, aRadians); // Matrix.CreateRotationX(aRadians);
-            var u = m.Rotate(this.UpVector);            
+            var u = m.Rotate(this.UpVector);
             var t = this.CamPos + m.Rotate(this.CamTargetOffset);
             var x = this.AxisX;
             var y = m.Rotate(this.AxisY);
@@ -281,7 +152,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             var a = new CAvatar(this.CamPos, t, u, x, y);
             return a;
         }
-            //=> new CAvatar(this.CamPos, this.CamTargetOffset.RotateY(aRadians), this.UpVector, true);
+        //=> new CAvatar(this.CamPos, this.CamTargetOffset.RotateY(aRadians), this.UpVector, true);
         internal CAvatar MoveToOffset(Vector3 aMoveVector)
             => throw new NotImplementedException();
         // => new CAvatar(this.CamPos + aMoveVector, this.CamTargetOffset.Transform(aMoveVector), this.UpVector, true);
@@ -348,7 +219,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         internal static CAvatar Load()
         {
             var aFileInfo = FileInfo;
-            if(aFileInfo.Exists)
+            if (aFileInfo.Exists)
             {
                 try
                 {
@@ -356,7 +227,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                     var aAvatar = Read(aMemoryStream);
                     return aAvatar;
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     return CAvatar.Default;
                 }
@@ -388,7 +259,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         #endregion
         #region Joystick
         private CJoystick1 Joystick1M;
-        private CJoystick1 Joystick1 => CLazyLoad.Get(ref this.Joystick1M, () => new CJoystick1(this.RootServiceLocatorNode));
+        private CJoystick1 Joystick1 => CLazyLoad.Get(ref this.Joystick1M, () => new CJoystick1(this.ServiceLocatorNode));
         #endregion
 
         protected override void EndRun()
@@ -417,14 +288,14 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         internal CWorld World => this.MonoFacade.World;
         private readonly GraphicsDeviceManager GraphicsDeviceManager;
         private SpriteBatch SpriteBatch;
-     //B   private Texture2D BallTexture;
+        //B   private Texture2D BallTexture;
 
         protected override void LoadContent()
         {
 
             this.Avatar = CAvatar.Load();
             this.SpriteBatch = new SpriteBatch(this.GraphicsDevice);
-           // this.BallTexture = this.Content.Load<Texture2D>("Ball");
+            // this.BallTexture = this.Content.Load<Texture2D>("Ball");
 
             //this.Content.Load<Texture>
             base.LoadContent();
@@ -446,10 +317,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             base.Draw(gameTime);
 
 
-            if(this.SetMousePosition)
+            if (this.SetMousePosition)
             {
                 //Mouse.SetPosition(this.GraphicsDevice.Viewport.Width / 2, this.GraphicsDevice.Viewport.Height / 2);
-                this.SetMousePosition = false;  
+                this.SetMousePosition = false;
             }
             //this.SpriteBatch.Begin();
             //this.SpriteBatch.Draw(this.BallTexture, new Vector2(0, 0), Color.White);
@@ -467,7 +338,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         private static readonly CFeatureDeclaration XnaMouseEnabledFeatureDeclaration = new CFeatureDeclaration(new Guid("99e270ec-f288-4a86-8cde-caaf8af85cff"), "Mouse.Xna", false);
         private CFeature XnaMouseEnabledFeatureM;
         private CFeature XnaMouseEnabledFeature => CLazyLoad.Get(ref this.XnaMouseEnabledFeatureM, () => CFeature.Get(this.World, XnaMouseEnabledFeatureDeclaration));
-      [CFeatureDeclaration]
+        [CFeatureDeclaration]
         private static readonly CFeatureDeclaration FullScreenFeatureDeclaration = new CFeatureDeclaration(new Guid("99a83ab0-c037-4d78-9d2d-2adc1bcd627e"), "FullScreen", false);
         private CFeature FullScreenFeatureM;
         private CFeature FullScreenFeature => CLazyLoad.Get(ref this.FullScreenFeatureM, () => CFeature.Get(this.World, FullScreenFeatureDeclaration));
@@ -574,7 +445,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 var aDistance2 = this.SlowDownNearObjectFeature.Enabled
                                ? aDistance1 * this.World.FrameInfo.NearPlanetSpeed
                                : aDistance1 * 0.4;
-                var aDistance3 = aDistance2  * this.World.Speed;
+                var aDistance3 = aDistance2 * this.World.Speed;
                 var aDistance = aDistance3;
                 aAvatar = aAvatar.MoveAlongViewAngle((float)aDistance);
                 aChanged = true;
@@ -618,7 +489,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             //    //aJoystickState.Axes.Length
             //}
             //var aState = GamePad.GetState(0);
-           
+
 
             if (aChanged)
             {
@@ -628,8 +499,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         protected override void EndDraw()
         {
-            
-            
+
+
             base.EndDraw();
             this.GraphicsDeviceManager.IsFullScreen = this.FullScreenFeature.Enabled;
 
@@ -648,7 +519,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
         protected override void Update(GameTime aGameTime)
         {
-            this.DebugWindowUpdate.RunUpdateActions();            
+            this.DebugWindowUpdate.RunUpdateActions();
             this.UpdateInput(aGameTime);
             this.UpdateWorld(aGameTime);
             //   this.DebugWindowUpdate = new CDebugWindowUpdate();
@@ -670,8 +541,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         private CAvatar AvatarM = CAvatar.Default;
         internal CAvatar Avatar
         {
-            get => this.AvatarM; 
-            set 
+            get => this.AvatarM;
+            set
             {
                 this.AvatarM = value;
                 if (this.AvatarChanged is object)
@@ -723,10 +594,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         {
             this.ProjectionMatrix = Matrix.CreatePerspectiveFieldOfView
             (
-                MathHelper.ToRadians(90f), 
-                GraphicsDevice.DisplayMode.AspectRatio, 
-                0.0001f, 
-                10000f 
+                MathHelper.ToRadians(90f),
+                GraphicsDevice.DisplayMode.AspectRatio,
+                0.0001f,
+                10000f
             );
         }
         #endregion
@@ -771,7 +642,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             var e = 0;
             this.TriangleVertices[0] = new VertexPositionColor(new Vector3(d, 0, e), Color.Red);
             this.TriangleVertices[1] = new VertexPositionColor(new Vector3(0, 0, e), Color.Yellow);
-            this.TriangleVertices[2] = new VertexPositionColor(new Vector3(d/2.0f, -d, e), Color.Blue);
+            this.TriangleVertices[2] = new VertexPositionColor(new Vector3(d / 2.0f, -d, e), Color.Blue);
 
             //this.TriangleVertices[0] = new VertexPositionColor(new Vector3(0, d, e), Color.Red);
             //TriangleVertices[1] = new VertexPositionColor(new Vector3(-d, -d, e), Color.Green);
@@ -801,7 +672,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                     get => this.ValueM;
                     set
                     {
-                        lock(this)
+                        lock (this)
                         {
                             this.ValueM = value;
                         }
@@ -809,8 +680,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 }
                 internal T Retrieve()
                 {
-                    lock(this)
-                    { 
+                    lock (this)
+                    {
                         var aValue = this.Value;
                         this.Value = default;
                         return aValue;
@@ -824,10 +695,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             }
             internal readonly CValueContainer<float> LookLeftRight;
             internal readonly CValueContainer<float> LookUpDown;
-            private readonly  List<Action> Actions = new List<Action>();
+            private readonly List<Action> Actions = new List<Action>();
             internal void AddAction(Action aAction)
             {
-                lock(this.Actions)
+                lock (this.Actions)
                 {
                     this.Actions.Add(aAction);
                 }
@@ -835,12 +706,12 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             internal void RunUpdateActions()
             {
                 Action[] aActions;
-                lock(this.Actions)
+                lock (this.Actions)
                 {
                     aActions = this.Actions.ToArray();
                     this.Actions.Clear();
                 }
-                foreach(var aAction in aActions)
+                foreach (var aAction in aActions)
                 {
                     aAction();
                 }
@@ -851,7 +722,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         #region Coordinates
         private VertexBuffer CoordinatesVertexBufferM;
         private VertexBuffer CoordinatesVertexBuffer => CLazyLoad.Get(ref this.CoordinatesVertexBufferM, this.NewCoordinatesVertexBuffer);
-        
+
 
         private VertexBuffer NewCoordinatesVertexBuffer()
         {
@@ -878,7 +749,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         private void DrawCoordinates()
         {
-            var aDrawCoordinates = this.OriginFeature.Enabled ;
+            var aDrawCoordinates = this.OriginFeature.Enabled;
             if (aDrawCoordinates)
             {
                 foreach (var aEffectPass in this.BasicEffect.CurrentTechnique.Passes)

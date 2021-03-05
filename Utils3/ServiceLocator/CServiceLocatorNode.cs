@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CharlyBeck.Utils3.ServiceLocator
 {
-    public abstract class CServiceLocatorNode
+    public abstract class CServiceLocatorNode 
     {
         public CServiceLocatorNode(CServiceLocatorNode aParent)
         {

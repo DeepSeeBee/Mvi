@@ -18,7 +18,7 @@ namespace CharlyBeck.Mvi.Facade
 {
     public interface ISprite
     {
-        void Update(BitArray aWhat);
+       // void Update(BitArray aWhat);
         void Draw();
         void Unload();
 

@@ -140,23 +140,41 @@ namespace CharlyBeck.Mvi.Mono.Input.Hid
         }
         internal double GetAxis(CAxisEnum aAxis)
         {
-            switch (aAxis)
+            if (this.HidJoystickEnabledFeature.Enabled)
             {
-                case CAxisEnum.X:
-                    return this.GetAxisByByteIndex(0);
-                case CAxisEnum.Y:
-                    return this.GetAxisByByteIndex(1);
-                case CAxisEnum.Z:
-                    return this.GetAxisByByteIndex(3);
-                default:
-                    return 0.0d;
+                switch (aAxis)
+                {
+                    case CAxisEnum.X:
+                        return this.GetAxisByByteIndex(0);
+                    case CAxisEnum.Y:
+                        return this.GetAxisByByteIndex(1);
+                    case CAxisEnum.Z:
+                        return this.GetAxisByByteIndex(3);
+                    default:
+                        return 0.0d;
+                }
+            }
+            else
+            {
+                return 0;
             }
         }
 
         internal double GetThroodle()
-            => this.GetAxisByByteIndex(5);
+            => this.HidJoystickEnabledFeature.Enabled 
+            ? this.GetAxisByByteIndex(5)
+            : 0.0d
+            ;
         #endregion
+        #region Feature
 
+
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration HidJoystickEnabledFeatureDeclaration = new CFeatureDeclaration(new Guid("e9f664f7-1fba-43e1-84ce-265fb7fd8d02"), "Jostick (HID)", false);
+        private CFeature HidJoystickEnabledFeatureM;
+        internal CFeature HidJoystickEnabledFeature => CLazyLoad.Get(ref this.HidJoystickEnabledFeatureM, () => CFeature.Get(this, HidJoystickEnabledFeatureDeclaration));
+
+        #endregion
     }
 
     internal abstract class CHidDeviceVm  : CChangeNotifier
