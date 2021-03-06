@@ -42,13 +42,14 @@ namespace CharlyBeck.Mvi.Sprites
         internal CSprite(CServiceLocatorNode aParent) : base(aParent)
         {
             this.Facade = this.ServiceContainer.GetService<CFacade>();
-            this.SpritePool = this.ServiceContainer.GetService<CSpritePool>();
-            this.Sprite = this.NewSprite();
+            this.PlatformSprite = this.NewPlatformSprite();
             this.TileCubePos = new CCubePos(0);
-            this.GetWorldPosByCubePosFunc = this.ServiceContainer.GetService<CGetWorldPosByCubePosFunc>();
         }
 
-        internal readonly CSpritePool SpritePool;
+        private CSpritePool SpritePoolM;
+        internal CSpritePool SpritePool => CLazyLoad.Get(ref this.SpritePoolM, () => this.ServiceContainer.GetService<CSpritePool>());
+
+        internal CModels Models => this.World.Models;
 
         internal void Build(CQuadrantBuildArgs a)
         {
@@ -60,22 +61,24 @@ namespace CharlyBeck.Mvi.Sprites
         {
             this.TileCubePos = a.QuadrantBuildArgs.TileCubePos;
             this.TileWorldPos = this.GetWorldPos(a.QuadrantBuildArgs.TileCubePos);
-            this.Sprite.Reposition();
+            this.Reposition();
         }
 
         protected override void OnEndUse()
         {
             base.OnEndUse();
 
-            //this.Sprite.Deallocate();
             this.IsNearestM = default;
             this.TileCubePos = default;
             this.TileWorldPos = default;
+            this.HitGameTimeTotal = default;
+            this.Radius = default;
         }
         internal virtual void Draw()
         {
             if (this.Visible)
-                this.Sprite.Draw();
+                this.PlatformSprite.Draw();
+
         }
         internal CCubePos? TileCubePos { get; private set; }
         public CVector3Dbl? TileWorldPos { get; private set; }
@@ -86,58 +89,21 @@ namespace CharlyBeck.Mvi.Sprites
                 yield return new CTranslateAndRotate(this.WorldPos, new CVector3Dbl(0));
             }
         }
-        public abstract CVector3Dbl WorldPos { get; } // => this.World.GetWorldPos(this.AbsoluteCubeCoordinates);
+        public abstract CVector3Dbl WorldPos { get; }
+        public double? Radius { get; protected set; }
 
-        //protected override void OnBuildSprite()
-        //{
-        //    base.OnBuildSprite();
-        //    this.Sprite = this.NewSprite();
-        //}
         internal readonly CFacade Facade;
         internal CWorld World => this.Facade.World;
-        //internal readonly CRandomGenerator RandomGenerator;
-        internal abstract ISprite NewSprite();
-        internal ISprite<TData> NewSprite<TData>(TData aData)
-            => this.Facade.NewSprite<TData>(aData);
+        internal CPlatformSprite NewPlatformSprite() => this.Facade.PlatformSpriteFactory.NewPlatformSprite(this);
+        internal CPlatformSprite PlatformSprite { get; private set; }
+        internal void Reposition()
+            => this.PlatformSprite.Reposition();
         internal virtual int ChangesCount => 0;
-        internal readonly ISprite Sprite;
-        internal virtual bool Visible => true;
-        //internal readonly BitArray Changes;
-        //protected override void OnUpdate()
-        //{
-        //    base.OnUpdate();
-        //    if (this.Sprite is object)
-        //    {
-        //        this.Sprite.Update(this.Changes);
-        //    }
-        //    this.Changes.SetAll(false);
-        //}
-
-
-        //protected override void OnDraw()
-        //{
-        //    base.OnDraw();
-        //    if (this.Visible) // hack
-        //    {
-        //        this.Sprite.Draw();
-        //    }
-        //}
-
-        //internal override void OnUnload()
-        //{
-        //    base.OnUnload();
-        //    this.Sprite.Unload();
-        //    this.Sprite = default;
-        //}
+        internal virtual bool Visible => !this.IsHit;
 
         private bool? IsNearestM;
         public bool IsNearest => CLazyLoad.Get(ref this.IsNearestM, () =>this.World.FrameInfo.SpriteDatasOrderedByDistance.OfType<CSprite>().First().RefEquals<CSprite>(this));
         internal virtual void Update(CFrameInfo aFrameInfo) { }
-        private CModel ModelM;
-        public CModel Model => CLazyLoad.Get(ref this.ModelM, this.NewModel);
-        internal virtual CModel NewModel() => throw new NotImplementedException();
-        internal virtual bool ModelIsDefined => false;
-
         public double GetAlpha(CVector3Dbl aCameraPos)
         {
             var d = this.WorldPos.GetDistance(aCameraPos);
@@ -148,15 +114,19 @@ namespace CharlyBeck.Mvi.Sprites
             return a;
         }
 
-        internal virtual void Update(CVector3Dbl aAvatarPos)
+        internal virtual void UpdateAvatarPos()
         {
+            this.AvatarPos = this.World.AvatarWorldPos;
             this.DistanceToAvatarM = default;
             this.AvatarIsInCubeM = default;
             this.IsNearestM = default;
+            this.WorldMatrix = Matrix.Identity;
         }
 
+        internal CVector3Dbl? AvatarPos { get; private set; }
+
         private double? DistanceToAvatarM;
-        public double DistanceToAvatar { get=>CLazyLoad.Get(ref this.DistanceToAvatarM, () => this.FrameInfo.AvatarWorldPos.GetDistance(this.WorldPos)); }
+        public double DistanceToAvatar { get=>CLazyLoad.Get(ref this.DistanceToAvatarM, () => this.AvatarPos.Value.GetDistance(this.WorldPos)); }
         private bool? AvatarIsInCubeM;
         public bool AvatarIsInQuadrant => CLazyLoad.Get(ref this.AvatarIsInCubeM, () => this.Cube.CubePos == this.TileCubePos.Value);
         internal CFrameInfo FrameInfo => this.World.FrameInfo;
@@ -164,11 +134,23 @@ namespace CharlyBeck.Mvi.Sprites
         #region Cube
         private CCube CubeM;
         internal CCube Cube => CLazyLoad.Get(ref this.CubeM, () => this.ServiceContainer.GetService<CCube>());
+
+        public Matrix WorldMatrix { get; protected set; }
         #endregion
         #region GetWorldPos
-        private CGetWorldPosByCubePosFunc GetWorldPosByCubePosFunc;
+        private CGetWorldPosByCubePosFunc GetWorldPosByCubePosFuncM;
+        private CGetWorldPosByCubePosFunc GetWorldPosByCubePosFunc => CLazyLoad.Get(ref this.GetWorldPosByCubePosFuncM, ()
+              => this.ServiceContainer.GetService<CGetWorldPosByCubePosFunc>());
         internal CVector3Dbl GetWorldPos(CCubePos aCubePos)
             => this.GetWorldPosByCubePosFunc(aCubePos);
+        #endregion
+        #region Hitable
+        internal bool IsHitable;
+        internal TimeSpan? HitGameTimeTotal;
+        internal bool IsHit => this.HitGameTimeTotal.HasValue;
+        #endregion
+        #region PlatformSpriteEnum
+        internal abstract CPlatformSpriteEnum PlattformSpriteEnum { get; }
         #endregion
     }
 

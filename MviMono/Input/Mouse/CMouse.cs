@@ -79,6 +79,7 @@ namespace CharlyBeck.Mvi.Mono.Input.Mouse
         private CFeature WinFormMouseEnabledFeatureM;
         internal CFeature WinFormMouseEnabledFeature => CLazyLoad.Get(ref this.WinFormMouseEnabledFeatureM, () => CFeature.Get(this, WinFormMouseEnabledFeatureDeclaration));
 
+        public bool IsLeftButtonDown => System.Windows.Input.Mouse.LeftButton == System.Windows.Input.MouseButtonState.Pressed;
 
     }
 }

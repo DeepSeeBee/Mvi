@@ -32,6 +32,8 @@ namespace Utils3.Asap
         public bool Locked;
         private readonly List<CReuseable> Free = new List<CReuseable>();
         public CReuseable Allocate()
+            => this.Allocate(this.NewFunc);
+        public CReuseable Allocate(CNewFunc aNewFunc)
         {
             CReuseable aReusable;
             var aList = this.Free;
@@ -48,15 +50,15 @@ namespace Utils3.Asap
                 }
                 else
                 {
-                    aReusable = this.BuildNew();
+                    aReusable = this.BuildNew(aNewFunc);
                 }
             }
             aReusable.BeginUse();
             return aReusable;
         }
-        internal CReuseable BuildNew()
+        internal CReuseable BuildNew(CNewFunc aNewFunc)
         {
-            var aNew = this.New();
+            var aNew = aNewFunc();
             aNew.SimpleObjectPool = this;
             return aNew;
         }
@@ -74,7 +76,7 @@ namespace Utils3.Asap
             var aList = this.Free;
             for (var i = 0; i < aCount; ++i)
             {
-                var aItem = this.BuildNew();
+                var aItem = this.BuildNew(this.NewFunc);
                 lock (aList)
                 {
                     aList.Add(aItem);
@@ -198,6 +200,8 @@ namespace Utils3.Asap
         public bool Locked { get => this.SimpleObjectPool.Locked; set => this.SimpleObjectPool.Locked = value; }
         public T Allocate()
             => (T)this.SimpleObjectPool.Allocate();
+        public T Allocate(Func<T> aNewFunc)
+            => (T)this.SimpleObjectPool.Allocate(()=>aNewFunc());
 
         public Func<T> NewFunc { get; set; }
         private CReuseable New() => this.NewFunc();

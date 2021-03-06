@@ -22,6 +22,8 @@ using CDoubleRange = System.Tuple<double, double>;
 using CIntegerRange = System.Tuple<int, int>;
 using CharlyBeck.Mvi.Cube.Mvi;
 using CharlyBeck.Mvi.Sprites.Bumper;
+using CharlyBeck.Mvi.Sprites.Shot;
+using CharlyBeck.Mvi.Sprites.Crosshair;
 
 namespace CharlyBeck.Mvi.World
 {
@@ -150,38 +152,34 @@ namespace CharlyBeck.Mvi.World
         #region ctor
         internal CWorld(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.CubeBorder = 1;
             this.EdgeLen = 1.0d;
             this.EdgeLenAsPos = new CVector3Dbl(this.EdgeLen);
-            this.TileAsteroidCountMin = 5;
-            this.TileAsteroidCountMax = 20;
+            this.TileAsteroidCountMin = CStaticParameters.TileAsteroidCountMin;
+            this.TileAsteroidCountMax = CStaticParameters.TileAsteroidCountMax;
             this.AsteroidGravityRadiusMax = 1.0d;
             this.AsteroidGravityStrengthMax = 1.0d;
             this.NearAsteroidSpeedMin = 0.0001;
             this.NearAsteroidSpeedForRadius0 = 0.001;
             this.SphereScaleCount = 25;
+
+            this.ShotSprites = new CShotSprites(this);
+            
         }
         public override void Load()
         {
             base.Load();
             this.Cube.Load();
         }
-        public override T Throw<T>(Exception aException)
-           => aException.Throw<T>();
-
-        internal bool IsBeyound(CTile aTile)
-        {
-            return false;
-            //var aCubeCoordinates = aTile.AbsoluteCubeCoordinates;
-            //var aIsBorder = (from aCoordinate in aCubeCoordinates
-            //                 select aCoordinate <  this.MinInSpaceCubeCoord
-            //                 || aCoordinate >  this.MaxInSpaceCubeCoord).Contains(true);
-            //return aIsBorder;
-        }
         #endregion
+        #region Shot
+        internal readonly CShotSprites ShotSprites;
+        public void Shoot()
+            => this.ShotSprites.Shoot();
+        #endregion
+
         #region Cube
 
-  
+
         private CCube SimpleCubeM;
         internal CCube SimpleCube => CLazyLoad.Get(ref this.SimpleCubeM, () => CCube.New(this));
         #endregion
@@ -197,7 +195,7 @@ namespace CharlyBeck.Mvi.World
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CWorld>(() => this);
-            aServiceContainer.AddService<CNewBorderFunc>(() => new CNewBorderFunc(()=> this.CubeBorder));
+            aServiceContainer.AddService<CNewBorderFunc>(() => new CNewBorderFunc(()=> this.CubeSize));
             aServiceContainer.AddService<CWormholeCubes>(() => this.WormholeCubes);
             aServiceContainer.AddService<CNewQuadrantFunc>(() => new CNewQuadrantFunc(aParent => new CSpaceSwitchQuadrant(aParent)));
             return aServiceContainer;
@@ -214,6 +212,15 @@ namespace CharlyBeck.Mvi.World
         private CModels ModelsM;
         public CModels Models => CLazyLoad.Get(ref this.ModelsM, () => new CModels(this));
         #endregion
+        #region Crosshair
+        private CCrosshairSprite CrosshairSpriteM;
+        private CCrosshairSprite CrosshairSprite => CLazyLoad.Get(ref this.CrosshairSpriteM, () => new CCrosshairSprite(this));
+        #endregion
+        #region Avatar
+        public CVector3Dbl AvatarWorldPos { get; set; }
+        public CVector3Dbl AvatarShootDirection { get; set; }
+        public double AvatarSpeed { get; set; }
+        #endregion
         public readonly double EdgeLen;
         internal readonly CVector3Dbl EdgeLenAsPos;
 
@@ -226,15 +233,15 @@ namespace CharlyBeck.Mvi.World
         internal readonly double NearAsteroidSpeedForRadius0;
         internal readonly int TileAsteroidCountMin;
         internal readonly int TileAsteroidCountMax;
-        internal readonly CDoubleRange DefaultAsteroidRadiusMax = new CDoubleRange(0.00001d, 0.01d);
-        internal readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.05d);
-        internal readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.5d, 0.8d);
-        internal readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.3d, 0.6d);
+        internal readonly CDoubleRange DefaultAsteroidRadiusMax = CStaticParameters.DefaultAsteroidRadiusMax;
+        internal readonly CDoubleRange SunRadiusMax = CStaticParameters.SunRadiusMax; 
+        internal readonly CDoubleRange PlanetRadiusMax = CStaticParameters.PlanetRadiusMax;  
+        internal readonly CDoubleRange MoonRadiusMax = CStaticParameters.MoonRadiusMax; 
 
         internal readonly double AsteroidGravityRadiusMax;
         internal readonly double AsteroidGravityStrengthMax;
         internal readonly double NearAsteroidSpeedMin;
-        internal readonly Int64 CubeBorder;
+        internal readonly Int64 CubeSize = CStaticParameters.Cube_Size;
         internal double OrbDayDurationMin => 1d;
         internal double OrbDayDurationMax => 20d;
         internal CDoubleRange PlanetYearDurationRange => new CDoubleRange(0.1d, 0.3d); // new CDoubleRange(0.01d, 20d);
@@ -244,108 +251,97 @@ namespace CharlyBeck.Mvi.World
         internal CDoubleRange PlanetOrbitRange => new CDoubleRange(2d, 3d);
         internal CDoubleRange MoonOrbitRange => new CDoubleRange(4.0d, 5.0d);
 
-
-        //internal CWorldPos GetQuadrantPosition(CTile aTile)
-
-        //public bool GetCubeCoordinatesIsDefined(CWorldPos aWorldCoordinates)
-        //    => throw new NotImplementedException();
-        //=> aWorldCoordinates.x >= this.MinWorldCoord && aWorldCoordinates[0] <= this.MaxWorldCoord
-        //&& aWorldCoordinates.y >= this.MinWorldCoord && aWorldCoordinates[1] <= this.MaxWorldCoord
-        //&& aWorldCoordinates.z >= this.MinWorldCoord && aWorldCoordinates[2] <= this.MaxWorldCoord;
-
-
         public CFrameInfo FrameInfo { get; internal set; }
         public int SphereScaleCount;
-        private GameTime GameTimeNullable { get; set; }
+        internal GameTime GameTimeNullable { get; set; }
         public TimeSpan GameTimeTotal => this.GameTimeNullable is object ? this.GameTimeNullable.TotalGameTime : new TimeSpan(0,0,0,0,1); // 1 to avoid division by 0
-
+        public TimeSpan GameTimeElapsed => this.GameTimeNullable is object ? this.GameTimeNullable.ElapsedGameTime : new TimeSpan(0, 0, 0, 0, 0);
         public double Speed = 1.0d;
 
-
+        public GameTime GameTime { get => this.GameTimeNullable; set => this.GameTimeNullable = value; }
         private IEnumerable<CSpaceQuadrant> SpaceQuadrants => this.Cube.Quadrants.OfType<CSpaceQuadrant>();
-        internal IEnumerable<CSprite> Sprites => from aItem in this.SpaceQuadrants 
-                                                        from aSprite in aItem.Sprites 
-                                                        select aSprite;
 
-        
-        public void Update(CVector3Dbl aAvatarPos, GameTime aGameTime)
+
+        internal IEnumerable<CSprite> Sprites
         {
-            this.GameTimeNullable = aGameTime;
-
-            var aSpaceQuadrants = this.SpaceQuadrants;
-            foreach (var aSpaceQuadrant in aSpaceQuadrants)
+            get
             {
-                aSpaceQuadrant.Update(aAvatarPos);
+                foreach (var aSprite in from aItem in this.SpaceQuadrants from aSprite in aItem.Sprites select aSprite)
+                    yield return aSprite;
+                foreach (var aSprite in this.ShotSprites.Sprites)
+                    yield return aSprite;
+                yield return this.CrosshairSprite;
             }
-            this.FrameInfo = new CFrameInfo(this, aAvatarPos);
-            foreach (var aSpaceQuadrant in aSpaceQuadrants)
+        }
+        
+        public void Update()
+        {
+            this.Cube.MoveTo(this.GetCubePos(this.AvatarWorldPos), true);
+
+            var aSprites = this.Sprites;
+            foreach (var aSprite in aSprites)
             {
-                aSpaceQuadrant.Update(this.FrameInfo);
+                aSprite.UpdateAvatarPos();
             }
-            //throw new NotImplementedException();
-            //this.Cube.Update(aAvatarPos);
-            //this.FrameInfo = new CFrameInfo(this, aAvatarPos);
-            //this.Cube.Update(this.FrameInfo);
+            this.FrameInfo = new CFrameInfo(this);
+            foreach (var aSprite in aSprites)
+            {
+                aSprite.Update(this.FrameInfo);
+            }
 
-
-            //var aSpriteDatas = from aTile in this.Cube.Tiles from aSpriteData in aTile.TileDataLoadProxy.Loaded.TileDescriptor.SpriteRegistry select aSpriteData;
-            //foreach (var aSpriteData in aSpriteDatas)
-            //{
-            //    aSpriteData.UpdateBeforeFrameInfo(aAvatarPos);
-            //}
-
-            //this.FrameInfo = new CFrameInfo(this, aAvatarPos);
-
-            //foreach(var aSpriteData in this.FrameInfo.SpriteDatas)
-            //{
-            //    aSpriteData.UpdateAfteFrameInfo(this.FrameInfo);
-            //}
+            this.ShotSprites.Update(this.FrameInfo);
         }
 
         internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
             => CWorldPosToCubePos.GetCubePos(aWorldPos, this.EdgeLenAsPos);
     }
-}
 
+    public struct CAvatarInfo
+    {
+        public CAvatarInfo(CVector3Dbl aWorldPos, CVector3Dbl aAimAt, double aSpeed)
+        {
+            this.WorldPos = aWorldPos;
+            this.AimAt = aAimAt;
+            this.Speed = aSpeed;
+        }
+        public readonly CVector3Dbl WorldPos;
+        public readonly CVector3Dbl AimAt;
+        public readonly double Speed;
+
+    }
+}
 
 namespace CharlyBeck.Mvi.World
 {
     using CSpriteDistance = Tuple<CSprite, double>;
-    public struct  CFrameInfo
+    public struct CFrameInfo
     {
-        internal CFrameInfo(CWorld aWorld, CVector3Dbl aWorldPos)
+        internal CFrameInfo(CWorld aWorld)
         {
             this.World = default;
-            this.AvatarWorldPos = default;
             this.Sprites = default;
             this.SpriteDistances = default;
             this.NearestBumperSpriteAndDistance = default;
-            //this.NearestAsteroidDistanceToSurface = default;
-            //this.NearestAsteroidIsEntered = default;
             this.NearPlanetSpeedM = default;
             this.CubePositionsM = default;
 
             this.World = aWorld;
-            this.AvatarWorldPos = aWorldPos;
             var aCube = aWorld.Cube;
             {
                 this.Sprites = this.World.Sprites.ToArray();
-                this.SpriteDistances = (from aSpriteData in this.Sprites select new Tuple<CSprite, double>(aSpriteData, aSpriteData.DistanceToAvatar)).ToArray().OrderBy(aDist => aDist.Item2).ToArray();
+                this.SpriteDistances = (from aSprite in this.Sprites 
+                                        where !aSprite.IsHit
+                                        select new Tuple<CSprite, double>(aSprite, aSprite.DistanceToAvatar)).ToArray().OrderBy(aDist => aDist.Item2).ToArray();
                 this.NearestBumperSpriteAndDistance = (from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSprite) select new Tuple<CBumperSprite, double>((CBumperSprite)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();
                 this.CubePositions = this.World.Cube.CubePositions;
             }
-
-
-
-
-
-            //this.NearestAsteroidDistanceToSurface = this.NearestAsteroidIsDefined ? (this.NearestAsteroid.AvatarDistanceToSurface) : double.NaN;
-            //this.NearestAsteroidIsEntered = this.NearestAsteroidIsDefined ? this.NearestAsteroid.IsBelowSurface : false; // this.NearestAsteroidDistance < this.NearestAsteroid.Radius : false;
-            //this.NearPlanetSpeed = this.NewNearPlanetSpeed();
         }
 
+        public TimeSpan GameTimeElapsed => this.World.GameTimeElapsed;
+        public TimeSpan GameTimeTotal => this.World.GameTimeTotal;
+
         public readonly CWorld World;
-        public readonly CVector3Dbl AvatarWorldPos;
+        public CVector3Dbl AvatarWorldPos =>this.World.AvatarWorldPos;
         public readonly CSprite[] Sprites;
         public readonly CSpriteDistance[] SpriteDistances;
         public IEnumerable<CSprite> SpriteDatasOrderedByDistance => from aItem in this.SpriteDistances select aItem.Item1;
@@ -355,10 +351,6 @@ namespace CharlyBeck.Mvi.World
         public IEnumerable<CCubePos> CubePositions { get => this.CubePositionsM is object ? this.CubePositionsM : Array.Empty<CCubePos>(); private set => this.CubePositionsM = value; }
 
         
-        // public double NearestAsteroidDistance => this.NearestBumperSpriteAndDistance.Item2;
-
-       // public readonly bool NearestAsteroidIsEntered;
-       // public readonly double NearestAsteroidDistanceToSurface;       
         public bool NearestAsteroidIsDefined => this.NearestBumperSpriteAndDistance is object && this.NearestBumperSpriteAndDistance.Item1 is object;
 
         public double NearPlanetSpeed { get => CLazyLoad.Get(ref this.NearPlanetSpeedM, this.NewNearPlanetSpeed); }
@@ -369,11 +361,7 @@ namespace CharlyBeck.Mvi.World
             {
                 return 1d; // Strange...
             }
-            //else if (this.NearestAsteroidIsEntered)
-            //{
-            //    return this.World.NearAsteroidSpeedMin;
-            //}
-            //else
+            else
             {
                 var aDistance =  Math.Abs(this.NearestAsteroid.AvatarDistanceToSurface);
                 var rm = this.World.DefaultAsteroidRadiusMax.Item2;

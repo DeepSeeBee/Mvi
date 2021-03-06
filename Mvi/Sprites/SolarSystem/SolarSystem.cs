@@ -1,6 +1,7 @@
 ﻿using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Cube.Mvi;
 using CharlyBeck.Mvi.Extensions;
+using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Feature;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sprites.Bumper;
@@ -91,7 +92,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
                     var aOrbRadius = this.Radius;
                     var aOrbitRangeMin = aOrbitRange.Item1 * aOrbRadius;
                     var aOrbitRangeMax = aOrbitRange.Item2 * aOrbRadius;
-                    var aOrbitRadius = aRandomGenerator.NextDouble(aOrbitRangeMin, aOrbitRangeMax);
+                    var aOrbitRadius = aRandomGenerator.NextDouble(aOrbitRangeMin.Value, aOrbitRangeMax.Value);
                     for (var aIdx = 0; aIdx < aTrabantCount; ++aIdx)
                     {
                         var aTrabantOrbit = ((double)aIdx + 1) * aOrbitRadius;
@@ -175,7 +176,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             this.OrbitStartRadians = default;
         }
 
-        internal override double BuildRadius(CRandomGenerator aRandomGenerator) => base.BuildRadius(aRandomGenerator) * this.ParentOrb.Radius;
+        internal override double BuildRadius(CRandomGenerator aRandomGenerator) => base.BuildRadius(aRandomGenerator) * this.ParentOrb.Radius.Value;
 
         internal double? OrbitRadius;
         public override bool OrbitIsDefined => true;
@@ -255,6 +256,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #region CategorName
         public override string CategoryName => "Planet";
         #endregion
+        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Bumper;
     }
 
     public sealed class CMoon : CTrabant

@@ -33,6 +33,11 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Mono.Input.Hid;
     using CharlyBeck.Mvi.Mono.Sprites;
     using CharlyBeck.Mvi.Sprites.Bumper;
+    using CharlyBeck.Mvi.Sprites.Shot;
+    using CharlyBeck.Mvi.Mono.Sprites.Cube;
+    using CharlyBeck.Mvi.Mono.Sprites.Shot;
+    using CharlyBeck.Mvi.Sprites.Crosshair;
+    using CharlyBeck.Mvi.Mono.Sprites.Crosshair;
 
     internal abstract class CBase : CServiceLocatorNode
     {
@@ -69,7 +74,15 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         internal CMonoFacade(CServiceLocatorNode aParent, CGame aGame) : base(aParent)
         {
             this.Game = aGame;
-            this.SpritePool = new CSpritePool(this);
+        }
+        #endregion
+        #region PlatformSpriteFactory
+        protected override void BuildPlatformSpriteFactory(CPlatformSpriteFactory aPlatformSpriteFactory)
+        {
+            aPlatformSpriteFactory[CPlatformSpriteEnum.Bumper] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoBumperSprite(aPair.Item1) { Sprite = (CBumperSprite)aPair.Item2 }; return aSprite; });
+            aPlatformSpriteFactory[CPlatformSpriteEnum.Crosshair] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoCrosshairSprite(aPair.Item1) { Sprite = (CCrosshairSprite)aPair.Item2 }; return aSprite; });
+            aPlatformSpriteFactory[CPlatformSpriteEnum.Cube] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoCubeSprite(aPair.Item1) { Sprite = (CCubeSprite)aPair.Item2 }; return aSprite; });
+            aPlatformSpriteFactory[CPlatformSpriteEnum.Shot] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoShotSprite(aPair.Item1) { Sprite = (CShotSprite)aPair.Item2 }; return aSprite; });
         }
         #endregion
         #region ServiceLocator
@@ -84,32 +97,14 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             return aServiceContainer;
         }
         #endregion
-
         #region GameVm
         private CGameVm GameVmM;
         private CGameVm GameVm => CLazyLoad.Get(ref this.GameVmM, () => new CGameVm(this));
         #endregion
         internal readonly CGame Game;
-        public override ISprite<T> NewSprite<T>(T aData)
-        {
-            if (typeof(T) == typeof(CBumperSprite))
-            {
-                return (ISprite<T>)(object)this.SpritePool.AllocateAsteroidSprite((CBumperSprite)(object)aData);
-            }
-            else if (typeof(T) == typeof(Mvi.Sprites.Cube.CCubeSprite))
-            {
-                return (ISprite<T>)(object)this.SpritePool.AllocateQuadrantSprite((Mvi.Sprites.Cube.CCubeSprite)(object)aData);
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
         public override void AddInGameThreadAction(Action aAction)
             => this.Game.DebugWindowUpdate.AddAction(aAction);
-        #region SpritePool
-        private readonly CSpritePool SpritePool;
-        #endregion
+      
         #region Models
         private CMonoModels MonoModelsM;
         internal CMonoModels MonoModels => CLazyLoad.Get(ref this.MonoModelsM, () => new CMonoModels(this));
@@ -368,10 +363,11 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             var aMouseDx = 0f;
             var aMouseDy = 0f;
             var aMouseThroodle = 0f;
-
+                
+            var aMouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
             if (aXnaMouse)
             {
-                var aMouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
+               
                 var aMousePosition = aMouseState.Position;
                 if (this.MousePosition.HasValue)
                 {
@@ -458,6 +454,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 aChanged = true;
             }
 
+            this.World.AvatarSpeed = aThroodle;
+
             var aDx = 0.0f;
             if (aKeyboardState.IsKeyDown(Keys.NumPad4))
                 aDx += 1.0f;
@@ -486,23 +484,50 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             {
                 this.Escape();
             }
-            //var aController = new SharpDX.XInput.Controller(0);
-            //var aIsConnected = aController.IsConnected;
 
-            //if(Joystick.IsSupported)
-            //{
-            //    var aJoystickState = Joystick.GetState(0);
-            //    var aAxes = aJoystickState.Axes[0];
-            //    //aJoystickState.Axes.Length
-            //}
-            //var aState = GamePad.GetState(0);
 
+            if(aKeyboardState.IsKeyDown(Keys.Space)
+            || aJoystick.IsButtonPressed(CJoystick1.CButtonEnum.StickFront)
+            || this.Mouse.IsLeftButtonDown
+            || aMouseState.LeftButton == ButtonState.Pressed)
+            {
+                this.World.Shoot();
+            }
+
+            if(aKeyboardState.IsKeyDown(Keys.L))
+            {
+                if(!this.DidL)
+                {
+                    this.SlowDownNearObjectFeature.Enabled = !this.SlowDownNearObjectFeature.Enabled;
+                    this.DidL = true;
+                }
+            }
+            else
+            {
+                this.DidL = false;
+            }
+
+            if (aKeyboardState.IsKeyDown(Keys.M))
+            {
+                if (!this.DidM)
+                {
+                    this.Mouse.WinFormMouseEnabledFeature.Enabled = !this.Mouse.WinFormMouseEnabledFeature.Enabled;
+                    this.DidM = true;
+                }
+            }
+            else
+            {
+                this.DidM = false;
+            }
 
             if (aChanged)
             {
                 this.Avatar = aAvatar;
             }
         }
+
+        private bool DidL;
+        private bool DidM;
 
         protected override void EndDraw()
         {
@@ -521,8 +546,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
         private void UpdateWorld(GameTime aGameTime)
         {
-            this.MonoFacade.WorldPos = this.Avatar.WorldPos; // aGameAvatar.WorldPos;
-            this.World.Update(this.Avatar.WorldPos, aGameTime);
+            this.World.AvatarWorldPos = this.Avatar.WorldPos;
+            this.World.AvatarShootDirection = this.Avatar.CamTargetOffset.ToVector3Dbl();           
+            this.World.GameTime = aGameTime;
+            this.World.Update();
         }
         protected override void Update(GameTime aGameTime)
         {

@@ -1,6 +1,9 @@
 ﻿using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Sprites.Asteroid;
+using CharlyBeck.Mvi.Sprites.Bumper;
+using CharlyBeck.Mvi.Sprites.Crosshair;
 using CharlyBeck.Mvi.Sprites.Cube;
+using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.ServiceLocator;
@@ -48,16 +51,16 @@ namespace Mvi.Models
         #region ctor
         internal CModels(CServiceLocatorNode aParent) :base(aParent)
         {
-            this.World = this.ServiceContainer.GetService<CWorld>();
-            this.AsteroidModel = new CAsteroidModel(this);
+            this.AsteroidModel = new CBumperModel(this);
             this.CubeModel = new CCubeModel(this);
+            this.ShotModel = new CShotModel(this);
+            this.CrosshairModel = new CCrosshairModel(this);
         }
-        public override T Throw<T>(Exception aException)
-            => aException.Throw<T>();        
         #endregion
-        private readonly CWorld World;
-        public readonly CAsteroidModel AsteroidModel;
+        public readonly CBumperModel AsteroidModel;
         public readonly CCubeModel CubeModel;
+        public readonly CShotModel ShotModel;
+        public readonly CCrosshairModel CrosshairModel;
     }
     public abstract class CShapeScales<TShape>
     {

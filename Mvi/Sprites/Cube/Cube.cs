@@ -82,7 +82,7 @@ namespace CharlyBeck.Mvi.Sprites.Cube
         {
             base.Build(a);
         }
-
+        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Cube;
         public CCubeModel CubeModel => this.World.Models.CubeModel;
 
         #region Features
@@ -92,8 +92,6 @@ namespace CharlyBeck.Mvi.Sprites.Cube
         internal override bool Visible => base.Visible && this.QuadrantFeature.Enabled;
         #endregion
         public override CVector3Dbl WorldPos => this.GetWorldPos(this.TileCubePos.Value);
-        internal override ISprite NewSprite()
-           => this.NewSprite<CCubeSprite>(this);
     
     }
 

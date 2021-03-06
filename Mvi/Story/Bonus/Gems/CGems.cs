@@ -1,4 +1,5 @@
-﻿using CharlyBeck.Mvi.Story.Propability;
+﻿using CharlyBeck.Mvi.Story.Bonus;
+using CharlyBeck.Mvi.Story.Propability;
 using CharlyBeck.Mvi.Story.Value;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.ServiceLocator;
@@ -41,7 +42,7 @@ using System.Threading.Tasks;
  * 
  * 
  */
-namespace CharlyBeck.Mvi.Story.Gems
+namespace CharlyBeck.Mvi.Story.Bonus.Gems
 {
     enum CHotKeyEnum
     {
@@ -55,41 +56,9 @@ namespace CharlyBeck.Mvi.Story.Gems
 
     }
 
-    internal enum CGemEnum
-    {
-        ExtraLifeGem,
-        ShellRepair,
-        ShieldGem,
-        AutoPilot,
-        LaserEnergyGem,
-        NuclearMissileGem,
-        ThermalShieldGem,
-        KruskalScannerGem,
-        FuelGem,
-        QuestGem,
-    }
 
-    /// <summary>
-    /// Item to collect, grants special abilites.
-    /// Prototype Pattern
-    /// </summary>
-    internal abstract class CGem : CServiceLocatorNode
-    {
-        #region ctor
-        internal CGem(CServiceLocatorNode aParent) : base(aParent) { }
-        #endregion
-        internal virtual CValue TargetValue => this.Throw<CValue>(new NotImplementedException());
-        internal virtual bool ModifyTargetValueIsEnabled => false;
-        internal virtual CValue SourceValue => this.Throw<CValue>(new NotImplementedException());
-        internal void Collect()
-        {
-            if(this.ModifyTargetValueIsEnabled)
-            {
-                this.TargetValue.Add(this.SourceValue);
-            }
-        }
 
-    }
+
 
     /// <summary>
     /// Gives an extra live to the player
@@ -99,6 +68,7 @@ namespace CharlyBeck.Mvi.Story.Gems
         #region ctor
         internal CExtraLifeGem(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
     /// <summary>
@@ -109,6 +79,7 @@ namespace CharlyBeck.Mvi.Story.Gems
         #region ctor
         internal CShellRepair(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
     /// <summary>
@@ -119,28 +90,7 @@ namespace CharlyBeck.Mvi.Story.Gems
         #region ctor
         internal CShieldGem(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
-    }
-
-    /// <summary>
-    /// Eases staying on an orbit/landing on planets. 
-    /// Is activated while holding a button,
-    /// decreases energy of autopilot.
-    /// </summary>
-    internal abstract class CAutoPilotGem : CGem
-    {
-        #region ctor
-        internal CAutoPilotGem(CServiceLocatorNode aParent) : base(aParent) { }
-        #endregion
-    }
-
-    /// <summary>
-    /// Munition. Standard laser allows to decrease integrity of moons and planets.
-    /// </summary>
-    internal abstract class CAmmoGem : CGem
-    {
-        #region ctor
-        internal CAmmoGem(CServiceLocatorNode aParent) : base(aParent) { }
-        #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
     internal sealed class CLaserEnergyGem  : CGem
@@ -148,16 +98,18 @@ namespace CharlyBeck.Mvi.Story.Gems
         #region ctor
         internal CLaserEnergyGem(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Offense;
     }
 
     /// <summary>
     /// Required for destroing suns
     /// </summary>
-    internal sealed class CNuclearMissileGem : CAmmoGem
+    internal sealed class CNuclearMissileGem : CGem
     {
         #region ctor
         internal CNuclearMissileGem(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Offense;
     }
 
     /// <summary>
@@ -168,6 +120,7 @@ namespace CharlyBeck.Mvi.Story.Gems
         #region ctor
         internal CThermalShieldGem(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
     }
 
     /// <summary>
@@ -178,24 +131,9 @@ namespace CharlyBeck.Mvi.Story.Gems
         #region ctor
         internal CKruskalScannerGem(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
     }
 
-    internal sealed class CFuelGem : CGem
-    {
-        #region ctor
-        internal CFuelGem(CServiceLocatorNode aParent) : base(aParent) { }
-        #endregion
-    }
-
-    /// <summary>
-    /// Starts a Quest. 
-    /// </summary>
-    internal sealed class CQuestGem : CGem
-    {
-        #region ctor
-        internal CQuestGem(CServiceLocatorNode aParent) : base(aParent) { }
-        #endregion
-    }
 
     /// <summary>
     /// Zum Bohren in planeten benötigt.
@@ -205,19 +143,39 @@ namespace CharlyBeck.Mvi.Story.Gems
         #region ctor
         internal CDrillEnergyGem(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
-    /// <summary>
-    /// Shows direction to fly to collect a focused Gem
-    /// 
-    /// </summary>
-    internal sealed class CGemDetector : CGem
+    internal sealed class CAmmoSpeedGem : CGem
     {
         #region ctor
-        internal CGemDetector(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CAmmoSpeedGem(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
+    }
+    internal sealed class CFireRateGem : CGem
+    {
+        #region ctor
+        internal CFireRateGem(CServiceLocatorNode aParent) : base(aParent) { }
+        #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
+    internal sealed class CSlowMotionGem :CGem
+    {
+        #region ctor
+        internal CSlowMotionGem(CServiceLocatorNode aParent) : base(aParent) { }
+        #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
+    }
+
+    internal sealed class CAntigravityGem : CGem
+    {
+        #region ctor
+        internal CAntigravityGem(CServiceLocatorNode aParent) : base(aParent) { }
+        #endregion
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
+    }
 
     internal sealed class CGemManager :  CServiceLocatorNode
     {
@@ -225,14 +183,28 @@ namespace CharlyBeck.Mvi.Story.Gems
         internal CGemManager(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
 
-        internal void AddGem(CVector3Dbl aPos, 
-                             CPropability<int> aCounts, 
-                             CPropability<CGemEnum> aGemEnums)
-        {
-            throw new NotImplementedException();
-        }
-
 
     }
+    /// <summary>
+    /// Item to collect, grants special abilites.
+    /// Prototype Pattern
+    /// </summary>
+    internal abstract class CGem : CServiceLocatorNode
+    {
+        #region ctor
+        internal CGem(CServiceLocatorNode aParent) : base(aParent) { }
+        #endregion
+        internal virtual CValue TargetValue => throw new NotImplementedException();
+        internal virtual bool ModifyTargetValueIsEnabled => false;
+        internal virtual CValue SourceValue => throw new NotImplementedException();
+        internal abstract CGemClassEnum GemClassEnum { get; }
+        internal void Collect()
+        {
+            if (this.ModifyTargetValueIsEnabled)
+            {
+                this.TargetValue.Add(this.SourceValue);
+            }
+        }
 
+    }
 }

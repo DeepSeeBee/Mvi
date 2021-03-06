@@ -76,7 +76,7 @@ namespace MviMono.Sprites.Asteroid
         public override T Throw<T>(Exception aException)
             => aException.Throw<T>();
 
-        private readonly CAsteroidModel MviAsteroidModel;
+        private readonly CBumperModel MviAsteroidModel;
         private readonly VertexBuffer OctaederLineListVertexBuffer;
         private readonly VertexBuffer SphereLineListVertexBuffer;
         private readonly VertexBuffer[] SphereLineListVertexBuffers;
@@ -247,12 +247,12 @@ namespace MviMono.Sprites.Asteroid
     {
         internal CMonoBumperSprite(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.MonoModel = this.MonoModels.MonoAsteroidModel;
+            this.MonoModel = this.MonoModels.MonoBumperModel;
             this.TranslateToTilePosition = true;
         }
 
 
-        internal override void Draw()
+        public override void Draw()
         {
             base.Draw();
             foreach (var aEffectPass in this.BasicEffect.CurrentTechnique.Passes)

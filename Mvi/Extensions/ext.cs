@@ -44,17 +44,12 @@ namespace CharlyBeck.Mvi.Extensions
             => vs.DotsToLineList(false);
         public static IEnumerable<T> DotsToPolygonLineList<T>(this T[] vs)
             => vs.DotsToLineList(true);
-
-
-
-        //internal static double GetLength(this CVector3Dbl aPoint) // Not tested, https://www.engineeringtoolbox.com/distance-relationship-between-two-points-d_1854.html
-        //    => Math.Sqrt((aPoint.x * aPoint.x) + (aPoint.y * aPoint.y) + (aPoint.z * aPoint.z));
-
-        //internal static CVector3Dbl MakeLongerDelta(this CVector3Dbl aVector, float aLength) // Not tested, https://www.freemathhelp.com/forum/threads/extend-length-of-line-in-3d-space-find-new-end-point.125160/
-        //     => (new CVector3Dbl(aLength) / new CVector3Dbl(aVector.GetLength())) * aVector;
-
-        //internal static double GetDistance(this CVector3Dbl v1, CVector3Dbl v2)
-        //    => v1.Max(v2).Subtract(v1.Min(v2)).GetLength();
+        internal static double GetLength(this CVector3Dbl aPoint) // Not tested, https://www.engineeringtoolbox.com/distance-relationship-between-two-points-d_1854.html
+            => Math.Sqrt((aPoint.x * aPoint.x) + (aPoint.y * aPoint.y) + (aPoint.z * aPoint.z));
+        internal static CVector3Dbl MakeLongerDelta(this CVector3Dbl aVector, double aLength) // Not tested, https://www.freemathhelp.com/forum/threads/extend-length-of-line-in-3d-space-find-new-end-point.125160/
+             => (new CVector3Dbl(aLength) / new CVector3Dbl(aVector.GetLength())) * aVector;
+        internal static double GetDistance(this CVector3Dbl v1, CVector3Dbl v2)
+            => v1.Max(v2).Subtract(v1.Min(v2)).GetLength();
         internal static CVector3Dbl Min(this CVector3Dbl lhs, CVector3Dbl rhs)
             => new CVector3Dbl(Math.Min(lhs.x, rhs.x), Math.Min(lhs.y, rhs.y), Math.Min(lhs.z, rhs.z));
         internal static CVector3Dbl Max(this CVector3Dbl lhs, CVector3Dbl rhs)

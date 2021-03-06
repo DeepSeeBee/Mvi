@@ -21,7 +21,41 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
     using COrbit = Tuple<CVector3Dbl, CVector3Dbl, double, double>; // OrbitAngles, OrbitCenter, OrbitRadius, OrbitCurrentRadians
 
+    public sealed class CBumperModel : CModel
+    {
+        internal CBumperModel(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.Sphere = new CSphere(4, 1.0f, true);
+            var aLen = this.World.SphereScaleCount; // 33;
+            this.Spheres = (from aIdx in Enumerable.Range(0, aLen) select new CSphere(aIdx + 1, 1.0d, true)).ToArray();
+            this.Circles = new CCircles(3, 100);
+        }
+        public readonly COctaeder Octaeder = new COctaeder(0.01);
+        public readonly CSphere Sphere;
+        public readonly CSphere[] Spheres;
+        public readonly CCircles Circles;
 
+        public int GetSphereIdx(double aDistanceToSurface)
+        {
+            var aBase = 4;
+            var aStartScaleAt = 0.1; // TODO -  in cworld ablegen 
+            var aMaxScaleAt = 0.001;
+            if (aDistanceToSurface > aStartScaleAt)
+                return aBase;
+            else if (aDistanceToSurface < 0d)
+            {
+                return this.Spheres.Length - 1;
+            }
+            else
+            {
+                var d = Math.Max(aMaxScaleAt, aDistanceToSurface);
+                var r = aStartScaleAt - aMaxScaleAt;
+                var f = 1 - (d - aMaxScaleAt) / r;
+                var i = (int)(((double)this.Spheres.Length - 1) * f);
+                return Math.Max(aBase, i);
+            }
+        }
+    }
 
     public abstract class CBumperSprite : CSprite
     {
@@ -29,10 +63,10 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
         internal CBumperSprite(CServiceLocatorNode aParent) : base(aParent)
         {
-
+            this.IsHitable = true;
         }
         internal abstract CDoubleRange AsteroidRadiusMax { get; }
-
+        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Bumper;
         internal override void Build(CSpriteBuildArgs a)
         {
             base.Build(a);
@@ -59,14 +93,11 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         internal abstract CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator);
         internal CVector3Dbl GenerateDefaultWorldPos(CRandomGenerator aRandomGenerator)
             => this.GetWorldPos(this.TileCubePos.Value).Add(aRandomGenerator.NextDouble(this.World.EdgeLenAsPos));
-        internal override ISprite NewSprite()
-           => this.Facade.NewSprite(this);
         internal override int ChangesCount => (int)CChangeEnum._Count;
 
         public override CVector3Dbl WorldPos => this.OriginalWorldPos;
         internal CVector3Dbl OriginalWorldPos { get; private set; }
         internal bool WarpIsActive { get; set; }
-        public double Radius { get; private set; }
         public CVector3Dbl Color { get; private set; }
         internal CAccelerateEnum[] AccelerateEnums { get; private set; }
         public bool GravityIsEnabled { get; private set; }
@@ -79,7 +110,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         public double AccelerateStrength { get; private set; }
         public bool AccelerateIsRepulsive { get; private set; }
         internal CCubePos TargetCubePos { get; private set; }
-        public CAsteroidModel AsteroidModel => this.World.Models.AsteroidModel;
+        public CBumperModel AsteroidModel => this.World.Models.AsteroidModel;
         public virtual bool OrbitIsDefined => false;
         public virtual COrbit Orbit => this.Throw<COrbit>(new InvalidOperationException());
         internal enum CChangeEnum
@@ -96,20 +127,16 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             Accelerate
         }
 
-        internal override bool ModelIsDefined => true;
-
         public double AvatarDistanceToSurface { get; private set; }
         public bool IsBelowSurface { get; private set; }
         internal bool IsBelowSurfaceInWarpArea { get; private set; }
         public bool IsNearestAsteroidToAvatar { get; set; }
 
-        internal override CModel NewModel() => this.World.Models.AsteroidModel;
-
-        internal override void Update(CVector3Dbl aAvatarPos)
+        internal override void UpdateAvatarPos()
         {
-            base.Update(aAvatarPos);
+            base.UpdateAvatarPos();
 
-            this.AvatarDistanceToSurface = this.DistanceToAvatar - this.Radius;
+            this.AvatarDistanceToSurface = this.DistanceToAvatar - this.Radius.Value;
             this.IsBelowSurface =  this.DistanceToAvatar < this.Radius;
             this.IsBelowSurfaceInWarpArea = this.DistanceToAvatar < this.Radius / 2;
         }
@@ -119,7 +146,10 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
             this.IsNearestAsteroidToAvatar = aFrameInfo.NearestAsteroidIsDefined
                                         && aFrameInfo.NearestAsteroid.RefEquals<CBumperSprite>(this);
-            this.WormholeCubes.Swap(this);
+            if (!this.IsHit)
+            {
+                this.WormholeCubes.Swap(this);
+            }
         }
 
         #region Cube

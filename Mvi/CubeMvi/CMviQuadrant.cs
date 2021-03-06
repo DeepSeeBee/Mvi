@@ -28,16 +28,16 @@ namespace CharlyBeck.Mvi.Cube.Mvi
         internal readonly CSpritePool SpritePool;
         internal readonly CWorld World;
         public abstract IEnumerable<CSprite> Sprites { get; }
-        internal virtual void Update(CVector3Dbl aAvatarPos)
-        {
-            foreach (var aSprite in this.Sprites)
-                aSprite.Update(aAvatarPos);
-        }
-        internal virtual void Update(CFrameInfo aFrameInfo)
-        { 
-            foreach(var aSprite in this.Sprites)
-                aSprite.Update(aFrameInfo);
-        }
+        //internal virtual void Update(CVector3Dbl aAvatarPos)
+        //{
+        //    foreach (var aSprite in this.Sprites)
+        //        aSprite.Update(aAvatarPos);
+        //}
+        //internal virtual void Update(CFrameInfo aFrameInfo)
+        //{ 
+        //    foreach(var aSprite in this.Sprites)
+        //        aSprite.Update(aFrameInfo);
+        //}
     }
 
     internal sealed class CSpaceSwitchQuadrant : CSpaceQuadrant

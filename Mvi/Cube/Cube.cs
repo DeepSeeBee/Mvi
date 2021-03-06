@@ -220,8 +220,8 @@ namespace CharlyBeck.Mvi.Cube
         internal readonly Int64 z;
 
 
-        internal static readonly CCubePos Min = new CCubePos(-100000); // TODO
-        internal static readonly CCubePos Max = new CCubePos(+100000);
+        internal static readonly CCubePos Min = new CCubePos(-CStaticParameters.Cube_Pos_Max);
+        internal static readonly CCubePos Max = new CCubePos(CStaticParameters.Cube_Pos_Max);
 
         public override string ToString() => this.x.ToString() + "|" + this.y.ToString() + "|" + this.z.ToString() + "|";
         public static bool operator ==(CCubePos lhs, CCubePos rhs)
@@ -303,6 +303,11 @@ namespace CharlyBeck.Mvi.Cube
         internal static CVector3Dbl Multiply(this CVector3Dbl aLhs, CVector3Dbl aRhs) => aLhs * aRhs;
         internal static CVector3Dbl Divide(this CVector3Dbl aLhs, CVector3Dbl aRhs) => aLhs / aRhs;
         internal static CVector3Dbl Subtract(this CVector3Dbl aLhs, CVector3Dbl aRhs) => aLhs - aRhs;
+        internal static CVector3Dbl Normalize(this CVector3Dbl v)
+        {
+            var len = Math.Sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+            return new CVector3Dbl(v.x / len, v.y / len, v.z / len);
+        }
         internal static CVector3Dbl Abs(this CVector3Dbl v)
             => new CVector3Dbl(Math.Abs(v.x), Math.Abs(v.y), Math.Abs(v.z));
         internal static CVector3Dbl Sign(this CVector3Dbl v)

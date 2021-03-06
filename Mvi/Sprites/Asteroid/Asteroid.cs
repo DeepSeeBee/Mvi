@@ -1,5 +1,6 @@
 ﻿using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Cube.Mvi;
+using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Models;
 using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.World;
@@ -16,42 +17,6 @@ namespace CharlyBeck.Mvi.Sprites.Asteroid
 {
     using CDoubleRange = System.Tuple<double, double>;
 
-    public sealed class CAsteroidModel : CModel
-    {
-        internal CAsteroidModel(CServiceLocatorNode aParent) : base(aParent)
-        {
-            this.Sphere = new CSphere(4, 1.0f, true);
-            var aLen = this.World.SphereScaleCount; // 33;
-            this.Spheres = (from aIdx in Enumerable.Range(0, aLen) select new CSphere(aIdx + 1, 1.0d, true)).ToArray();
-            this.Circles = new CCircles(3, 100);
-        }
-        public readonly COctaeder Octaeder = new COctaeder(0.01);
-        public readonly CSphere Sphere;
-        public readonly CSphere[] Spheres;
-        public readonly CCircles Circles;
-
-        public int GetSphereIdx(double aDistanceToSurface)
-        {
-            var aBase = 4;
-            var aStartScaleAt = 0.1; // TODO -  in cworld ablegen 
-            var aMaxScaleAt = 0.001;
-            if (aDistanceToSurface > aStartScaleAt)
-                return aBase;
-            else if (aDistanceToSurface < 0d)
-            {
-                return this.Spheres.Length - 1;
-            }
-            else
-            {
-                var d = Math.Max(aMaxScaleAt, aDistanceToSurface);
-                var r = aStartScaleAt - aMaxScaleAt;
-                var f = 1 - (d - aMaxScaleAt) / r;
-                var i = (int)(((double)this.Spheres.Length - 1) * f);
-                return Math.Max(aBase, i);
-            }
-        }
-    }
-
     public sealed class CAsteroid : CBumperSprite
     {
         internal CAsteroid(CServiceLocatorNode aParent) : base(aParent)
@@ -63,6 +28,7 @@ namespace CharlyBeck.Mvi.Sprites.Asteroid
 
         internal override CDoubleRange AsteroidRadiusMax => this.World.DefaultAsteroidRadiusMax;
         public override string CategoryName => "Asteroid";
+        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Bumper;
     }
     internal sealed class CAsteroidsQuadrant : CSpaceQuadrant
     {
