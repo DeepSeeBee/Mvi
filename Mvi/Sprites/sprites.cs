@@ -55,6 +55,12 @@ namespace CharlyBeck.Mvi.Sprites
 
         internal CModels Models => this.World.Models;
         internal CSoundDirectoryEnum? DestroyedSound;
+        internal bool DeallocateIsQueued;
+
+        protected override void OnBeginUse()
+        {
+            base.OnBeginUse();
+        }
 
         internal void Build(CQuadrantBuildArgs a)
         {
@@ -106,12 +112,15 @@ namespace CharlyBeck.Mvi.Sprites
             }
         }
         public abstract CVector3Dbl WorldPos { get; }
-        public double? Radius { get; protected set; }
+        public double? Radius { get; set; }
 
         internal readonly CFacade Facade;
         internal CWorld World => this.Facade.World;
+        #region PlatformSpriteEnum
+        internal abstract CPlatformSpriteEnum PlattformSpriteEnum { get; }
         internal CPlatformSprite NewPlatformSprite() => this.Facade.PlatformSpriteFactory.NewPlatformSprite(this);
         internal CPlatformSprite PlatformSprite { get; private set; }
+        #endregion
         internal void Reposition()
             => this.PlatformSprite.Reposition();
         internal virtual int ChangesCount => 0;
@@ -165,9 +174,7 @@ namespace CharlyBeck.Mvi.Sprites
         internal TimeSpan? HitGameTimeTotal;
         internal bool IsHit => this.HitGameTimeTotal.HasValue;
         #endregion
-        #region PlatformSpriteEnum
-        internal abstract CPlatformSpriteEnum PlattformSpriteEnum { get; }
-        #endregion
+
     }
 
 
@@ -253,6 +260,58 @@ namespace CharlyBeck.Mvi.Sprites
             return this.AsteroidPool.Allocate();
         }
         #endregion
+    }
+
+    internal abstract class CSpriteManager<TSprite> : CServiceLocatorNode where TSprite : CSprite
+    {
+        internal CSpriteManager(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.World = this.ServiceContainer.GetService<CWorld>();
+            this.SpritePool = new CObjectPool<TSprite>();
+            this.SpritePool.NewFunc = new Func<TSprite>(() => this.NewSprite());
+        }
+
+        protected abstract TSprite NewSprite();
+
+        internal readonly CWorld World;
+        private CObjectPool<TSprite> SpritePool;
+        private readonly List<TSprite> ActiveSprites = new List<TSprite>();
+
+        internal IEnumerable<TSprite> Sprites => this.ActiveSprites;
+
+        protected void AddSprite(TSprite aSprite)
+        {
+            this.ActiveSprites.Add(aSprite);
+
+        }
+        protected TSprite AllocateSprite()
+            => this.SpritePool.Allocate();
+
+        private void RemoveDeadSprites()
+        {
+            var aDeadShots = (from aTest in this.ActiveSprites where aTest.DeallocateIsQueued select aTest).ToArray();
+            foreach (var aDeadShot in aDeadShots)
+            {
+                aDeadShot.DeallocateIsQueued = false;
+                this.ActiveSprites.Remove(aDeadShot);
+            }
+        }
+
+        internal void UpdateAvatarPos()
+        {
+            this.RemoveDeadSprites();
+
+            foreach (var aSprite in this.ActiveSprites)
+                aSprite.UpdateAvatarPos();;
+        }
+
+        internal void Update(CFrameInfo aFrameInfo)
+        {
+
+            foreach (var aSprite in this.ActiveSprites)
+                aSprite.Update(aFrameInfo);
+
+        }
     }
 
 }

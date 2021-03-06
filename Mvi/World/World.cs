@@ -24,6 +24,7 @@ using CharlyBeck.Mvi.Cube.Mvi;
 using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Sprites.Crosshair;
+using CharlyBeck.Mvi.Sprites.Explosion;
 
 namespace CharlyBeck.Mvi.World
 {
@@ -272,6 +273,8 @@ namespace CharlyBeck.Mvi.World
                 foreach (var aSprite in this.ShotSprites.Sprites)
                     yield return aSprite;
                 yield return this.CrosshairSprite;
+                foreach (var aSprite in this.ExplosionSprites.Sprites)
+                    yield return aSprite;
             }
         }
 
@@ -293,6 +296,8 @@ namespace CharlyBeck.Mvi.World
             {
                 aSprite.UpdateAvatarPos();
             }
+            this.ExplosionSprites.UpdateAvatarPos();
+
             this.FrameInfo = new CFrameInfo(this);
             foreach (var aSprite in aSprites)
             {
@@ -300,6 +305,7 @@ namespace CharlyBeck.Mvi.World
             }
 
             this.ShotSprites.Update(this.FrameInfo);
+            this.ExplosionSprites.Update(this.FrameInfo);
         }
 
         internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
@@ -313,8 +319,16 @@ namespace CharlyBeck.Mvi.World
             {
                 this.SpriteDestroyed(aSprite, aShotSprite);
             }
+
+            this.ExplosionSprites.AddExplosion(aSprite.WorldPos, aSprite.Radius.GetValueOrDefault(1.0d));
         }
         #endregion
+        #region Explosion
+        private CExplosionSprites ExplosionSpritesM;
+        internal CExplosionSprites ExplosionSprites => CLazyLoad.Get(ref this.ExplosionSpritesM, () => new CExplosionSprites(this));
+        #endregion
+
+
     }
 
     public struct CAvatarInfo

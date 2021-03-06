@@ -43,12 +43,6 @@
 /processorParam:Quality=Best
 /build:Audio/Ambient/PM_FN_Events_LvlUps_PowerUps_64.mp3
 
-#begin Audio/Ambient/PM_FN_Music_SeamlessLoop_1B.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Ambient/PM_FN_Music_SeamlessLoop_1B.mp3
-
 #begin Audio/Ambient/PM_FSSF2_DRONES_6_LOOP.mp3
 /importer:Mp3Importer
 /processor:SoundEffectProcessor
@@ -193,29 +187,11 @@
 /processorParam:Quality=Best
 /build:Audio/Collision/DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.mp3
 
-#begin Audio/Collision/PM_FN_Impacts_2.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collision/PM_FN_Impacts_2.mp3
-
 #begin Audio/Collision/PM_FN_Impacts_Heartbeat_11.mp3
 /importer:Mp3Importer
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Audio/Collision/PM_FN_Impacts_Heartbeat_11.mp3
-
-#begin Audio/Collision/PM_INT_HnT_08.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collision/PM_INT_HnT_08.mp3
-
-#begin Audio/Collision/PM_INT_HnT_26.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collision/PM_INT_HnT_26.mp3
 
 #begin Audio/Destroyed/Moon/PM_GL_IMAPACT_LFE_TOOLKIT__23.mp3
 /importer:Mp3Importer
@@ -379,6 +355,168 @@
 /processorParam:Quality=Best
 /build:Audio/Laser/PM_AG_5_1_ABSTRACT_GUNS.mp3
 
+#begin Audio/Wormhole/Enter/DSGNMisc_Warped Synthetic Whoosh Transition 1_PMSFX_DF.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Enter/DSGNMisc_Warped Synthetic Whoosh Transition 1_PMSFX_DF.mp3
+
+#begin Audio/Wormhole/Enter/DSGNMisc_Warped Synthetic Whoosh Transition 21_PMSFX_DF.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Enter/DSGNMisc_Warped Synthetic Whoosh Transition 21_PMSFX_DF.mp3
+
+#begin Audio/Wormhole/Enter/PM_FSSF2_SPACE_RACER_GLIDER_PASSBY_20_LEFT2RIGHT.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Enter/PM_FSSF2_SPACE_RACER_GLIDER_PASSBY_20_LEFT2RIGHT.mp3
+
+#begin Audio/Wormhole/Enter/PM_FSSF2_SPACE_RACER_GLIDER_PASSBY_5_RIGHT2LEFT.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Enter/PM_FSSF2_SPACE_RACER_GLIDER_PASSBY_5_RIGHT2LEFT.mp3
+
+#begin Audio/Wormhole/Enter/PM_FSSF2_TONAL_ACHIEVEMENT_POWERUP_EVENT_19.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Enter/PM_FSSF2_TONAL_ACHIEVEMENT_POWERUP_EVENT_19.mp3
+
+#begin Audio/Wormhole/Enter/PM_FSSF2_TONAL_ENERGY_RISERS_4.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Enter/PM_FSSF2_TONAL_ENERGY_RISERS_4.mp3
+
+#begin Audio/Wormhole/Enter/PM_FSSF2_XTRAS_RISERS_1.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Enter/PM_FSSF2_XTRAS_RISERS_1.mp3
+
+#begin Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.mp3
+
+#begin Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.mp3
+
+#begin Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.mp3
+
+#begin Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.mp3
+
+#begin Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.mp3
+
+#begin Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.mp3
+
+#begin Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.mp3
+
+#begin Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.mp3
+
+#begin Audio/Wormhole/Exit/PM_FN_Impacts_2.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/PM_FN_Impacts_2.mp3
+
+#begin Audio/Wormhole/Exit/PM_INT_HnT_08.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/PM_INT_HnT_08.mp3
+
+#begin Audio/Wormhole/Exit/PM_INT_HnT_101.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/PM_INT_HnT_101.mp3
+
+#begin Audio/Wormhole/Exit/PM_INT_HnT_129.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/PM_INT_HnT_129.mp3
+
+#begin Audio/Wormhole/Exit/PM_INT_HnT_26.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/PM_INT_HnT_26.mp3
+
+#begin Audio/Wormhole/Exit/PM_INT_HnT_45.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/PM_INT_HnT_45.mp3
+
+#begin Audio/Wormhole/Exit/PM_INT_TX_Hits_01.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/Exit/PM_INT_TX_Hits_01.mp3
+
+#begin Audio/Wormhole/NewWorld/PM_BB_DI_1_105BPM_Dmin_A_CB.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/NewWorld/PM_BB_DI_1_105BPM_Dmin_A_CB.mp3
+
+#begin Audio/Wormhole/NewWorld/PM_BB_DI_3_85BPM_Cmin_D_CB.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/NewWorld/PM_BB_DI_3_85BPM_Cmin_D_CB.mp3
+
+#begin Audio/Wormhole/NewWorld/PM_FN_Music_SeamlessLoop_1B_85bpm_CB.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/NewWorld/PM_FN_Music_SeamlessLoop_1B_85bpm_CB.mp3
+
+#begin Audio/Wormhole/NewWorld/PM_INFECTED_03_85bpm_CB.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/NewWorld/PM_INFECTED_03_85bpm_CB.mp3
+
+#begin Audio/Wormhole/NewWorld/PM_SRUN_LOOP_1_85bpm_CB.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Audio/Wormhole/NewWorld/PM_SRUN_LOOP_1_85bpm_CB.mp3
+
 #begin ball.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -390,4 +528,9 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:ball.png;Ball.png
+
+#begin Video/Explosion1/Explosion Large Topview.mp4
+/importer:H264Importer
+/processor:VideoProcessor
+/build:Video/Explosion1/Explosion Large Topview.mp4
 

@@ -41,6 +41,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using Microsoft.Xna.Framework.Media;
     using MviMono.Sfx;
     using CharlyBeck.Mvi.Sfx;
+    using CharlyBeck.Mvi.Mono.Sprites.Explosion;
+    using CharlyBeck.Mvi.Sprites.Explosion;
 
     internal abstract class CBase : CServiceLocatorNode
     {
@@ -88,6 +90,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             aPlatformSpriteFactory[CPlatformSpriteEnum.Crosshair] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoCrosshairSprite(aPair.Item1) { Sprite = (CCrosshairSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Cube] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoCubeSprite(aPair.Item1) { Sprite = (CCubeSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Shot] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoShotSprite(aPair.Item1) { Sprite = (CShotSprite)aPair.Item2 }; return aSprite; });
+            aPlatformSpriteFactory[CPlatformSpriteEnum.Explosion] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoExplosionSprite(aPair.Item1) { Sprite = (CExplosionSprite)aPair.Item2 }; return aSprite; });
         }
         #endregion
         #region ServiceLocator
@@ -304,8 +307,11 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         protected override void LoadContent()
         {
-
             this.Avatar = CAvatar.Load();
+            this.MonoFacade.MonoModels.LoadContent();
+
+
+
             this.SpriteBatch = new SpriteBatch(this.GraphicsDevice);
             // this.BallTexture = this.Content.Load<Texture2D>("Ball");
 

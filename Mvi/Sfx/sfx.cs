@@ -377,11 +377,13 @@ namespace CharlyBeck.Mvi.Sfx
         internal CCollisionSoundDirectory(CServiceLocatorNode aParent)  : base(aParent)
         {
             this.OpenDirectory();
-            this.HitPointEngine.Load();
+
+            if(this.HitPointEngineIsDefined)
+                this.HitPointEngine.Load();
         }
         private void OpenDirectory()
             => this.AddDirectory(GetDirectoryInfo("Audio", "Collision"), ".xml");
-        internal override bool HitPointEngineIsDefined => true;
+        internal override bool HitPointEngineIsDefined => false;
     }
     internal sealed class CShotsSoundDirectory : CSoundDirectory
     {

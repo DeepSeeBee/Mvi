@@ -1,6 +1,7 @@
 ﻿using CharlyBeck.Mvi.Mono.GameCore;
 using CharlyBeck.Mvi.Mono.Sprites.Crosshair;
 using CharlyBeck.Mvi.Mono.Sprites.Cube;
+using CharlyBeck.Mvi.Mono.Sprites.Explosion;
 using CharlyBeck.Mvi.Mono.Sprites.Shot;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.Exceptions;
@@ -35,13 +36,33 @@ namespace MviMono.Models
             this.MonoBumperModel = new CMonoBumperModel(this);
             this.MonoShotModel = new CMonoShotModel(this);
             this.MonoCrosshairModel = new CMonoCrosshairModel(this);
+            this.MonoExplosionModel = new CMonoExplosionModel(this);
         }
         #endregion
 
+        internal void LoadContent()
+        {
+            foreach (var aMonoModel in this.MonoModels)
+                aMonoModel.LoadContent();
+        }
+
+        private IEnumerable<CMonoModel> MonoModels
+        {
+            get
+            {
+                yield return this.MonoCubeModel;
+                yield return this.MonoBumperModel;
+                yield return this.MonoShotModel;
+                yield return this.MonoCrosshairModel;
+                yield return this.MonoExplosionModel;
+            }
+        }
         internal readonly CMonoCubeModel MonoCubeModel;
         internal readonly CMonoBumperModel MonoBumperModel;
         internal readonly CMonoShotModel MonoShotModel;
         internal readonly CMonoCrosshairModel MonoCrosshairModel;
+
+        internal readonly CMonoExplosionModel MonoExplosionModel;
     }
 
     internal abstract class CMonoModel : CServiceLocatorNode
@@ -49,6 +70,9 @@ namespace MviMono.Models
         internal CMonoModel(CServiceLocatorNode aParent) : base(aParent)
         {
             this.Game = this.ServiceContainer.GetService<CGame>();
+        }
+        internal virtual void LoadContent()
+        {
         }
         internal readonly CGame Game;
         internal CWorld World => this.Game.World;

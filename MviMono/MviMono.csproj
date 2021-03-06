@@ -95,6 +95,7 @@
     <Compile Include="Sprites\Bumper\MonoBumper.cs" />
     <Compile Include="Sprites\Crosshair\MonoCrosshair.cs" />
     <Compile Include="Sprites\Cube\MonoCube.cs" />
+    <Compile Include="Sprites\Explosion\MonoExplosion.cs" />
     <Compile Include="Sprites\Shot\MonoShot.cs" />
     <Compile Include="Sprites\sprites.cs" />
     <Compile Include="Wpf\CDebugWindow.xaml.cs">
@@ -112,6 +113,8 @@
     <None Include="Content\obj\.mgcontent" />
     <None Include="Content\obj\.mgstats" />
     <None Include="Content\obj\Ball.mgcontent" />
+    <None Include="Content\Video\Explosion1\lic\Detonate License.pdf" />
+    <None Include="Content\Video\Explosion1\lic\RocketStock 25 Percent Off.pdf" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -164,9 +167,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Content\Audio\Ambient\PM_FN_Events_LvlUps_PowerUps_64.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_FN_Music_SeamlessLoop_1B.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Content\Audio\Ambient\PM_FSSF2_DRONES_6_LOOP.mp3">
@@ -253,7 +253,114 @@
     <Content Include="Content\Audio\Laser\PM_AG_5_1_ABSTRACT_GUNS.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\Audio\Wormhole\Enter\DSGNMisc_Warped Synthetic Whoosh Transition 1_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Enter\DSGNMisc_Warped Synthetic Whoosh Transition 21_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Enter\PM_FSSF2_SPACE_RACER_GLIDER_PASSBY_20_LEFT2RIGHT.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Enter\PM_FSSF2_SPACE_RACER_GLIDER_PASSBY_5_RIGHT2LEFT.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Enter\PM_FSSF2_TONAL_ACHIEVEMENT_POWERUP_EVENT_19.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Enter\PM_FSSF2_TONAL_ENERGY_RISERS_4.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Enter\PM_FSSF2_XTRAS_RISERS_1.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\PM_FN_Impacts_2.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_08.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_101.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_129.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_26.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_45.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_TX_Hits_01.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\NewWorld\PM_BB_DI_1_105BPM_Dmin_A_CB.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\NewWorld\PM_BB_DI_3_85BPM_Cmin_D_CB.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\NewWorld\PM_FN_Music_SeamlessLoop_1B_85bpm_CB.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\NewWorld\PM_INFECTED_03_85bpm_CB.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Wormhole\NewWorld\PM_SRUN_LOOP_1_85bpm_CB.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\ball.png" />
+    <Content Include="Content\Video\Explosion1\Explosion Large Topview.mp4" />
+    <Content Include="Content\Video\Explosion1\lic\lic.PNG" />
     <Content Include="Docu\Docu.txt" />
   </ItemGroup>
   <ItemGroup>

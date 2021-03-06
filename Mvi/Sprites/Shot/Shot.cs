@@ -63,8 +63,6 @@ namespace CharlyBeck.Mvi.Sprites.Shot
                 this.DellocateIsQueued = true;
         }
 
-
-
         internal void Collide()
         {
             var aShot = this;

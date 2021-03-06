@@ -41,6 +41,7 @@ namespace CharlyBeck.Mvi.Facade
         Cube,
         Shot,
         Crosshair,
+        Explosion,
         _Count
     }
     public delegate CPlatformSprite CNewPlatformSpriteFunc(Tuple<CServiceLocatorNode, CSprite> aParentAndSprite);

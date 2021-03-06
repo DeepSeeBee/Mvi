@@ -107,6 +107,7 @@
     <Compile Include="Sfx\sfx.cs" />
     <Compile Include="Sprites\Asteroid\Asteroid.cs" />
     <Compile Include="Sprites\Crosshair\Crosshair.cs" />
+    <Compile Include="Sprites\Explosion\Explosion.cs" />
     <Compile Include="Sprites\Shot\Shot.cs" />
     <Compile Include="Story\Bonus\Bonus.cs" />
     <Compile Include="Story\Bonus\Gems\CGems.cs" />
