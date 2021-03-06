@@ -91,7 +91,7 @@
     </Compile>
     <Compile Include="Input\Hid\CHidDevicesVm.cs" />
     <Compile Include="Models\MonoModels.cs" />
-    <Compile Include="Sfx\Sfx.cs" />
+    <Compile Include="Sfx\MonoSfx.cs" />
     <Compile Include="Sprites\Bumper\MonoBumper.cs" />
     <Compile Include="Sprites\Crosshair\MonoCrosshair.cs" />
     <Compile Include="Sprites\Cube\MonoCube.cs" />
@@ -115,6 +115,144 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\PM_FN_Impacts_2.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\PM_FN_Impacts_Heartbeat_11.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\PM_INT_HnT_08.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Collision\PM_INT_HnT_26.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_Darkscapes_1.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_Darkscapes_27.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_FN_Drones_Soundscapes_SeamlessLoop_1.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_FN_Events_LvlUps_PowerUps_53.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_FN_Events_LvlUps_PowerUps_64.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_FN_Music_SeamlessLoop_1B.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_FSSF2_DRONES_6_LOOP.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_FSSF2_EXTRATERRESTRIAL_BIG_CREATURE_GURGLE_5.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_FSSF2_TRANSMISSION_RADIO_GLITCH_LOOP_5.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_FSSF2_XTRAS_TENSION_BUILDERS_1.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_GC_GLITCHY_DRONES_7.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_Ghostly_Air_1.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_Ghostly_Air_15.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_Ghostly_Air_29.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_INT_01.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_INT_37.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_INT_52.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_INT_66.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_INT_EXC_37.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_INT_TX_Soundscape_01.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_INT_TX_Soundscape_19.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Content\Audio\Ambient\PM_INT_TX_Whoosh_23.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Content Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__23.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__24.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__25.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__26.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Destroyed\Planet\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Destroyed\Sun\PM_SFM_IMPACT_4.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Laser\PM_AG_10_1_ABSTRACT_GUNS.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Laser\PM_AG_12_2_ABSTRACT_GUNS.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Laser\PM_AG_16_3_ABSTRACT_GUNS.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Laser\PM_AG_1_1_ABSTRACT_GUNS.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Laser\PM_AG_27_5_ABSTRACT_GUNS.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\Audio\Laser\PM_AG_5_1_ABSTRACT_GUNS.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\ball.png" />
     <Content Include="Docu\Docu.txt" />
   </ItemGroup>
@@ -142,7 +280,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Content\Audio\Flyby\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\MonoGame.Framework.WindowsDX.3.8.0.1641\build\MonoGame.Framework.WindowsDX.targets" Condition="Exists('..\packages\MonoGame.Framework.WindowsDX.3.8.0.1641\build\MonoGame.Framework.WindowsDX.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -38,6 +38,9 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Mono.Sprites.Shot;
     using CharlyBeck.Mvi.Sprites.Crosshair;
     using CharlyBeck.Mvi.Mono.Sprites.Crosshair;
+    using Microsoft.Xna.Framework.Media;
+    using MviMono.Sfx;
+    using CharlyBeck.Mvi.Sfx;
 
     internal abstract class CBase : CServiceLocatorNode
     {
@@ -74,6 +77,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         internal CMonoFacade(CServiceLocatorNode aParent, CGame aGame) : base(aParent)
         {
             this.Game = aGame;
+
+            this.Init();
         }
         #endregion
         #region PlatformSpriteFactory
@@ -93,6 +98,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CMonoModels>(() => this.MonoModels);
             aServiceContainer.AddService<CGame>(() => this.Game);
+            aServiceContainer.AddService<CSoundLoader>(() => this.MonoSoundLoader);
             this.GameVm.RegisterComponentServices(aServiceContainer);
             return aServiceContainer;
         }
@@ -112,6 +118,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         #region Joystick
         private CJoystick1 Joystick1M;
         internal CJoystick1 Joystick1 => CLazyLoad.Get(ref this.Joystick1M, () => new CJoystick1(this));
+        #endregion
+        #region SoundLoader
+        private CMonoSoundLoader MonoSoundLoaderM;
+        private CMonoSoundLoader MonoSoundLoader => CLazyLoad.Get(ref this.MonoSoundLoaderM, () => new CMonoSoundLoader(this));
         #endregion
     }
 
@@ -298,6 +308,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.Avatar = CAvatar.Load();
             this.SpriteBatch = new SpriteBatch(this.GraphicsDevice);
             // this.BallTexture = this.Content.Load<Texture2D>("Ball");
+
+           // var aSound = Content.Load<Song>(@"Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF");
 
             //this.Content.Load<Texture>
             base.LoadContent();
@@ -556,9 +568,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.DebugWindowUpdate.RunUpdateActions();
             this.UpdateInput(aGameTime);
             this.UpdateWorld(aGameTime);
-            //   this.DebugWindowUpdate = new CDebugWindowUpdate();
-            //       this.Joystick1.BeginUpdate();
-
+            this.MonoFacade.Update();
             this.Mouse.NextFrame();
 
             base.Update(aGameTime);

@@ -49,6 +49,7 @@
     <Compile Include="Reflection\Reflection.cs" />
     <Compile Include="ServiceLocator\CServiceLocatorNode.cs" />
     <Compile Include="Strings\CStrings.cs" />
+    <Compile Include="SystemIo\SystemIo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

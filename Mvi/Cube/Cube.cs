@@ -24,6 +24,8 @@ using CharlyBeck.Mvi.Sprites.Bumper;
 
 namespace CharlyBeck.Mvi.Cube
 {
+    using CTimeSpanRange = Tuple<TimeSpan, TimeSpan>;
+
     // using CMoveTile = Tuple<CCubePos, bool, CTileDataLoadProxy>;
     internal delegate CVector3Dbl CGetWorldPosByCubePosFunc(CCubePos aCubePos);
 
@@ -50,7 +52,8 @@ namespace CharlyBeck.Mvi.Cube
             this.CheckNotPending();
             this.Random = new Random((int)aSeed);
         }
-
+        internal void Begin()
+            => this.Begin((UInt64)DateTime.Now.Ticks);
         internal void End()
         {
             this.CheckPending();
@@ -68,7 +71,7 @@ namespace CharlyBeck.Mvi.Cube
 
         }
 
-        internal double NextDouble(CDoubleRange r)
+        internal double NextDoubleRange(CDoubleRange r)
             => this.NextDouble(r.Item1, r.Item2);
 
         internal CVector3Dbl NextWorldPos()
@@ -105,6 +108,8 @@ namespace CharlyBeck.Mvi.Cube
             return (from aItem in aItems where this.NextBoolean(aPropability) select aItem).ToArray();
         }
 
+        internal TimeSpan NextFromTimeSpanRange(CTimeSpanRange aRange)
+            => TimeSpan.FromMilliseconds(this.NextDoubleRange(new CDoubleRange(aRange.Item1.TotalMilliseconds, aRange.Item2.TotalMilliseconds)));
 
         internal T NextEnum<T>()
            => this.NextItem(typeof(T).GetEnumValues().Cast<T>().ToArray());

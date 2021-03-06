@@ -3,8 +3,10 @@ using CharlyBeck.Mvi.Cube.Mvi;
 using CharlyBeck.Mvi.Extensions;
 using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Internal;
+using CharlyBeck.Mvi.Sfx;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sprites.Cube;
+using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Mvi.XnaExtensions;
@@ -37,6 +39,8 @@ namespace CharlyBeck.Mvi.Sprites
 
     }
 
+
+
     public abstract class CSprite : CReuseable // CTileDescriptorBuildable
     {
         internal CSprite(CServiceLocatorNode aParent) : base(aParent)
@@ -50,6 +54,7 @@ namespace CharlyBeck.Mvi.Sprites
         internal CSpritePool SpritePool => CLazyLoad.Get(ref this.SpritePoolM, () => this.ServiceContainer.GetService<CSpritePool>());
 
         internal CModels Models => this.World.Models;
+        internal CSoundDirectoryEnum? DestroyedSound;
 
         internal void Build(CQuadrantBuildArgs a)
         {
@@ -73,7 +78,12 @@ namespace CharlyBeck.Mvi.Sprites
             this.TileWorldPos = default;
             this.HitGameTimeTotal = default;
             this.Radius = default;
+            this.ObjectIdM = default;
         }
+
+        private CObjectId ObjectIdM;
+        internal CObjectId ObjectId => CLazyLoad.Get(ref this.ObjectIdM, () => new CObjectId());
+        internal bool PlaysFlybySound;
         internal virtual void Draw()
         {
             if (this.Visible)
@@ -81,6 +91,12 @@ namespace CharlyBeck.Mvi.Sprites
 
         }
         internal CCubePos? TileCubePos { get; private set; }
+
+        internal void OnHit(CShotSprite aShotSprite)
+        {
+            this.World.OnDestroyed(this, aShotSprite);
+        }
+
         public CVector3Dbl? TileWorldPos { get; private set; }
         internal IEnumerable<CTranslateAndRotate> TranslateAndRotates
         {

@@ -3,6 +3,7 @@ using CharlyBeck.Mvi.Cube.Mvi;
 using CharlyBeck.Mvi.Extensions;
 using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Mvi.Sfx;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.Sprites.Cube;
@@ -31,6 +32,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #region ctor
         internal COrb(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.PlaysFlybySound = true;
         }
         internal override void Build(CSpriteBuildArgs a)
         {
@@ -165,7 +167,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         {
             base.Build(a);
             var aRandomGenerator = a.QuadrantBuildArgs.RandomGenerator;
-            this.YearDuration = TimeSpan.FromSeconds(aRandomGenerator.NextDouble(this.TrabantYearDurationRange));
+            this.YearDuration = TimeSpan.FromSeconds(aRandomGenerator.NextDoubleRange(this.TrabantYearDurationRange));
             this.OrbitStartRadians = (aRandomGenerator.NextDouble() * Math.PI * 2d);
         }
 
@@ -217,6 +219,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #region ctor
         internal CPlanet(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.DestroyedSound = CSoundDirectoryEnum.Audio_Destroyed_Planet;
         }
         #endregion
         #region Sun
@@ -263,6 +266,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
     {
         internal CMoon(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.DestroyedSound = CSoundDirectoryEnum.Audio_Destroyed_Moon;
         }
         protected override void OnEndUse()
         {
@@ -291,6 +295,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #region ctor
         internal CSun(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.DestroyedSound = CSoundDirectoryEnum.Audio_Destroyed_Sun;
         }
         internal override void Build(CSpriteBuildArgs a)
         {

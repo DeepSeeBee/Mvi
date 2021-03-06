@@ -163,6 +163,7 @@ namespace CharlyBeck.Mvi.World
             this.SphereScaleCount = 25;
 
             this.ShotSprites = new CShotSprites(this);
+            this.ShotSprites.ShotFired += this.OnShotFired;
             
         }
         public override void Load()
@@ -273,7 +274,16 @@ namespace CharlyBeck.Mvi.World
                 yield return this.CrosshairSprite;
             }
         }
-        
+
+        internal event Action ShootFired;
+        internal void OnShotFired()
+        {
+            if(this.ShootFired is object)
+            {
+                this.ShootFired();
+            }    
+        }
+
         public void Update()
         {
             this.Cube.MoveTo(this.GetCubePos(this.AvatarWorldPos), true);
@@ -294,6 +304,17 @@ namespace CharlyBeck.Mvi.World
 
         internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
             => CWorldPosToCubePos.GetCubePos(aWorldPos, this.EdgeLenAsPos);
+
+        #region OnHit
+        internal event Action<CSprite, CShotSprite> SpriteDestroyed;
+        internal void OnDestroyed(CSprite aSprite, CShotSprite aShotSprite)
+        {
+            if(this.SpriteDestroyed is object)
+            {
+                this.SpriteDestroyed(aSprite, aShotSprite);
+            }
+        }
+        #endregion
     }
 
     public struct CAvatarInfo

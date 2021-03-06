@@ -104,6 +104,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="Sprites\spritesex.cs" />
+    <Compile Include="Sfx\sfx.cs" />
     <Compile Include="Sprites\Asteroid\Asteroid.cs" />
     <Compile Include="Sprites\Crosshair\Crosshair.cs" />
     <Compile Include="Sprites\Shot\Shot.cs" />

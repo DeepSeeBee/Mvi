@@ -1,6 +1,7 @@
 ﻿using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Feature;
 using CharlyBeck.Mvi.Internal;
+using CharlyBeck.Mvi.Sfx;
 using CharlyBeck.Mvi.Sprites;
 using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.World;
@@ -94,14 +95,13 @@ namespace CharlyBeck.Mvi.Facade
             this.World = new CWorld(this);
         }
 
-
         public CFacade() : this(new CDefaultServiceLocatorNode())
         {
         }
         protected override void Init()
         {
             base.Init();
-            this.World.Load();
+            this.SoundManager.Load();
         }
         public override void Load()
         {
@@ -124,10 +124,17 @@ namespace CharlyBeck.Mvi.Facade
         }
         protected abstract void BuildPlatformSpriteFactory(CPlatformSpriteFactory aPlatformSpriteFactory);
         #endregion
-
+        #region SoundManager
+        private CSoundManager SoundManagerM;
+        private CSoundManager SoundManager
+            => CLazyLoad.Get(ref this.SoundManagerM, () => new CSoundManager(this));
+        #endregion
         public void Draw()
            => this.World.Draw();
-
+        public void Update()
+        {
+            this.SoundManager.Update();
+        }
 
         #region Features
         private CFeatures FeaturesM;
@@ -156,6 +163,7 @@ namespace CharlyBeck.Mvi.Facade
             aServiceContainer.AddService<CFacade>(() => this);
             aServiceContainer.AddService<CFeatures>(() => this.Features);
             aServiceContainer.AddService<CAddInGameTheradAction>(() => new CAddInGameTheradAction(this.AddInGameThreadAction));
+            aServiceContainer.AddService<CWorld>(() => this.World);
             return aServiceContainer;
         }
         #endregion   

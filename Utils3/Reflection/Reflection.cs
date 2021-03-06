@@ -8,11 +8,9 @@ namespace CharlyBeck.Utils3.Reflection
 {
    using System.Reflection;
 
-   //public static class CReflectionExtensions
-   //{
-   //   public static T[] GetEnumValues<T>(this Type aType)
-   //      => (from aField in aType.GetFields()
-   //          where (aField.Attributes & FieldAttributes.SpecialName) == 0
-   //          select aField.GetValue(default)).Cast<T>().ToArray();
-   //}
+    public static class CReflectionExtensions
+    {
+        public static T GetCustomAttribute<T>(this Enum aEnum) where T : Attribute
+            => aEnum.GetType().GetField(aEnum.ToString()).GetCustomAttribute<T>();
+    }
 }

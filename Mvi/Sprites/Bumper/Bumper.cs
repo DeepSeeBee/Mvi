@@ -15,6 +15,7 @@ using CDoubleRange = System.Tuple<double, double>;
 using CharlyBeck.Mvi.Cube.Mvi;
 using Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.Asteroid;
+using CharlyBeck.Mvi.Sfx;
 
 namespace CharlyBeck.Mvi.Sprites.Bumper
 {
@@ -88,7 +89,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             this.TargetCubePos = aRandomGenerator.NextCubePos();
         }
         internal virtual double BuildRadius(CRandomGenerator aRandomGenerator)
-            => aRandomGenerator.NextDouble(this.AsteroidRadiusMax);
+            => aRandomGenerator.NextDoubleRange(this.AsteroidRadiusMax);
 
         internal abstract CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator);
         internal CVector3Dbl GenerateDefaultWorldPos(CRandomGenerator aRandomGenerator)
@@ -154,6 +155,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
         #region Cube
         private CWormholeCubes WormholeCubesM;
+
         private CWormholeCubes WormholeCubes => CLazyLoad.Get(ref this.WormholeCubesM, () => this.ServiceContainer.GetService<CWormholeCubes>());
         #endregion
     }

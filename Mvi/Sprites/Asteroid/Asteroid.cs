@@ -21,6 +21,8 @@ namespace CharlyBeck.Mvi.Sprites.Asteroid
     {
         internal CAsteroid(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.PlaysFlybySound = true;
+            this.DestroyedSound = Sfx.CSoundDirectoryEnum.Audio_Destroyed_Moon;
         }
 
         internal override CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator)

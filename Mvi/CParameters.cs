@@ -34,5 +34,8 @@ namespace CharlyBeck.Mvi
         public const  double Shot_MinSpeed = 1.4;
         public const double Shot_DistanceToAvatarWhenDead = 2.0;
         public static readonly TimeSpan Shot_FireRate = new TimeSpan(0, 0, 0, 0, 333);
+
+
+        public const bool Sound_Loading_Enabled = true;
     }
 }

@@ -82,6 +82,7 @@ namespace CharlyBeck.Mvi.Sprites.Shot
                 if(aIsHit)
                 {
                     aShotable.HitGameTimeTotal = this.FrameInfo.GameTimeTotal;
+                    aShotable.OnHit(this);
                     this.DellocateIsQueued = true;
                 }
             }
@@ -106,6 +107,14 @@ namespace CharlyBeck.Mvi.Sprites.Shot
         private CObjectPool<CShotSprite> ShotSpritePool;
         private List<CShotSprite> ActiveShots = new List<CShotSprite>();
         internal IEnumerable<CSprite> Sprites => this.ActiveShots;
+
+        internal event Action ShotFired;
+        private void OnShotFired()
+        {
+            if (this.ShotFired is object)
+                this.ShotFired();
+        }
+
         private void AddShot(CVector3Dbl aShotWorldPos, CVector3Dbl aMoveVector, double aSpeed)
         {
             var aShot = this.ShotSpritePool.Allocate();
@@ -113,6 +122,7 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             aShot.MoveVector = aMoveVector;
             aShot.Speed = aSpeed;
             this.ActiveShots.Add(aShot);
+            this.OnShotFired();
         }
 
         private void RemoveDeadShots()
