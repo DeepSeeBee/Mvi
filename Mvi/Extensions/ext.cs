@@ -62,6 +62,14 @@ namespace CharlyBeck.Mvi.Extensions
 
         internal static double DotProduct(this CVector3Dbl lhs, CVector3Dbl rhs)
             => lhs.x * rhs.x + lhs.y * rhs.y + lhs.z + rhs.z;
+
+        public static CVector3Dbl Sum(this IEnumerable<CVector3Dbl> vs)
+        {
+            var s = default(CVector3Dbl);
+            foreach (var v in vs)
+                s = s + v;
+            return s;
+        }
     }
 
 

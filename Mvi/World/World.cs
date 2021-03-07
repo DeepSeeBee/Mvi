@@ -17,6 +17,7 @@ using CharlyBeck.Mvi.Internal;
 using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using Microsoft.Xna.Framework;
+using CharlyBeck.Mvi.Extensions;
 
 using CDoubleRange = System.Tuple<double, double>;
 using CIntegerRange = System.Tuple<int, int>;
@@ -253,7 +254,15 @@ namespace CharlyBeck.Mvi.World
         internal CDoubleRange PlanetOrbitRange => new CDoubleRange(2d, 3d);
         internal CDoubleRange MoonOrbitRange => new CDoubleRange(4.0d, 5.0d);
 
-        public CFrameInfo FrameInfo { get; internal set; }
+        #region FrameInfo
+        private void RefreshFrameInfo()
+        {
+            this.FrameInfoM = default;
+        }
+        private CFrameInfo? FrameInfoM;
+        public CFrameInfo FrameInfo => CLazyLoad.Get(ref this.FrameInfoM, () => new CFrameInfo(this)); //{ get =>; internal set; }
+        #endregion
+
         public int SphereScaleCount;
         internal GameTime GameTimeNullable { get; set; }
         public TimeSpan GameTimeTotal => this.GameTimeNullable is object ? this.GameTimeNullable.TotalGameTime : new TimeSpan(0,0,0,0,1); // 1 to avoid division by 0
@@ -268,13 +277,16 @@ namespace CharlyBeck.Mvi.World
         {
             get
             {
-                foreach (var aSprite in from aItem in this.SpaceQuadrants from aSprite in aItem.Sprites select aSprite)
-                    yield return aSprite;
-                foreach (var aSprite in this.ShotSprites.Sprites)
-                    yield return aSprite;
-                yield return this.CrosshairSprite;
-                foreach (var aSprite in this.ExplosionSprites.Sprites)
-                    yield return aSprite;
+                if (!this.InitFrame)
+                {
+                    foreach (var aSprite in from aItem in this.SpaceQuadrants from aSprite in aItem.Sprites select aSprite)
+                        yield return aSprite;
+                    foreach (var aSprite in this.ShotSprites.Sprites)
+                        yield return aSprite;
+                    yield return this.CrosshairSprite;
+                    foreach (var aSprite in this.ExplosionSprites.Sprites)
+                        yield return aSprite;
+                }
             }
         }
 
@@ -287,8 +299,12 @@ namespace CharlyBeck.Mvi.World
             }    
         }
 
+        internal bool InitFrame = true;
+
         public void Update()
         {
+            this.InitFrame = false;
+
             this.Cube.MoveTo(this.GetCubePos(this.AvatarWorldPos), true);
 
             var aSprites = this.Sprites;
@@ -298,7 +314,8 @@ namespace CharlyBeck.Mvi.World
             }
             this.ExplosionSprites.UpdateAvatarPos();
 
-            this.FrameInfo = new CFrameInfo(this);
+            this.RefreshFrameInfo();
+
             foreach (var aSprite in aSprites)
             {
                 aSprite.Update(this.FrameInfo);
@@ -359,6 +376,8 @@ namespace CharlyBeck.Mvi.World
             this.NearestBumperSpriteAndDistance = default;
             this.NearPlanetSpeedM = default;
             this.CubePositionsM = default;
+            this.AttractionM = default;
+            this.AvatarMoveVectorM = default;
 
             this.World = aWorld;
             var aCube = aWorld.Cube;
@@ -372,6 +391,30 @@ namespace CharlyBeck.Mvi.World
             }
         }
 
+        #region Attraction
+        private CVector3Dbl? AttractionM;
+        public CVector3Dbl Attraction => CLazyLoad.Get(ref this.AttractionM, this.NewAttraction);
+        private CVector3Dbl NewAttraction()
+        {
+            var aSprites = this.Sprites;
+            var aAttractions = from aSprite in aSprites
+                               where aSprite.MassIsDefined
+                               select aSprite.AttractionToAvatar;
+            var aAttraction = aAttractions.Sum();
+            return aAttraction;
+        }
+        #endregion
+        #region AvatarMoveVector
+        private CVector3Dbl? AvatarMoveVectorM;
+        public CVector3Dbl AvatarMoveVector => CLazyLoad.Get(ref this.AvatarMoveVectorM, this.NewAvatarMoveVector);
+        private CVector3Dbl NewAvatarMoveVector()
+        {
+            var aAttraction = this.Attraction;
+            var aFrameTileElapsed = new CVector3Dbl(this.GameTimeElapsed.TotalMilliseconds);
+            var aAttractionMove = aAttraction * aFrameTileElapsed;
+            return aAttractionMove;
+        }
+        #endregion
         public TimeSpan GameTimeElapsed => this.World.GameTimeElapsed;
         public TimeSpan GameTimeTotal => this.World.GameTimeTotal;
 

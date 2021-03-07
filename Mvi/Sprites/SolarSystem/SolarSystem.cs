@@ -33,6 +33,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         internal COrb(CServiceLocatorNode aParent) : base(aParent)
         {
             this.PlaysFlybySound = true;
+            this.MassIsDefined = true;
         }
         internal override void Build(CSpriteBuildArgs a)
         {
@@ -53,7 +54,6 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             this.Trabants = default;
         }
         #endregion
-
         internal IEnumerable<CSprite> Sprites
         {
             get

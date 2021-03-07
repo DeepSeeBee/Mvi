@@ -26,7 +26,7 @@ namespace CharlyBeck.Mvi
         public const int TileAsteroidCountMin = 3;
         public const int TileAsteroidCountMax = 10;
 
-        public static readonly CDoubleRange DefaultAsteroidRadiusMax = new CDoubleRange(0.00001d, 0.01d);
+        public static readonly CDoubleRange DefaultAsteroidRadiusMax = new CDoubleRange(0.0001d, 0.01d);
         public static readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.05d);
         public static readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.5d, 0.8d);
         public static readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.3d, 0.6d);

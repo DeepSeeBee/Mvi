@@ -94,6 +94,7 @@
     <Compile Include="CubeMvi\CMviQuadrant.cs" />
     <Compile Include="Cube\Cube.cs" />
     <Compile Include="Extensions\ext.cs" />
+    <Compile Include="Extensions\Faktor01.cs" />
     <Compile Include="Facade\CFacade.cs" />
     <Compile Include="Feature\Feature.cs" />
     <Compile Include="Internal\Internal.cs" />

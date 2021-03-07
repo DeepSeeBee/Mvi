@@ -85,6 +85,7 @@ namespace CharlyBeck.Mvi.Sprites
             this.HitGameTimeTotal = default;
             this.Radius = default;
             this.ObjectIdM = default;
+            this.AttractionToAvatarM = default;
         }
 
         private CObjectId ObjectIdM;
@@ -146,6 +147,7 @@ namespace CharlyBeck.Mvi.Sprites
             this.AvatarIsInCubeM = default;
             this.IsNearestM = default;
             this.WorldMatrix = Matrix.Identity;
+            this.AttractionToAvatarM = default;
         }
 
         internal CVector3Dbl? AvatarPos { get; private set; }
@@ -174,7 +176,42 @@ namespace CharlyBeck.Mvi.Sprites
         internal TimeSpan? HitGameTimeTotal;
         internal bool IsHit => this.HitGameTimeTotal.HasValue;
         #endregion
+        #region Mass
+        public bool MassIsDefined;
+        private static readonly double QuadrantMass =1.0f;
+        public virtual double? Mass => this.Radius * QuadrantMass;
+        public bool AttractionIsDefined => this.MassIsDefined;
+        private CVector3Dbl? AttractionToAvatarM;
+        public CVector3Dbl AttractionToAvatar => CLazyLoad.Get(ref this.AttractionToAvatarM, this.NewAttractionToAvatar);
+        public CVector3Dbl NewAttractionToAvatar()
+        {
+            var aG= 0.000000000066743d;
+            var aAvatarMass = 1.0d;
+            var mf = 100000d;
+            var aOrbMass = this.Mass.Value * mf;
+            var aDistance = this.DistanceToAvatar;
+            var aDistancePow2 = aDistance * aDistance;
+            var aAttraction1 = ((aAvatarMass * aOrbMass) / aDistancePow2) * aG;
+            var aRadius = this.Radius.Value;
+            var aNoImpactDistance1 = 1d;
+            var aNoImpactDistance2 = aNoImpactDistance1 + aRadius;
+            var aNoImpactDistance = aNoImpactDistance2;
+            var aAttractionImpact = aDistance < aRadius
+                                  ? aDistance / aRadius
+                                  : aDistance > aNoImpactDistance
+                                  ? 0d
+                                  : 1d - aDistance.F01_Map(aRadius, aNoImpactDistance, 0, 1)
+                                  ;
+            var aAttraction2 = aAttraction1 * aAttractionImpact;
+            var aAttraction = aAttraction2;
+            var aDistanceVec = this.WorldPos - this.AvatarPos.Value;
+            var aAttractionVec = aDistanceVec * new CVector3Dbl(aAttraction);
+            return aAttractionVec;
+        }
 
+
+
+        #endregion
     }
 
 

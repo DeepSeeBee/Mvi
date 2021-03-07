@@ -22,6 +22,7 @@ namespace CharlyBeck.Mvi.Sprites.Asteroid
         internal CAsteroid(CServiceLocatorNode aParent) : base(aParent)
         {
             this.PlaysFlybySound = true;
+            this.MassIsDefined = true;
             this.DestroyedSound = Sfx.CSoundDirectoryEnum.Audio_Destroyed_Moon;
         }
 

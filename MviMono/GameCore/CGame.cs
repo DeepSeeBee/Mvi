@@ -161,32 +161,58 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         internal const float MoveVectorLength = 1f;
         internal readonly Matrix ViewMatrix;
 
+        private CAvatar CheckValid(CAvatar aAvatar)
+        {
+            if (aAvatar.CheckValid())
+                return aAvatar;
+            return this;
+        }
 
-
+        internal bool CheckValid()
+        {
+            if (double.IsNaN(this.AxisX.X))
+                return false;
+            else if (double.IsNegativeInfinity(this.ViewMatrix[0, 0]))
+                return false;
+            else if (double.IsPositiveInfinity(this.ViewMatrix[0, 0]))
+                return false;
+            return true;
+        }
         internal CAvatar LookUpDown(float aRadians)
         {
+            //aRadians = -0.2225299f;
+            System.Diagnostics.Debug.Print("LookUpDown: " + aRadians.ToString());
+
             var m = Matrix.CreateFromAxisAngle(this.AxisX, aRadians); // Matrix.CreateRotationX(aRadians);
             var u = m.Rotate(this.UpVector);
             var t = this.CamPos + m.Rotate(this.CamTargetOffset);
             var x = this.AxisX;
             var y = m.Rotate(this.AxisY);
-            return new CAvatar(this.CamPos, t, u, x, y);
+            var a = this.CheckValid(new CAvatar(this.CamPos, t, u, x, y));
+            return a;
         }
 
 
         public CAvatar LookLeftRight(float aRadians)
         {
+            System.Diagnostics.Debug.Print("LookLeftRight: " + aRadians.ToString());
+
             var m = Matrix.CreateFromAxisAngle(this.AxisY, aRadians);
             var u = m.Rotate(this.UpVector);
             var t = this.CamPos + m.Rotate(this.CamTargetOffset);
             var x = m.Rotate(this.AxisX);
             var y = this.AxisY;
-            var a = new CAvatar(this.CamPos, t, u, x, y);
+            var a = this.CheckValid( new CAvatar(this.CamPos, t, u, x, y));
             return a;
         }
         //=> new CAvatar(this.CamPos, this.CamTargetOffset.RotateY(aRadians), this.UpVector, true);
         internal CAvatar MoveToOffset(Vector3 aMoveVector)
-            => throw new NotImplementedException();
+        {         
+            var aNewCameraPosition = this.CamPos + aMoveVector;
+            var aNewCameraTarget = this.CamTarget + aMoveVector;
+            var aAvatar = new CAvatar(aNewCameraPosition, aNewCameraTarget, this.UpVector, this.AxisX, this.AxisY);
+            return aAvatar;
+        }
         // => new CAvatar(this.CamPos + aMoveVector, this.CamTargetOffset.Transform(aMoveVector), this.UpVector, true);
 
         //internal Matrix CamTargetRotationMatrix
@@ -267,7 +293,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             return CAvatar.Default;
         }
         #endregion
-        internal CVector3Dbl WorldPos => this.CamPos.GetGameCoordinates();
+        internal CVector3Dbl WorldPos => this.CamPos.ToVector3Dbl();
     }
 
     internal sealed class CGame : Game
@@ -307,6 +333,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         protected override void LoadContent()
         {
+
             this.Avatar = CAvatar.Load();
             this.MonoFacade.MonoModels.LoadContent();
 
@@ -451,6 +478,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 }
             }
 
+
             var aThroodle = aMouseThroodle;
             if (aKeyboardState.IsKeyDown(Keys.NumPad0))
                 aThroodle -= 1.0f;
@@ -569,13 +597,24 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.World.GameTime = aGameTime;
             this.World.Update();
         }
+
+        private void UpdateAvatar()
+        {
+            var aAvatar = this.Avatar;
+            var aOldAvatarPos = aAvatar.WorldPos;
+            var aMoveVector = this.World.FrameInfo.AvatarMoveVector;
+            var aNewAvatar = aAvatar.MoveToOffset(aMoveVector.ToVector3());
+            this.Avatar = aNewAvatar;
+        }
         protected override void Update(GameTime aGameTime)
         {
             this.DebugWindowUpdate.RunUpdateActions();
             this.UpdateInput(aGameTime);
+            this.UpdateAvatar();
             this.UpdateWorld(aGameTime);
             this.MonoFacade.Update();
             this.Mouse.NextFrame();
+            this.UpdateBasicEffect();
 
             base.Update(aGameTime);
         }
@@ -594,9 +633,12 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             get => this.AvatarM;
             set
             {
-                this.AvatarM = value;
-                if (this.AvatarChanged is object)
-                    this.AvatarChanged();
+                if (value.CheckValid())
+                {
+                    this.AvatarM = value;
+                    if (this.AvatarChanged is object)
+                        this.AvatarChanged();
+                }
             }
         }
         internal event Action AvatarChanged;
