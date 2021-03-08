@@ -10,17 +10,17 @@ namespace CharlyBeck.Mvi
 
     public static class CStaticParameters
     {
-        public const bool Feature_SolarSystem_Animate = true;
-        public const bool Feature_SolarSystem_Sun_Visible = true;
-        public const bool Feature_SolarSystem_Planet_Visible = true;
-        public const bool Feature_SolarSystem_Moon_Visible = true;
-        public const bool Feature_SolarSystem_Orbit_Visible = true;
+        public const bool Feature_SolarSystem_Animate = false;
+        public const bool Feature_SolarSystem_Sun_Visible = false;
+        public const bool Feature_SolarSystem_Planet_Visible = false;
+        public const bool Feature_SolarSystem_Moon_Visible = false;
+        public const bool Feature_SolarSystem_Orbit_Visible = false;
         public const bool Feature_Origin_Visible = true;
         public const bool Feature_Joystick = true;
-        public const bool Feature_QuadrantGridLines = false;
+        public const bool Feature_QuadrantGridLines = true;
 
 
-        public const int Cube_Size = 2;
+        public const int Cube_Size = 1;
         public const Int64 Cube_Pos_Max = 100000;
 
         public const int TileAsteroidCountMin = 3;
