@@ -276,7 +276,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         {
             if (this.AccumulativeIsEnabled)
             {
-                return this;
+                var aCamPos = this.CamPos + aMoveVector;
+                var aCamTarget = this.CamTarget + aMoveVector;
+                var aAvatar = new CAvatar(this.Game, aCamPos, aCamTarget, this.UpVector, this.AxisX, this.AxisY);
+                return aAvatar;
             }
             else
             {
