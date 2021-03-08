@@ -50,6 +50,15 @@ namespace CharlyBeck.Mvi.Sfx
         Audio_Destroyed_Moon,
         [CSoundDirectoryPath(@"Audio\Flyby", true)]
         Audio_Flyby,
+        [CSoundDirectoryPath(@"Audio\Wormhole", false)]
+        Wormhole,
+        [CSoundDirectoryPath(@"Audio\Wormhole\Enter", true)]
+        Wormhole_Enter,
+        [CSoundDirectoryPath(@"Audio\Wormhole\Exit", true)]
+        Wormhole_Exit,
+        [CSoundDirectoryPath(@"Audio\Wormhole\NewWorld", true)]
+        Wormhole_NewWorld
+
     }
 
     internal enum CSoundFxClassEnum
@@ -325,9 +334,9 @@ namespace CharlyBeck.Mvi.Sfx
             => this.AddDirectory(GetDirectoryInfo( "Audio", "Ambient"), ".mp3");
     }
 
-    internal sealed class CEventSoundDirectory : CSoundDirectory
+    internal sealed class CDestroyedSoundDirectory : CSoundDirectory
     {
-        internal CEventSoundDirectory(CServiceLocatorNode aParent):base(aParent)
+        internal CDestroyedSoundDirectory(CServiceLocatorNode aParent):base(aParent)
         {
             this.CreateDirectoryDic = true;
             this.AddDirectories();
@@ -338,8 +347,6 @@ namespace CharlyBeck.Mvi.Sfx
                     this.GetRandomSound(e.Value).SoundBuffer.Play();
             };
         }
-
-
 
         private void AddDirectories()
             => this.AddDirectory(CSoundDirectoryEnum.Audio_Destroyed, true);
@@ -594,6 +601,24 @@ namespace CharlyBeck.Mvi.Sfx
         }
     }
 
+    internal sealed class CWormholeSoundDirectory:CSoundDirectory
+    {
+        internal CWormholeSoundDirectory(CServiceLocatorNode aParent) :base(aParent)
+        {
+            this.World = this.ServiceContainer.GetService<CWorld>();
+            this.CreateDirectoryDic = true;
+            this.AddDirectory(CSoundDirectoryEnum.Wormhole, true);
+            this.World.WormholeEntered += this.OnWormholeEntered;
+        }
+        private readonly CWorld World;
+
+        private void OnWormholeEntered(CSprite aSprite)
+        {
+            this.GetRandomSound(CSoundDirectoryEnum.Wormhole_Enter).SoundBuffer.Play();
+        }
+
+    }
+
     internal sealed class CSoundManager : CServiceLocatorNode
     {
         internal CSoundManager(CServiceLocatorNode aParent)  :base(aParent)
@@ -601,15 +626,16 @@ namespace CharlyBeck.Mvi.Sfx
             this.CollisionSoundDirectory = new CCollisionSoundDirectory(this);
             this.AmbientSoundDirectory = new CAmbientSoundDirectory(this);
             this.ShotsSoundDirectory = new CShotsSoundDirectory(this);
-            this.EventSoundDirectory = new CEventSoundDirectory(this);
+            this.EventSoundDirectory = new CDestroyedSoundDirectory(this);
             this.FlybySoundDirectory = new CFlybySoundDirectory(this);
+            this.WormholeSoundDirectory = new CWormholeSoundDirectory(this);
         }
         private readonly CCollisionSoundDirectory CollisionSoundDirectory;
         private readonly CAmbientSoundDirectory AmbientSoundDirectory;
         private readonly CShotsSoundDirectory ShotsSoundDirectory;
-        private readonly CEventSoundDirectory EventSoundDirectory;
+        private readonly CDestroyedSoundDirectory EventSoundDirectory;
         private readonly CFlybySoundDirectory FlybySoundDirectory;
-
+        private readonly CWormholeSoundDirectory WormholeSoundDirectory;
         private IEnumerable<CSoundDirectory> SoundDirectories
         {
             get

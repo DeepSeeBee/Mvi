@@ -349,6 +349,15 @@ namespace CharlyBeck.Mvi.World
         #region Explosion
         private CExplosionSprites ExplosionSpritesM;
         internal CExplosionSprites ExplosionSprites => CLazyLoad.Get(ref this.ExplosionSpritesM, () => new CExplosionSprites(this));
+
+        public event Action<CSprite> WormholeEntered;
+        internal void OnWormholeEntered(CSprite aSprite)
+        {
+            if(this.WormholeEntered is object)
+            {
+                this.WormholeEntered(aSprite);
+            }
+        }
         #endregion
 
 

@@ -996,6 +996,8 @@ namespace CharlyBeck.Mvi.Cube
         #region ctor
         internal CWormholeCubes(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.World = this.ServiceContainer.GetService<CWorld>();
+
             var aItems = new CWormholeCube[2];
             foreach(var aIdx in Enumerable.Range(0, aItems.Length))
             {
@@ -1011,6 +1013,9 @@ namespace CharlyBeck.Mvi.Cube
         internal readonly CWormholeCube[] Items;
         internal IEnumerable<CWormholeCube> ActiveItems => from aCube in this.Items where aCube.Active select aCube;
         internal int CubeIndex { get; set; }
+        #endregion
+        #region World
+        private readonly CWorld World;
         #endregion
         #region ICube
 
@@ -1039,6 +1044,7 @@ namespace CharlyBeck.Mvi.Cube
                 aSource.WarpIsActive = true;
                 this[1].CubePosOffset = aSource.TargetCubePos;
                 this[1].MoveTo(new CCubePos(), true);
+                this.World.OnWormholeEntered(aSource);
                 //this[1].Active = true;
             }
 
