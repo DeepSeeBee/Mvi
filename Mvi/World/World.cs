@@ -26,6 +26,7 @@ using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Sprites.Crosshair;
 using CharlyBeck.Mvi.Sprites.Explosion;
+using CharlyBeck.Mvi.Feature;
 
 namespace CharlyBeck.Mvi.World
 {
@@ -300,7 +301,12 @@ namespace CharlyBeck.Mvi.World
         }
 
         internal bool InitFrame = true;
-
+        #region Features
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration GravitationFeatureDeclaration = new CFeatureDeclaration(new Guid("61de4feb-eb03-4569-baea-055d520844b9"), "Gravitation", CStaticParameters.Feature_Gravitation);
+        private CFeature GravitationFeatureM;
+        public  CFeature GravitationFeature => CLazyLoad.Get(ref this.GravitationFeatureM, () => CFeature.Get(this, GravitationFeatureDeclaration));
+        #endregion
         public void Update()
         {
             this.InitFrame = false;
@@ -396,13 +402,21 @@ namespace CharlyBeck.Mvi.World
         public CVector3Dbl Attraction => CLazyLoad.Get(ref this.AttractionM, this.NewAttraction);
         private CVector3Dbl NewAttraction()
         {
-            var aSprites = this.Sprites;
-            var aAttractions = from aSprite in aSprites
-                               where aSprite.MassIsDefined
-                               select aSprite.AttractionToAvatar;
-            var aAttraction = aAttractions.Sum();
-            return aAttraction;
+            if (this.World.GravitationFeature.Enabled)
+            {
+                var aSprites = this.Sprites;
+                var aAttractions = from aSprite in aSprites
+                                   where aSprite.MassIsDefined
+                                   select aSprite.AttractionToAvatar;
+                var aAttraction = aAttractions.Sum();
+                return aAttraction;
+            }
+            else
+            {
+                return new CVector3Dbl();
+            }
         }
+
         #endregion
         #region AvatarMoveVector
         private CVector3Dbl? AvatarMoveVectorM;

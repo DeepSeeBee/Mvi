@@ -130,8 +130,9 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
     internal struct CAvatar
     {
-        internal CAvatar(Vector3 aCameraPos, Vector3 aCameraTarget, Vector3 aUpVector, Vector3 aAxisX, Vector3 aAxisY)
+        internal CAvatar(CGame aGame, Vector3 aCameraPos, Vector3 aCameraTarget, Vector3 aUpVector, Vector3 aAxisX, Vector3 aAxisY)
         {
+            this.Game = aGame;
             this.AxisAngles = default;
             this.CamPos = aCameraPos;
             this.CamTarget = aCameraTarget;
@@ -140,12 +141,13 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.AxisX = aAxisX;
             this.AxisY = aAxisY;
         }
-        internal CAvatar(Vector3 aCamPos, Vector3 aa1)
+        internal CAvatar(CGame aGame, Vector3 aCamPos, Vector3 aa)
         {
-            var aa = new Vector3((float)(aa1.X % (Math.PI * 4)),
-                                 (float)(aa1.Y % (Math.PI * 4)),
-                                 (float)(aa1.Z % (Math.PI * 4))
-                                 );
+            //var aa = new Vector3((float)(aa1.X % (Math.PI * 4)),
+            //                     (float)(aa1.Y % (Math.PI * 4)),
+            //                     (float)(aa1.Z % (Math.PI * 4))
+            //                     );
+            this.Game = aGame;
             this.CamPos = aCamPos;
             this.AxisAngles = aa;
             this.ViewMatrix = default;
@@ -158,6 +160,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.ViewMatrix = Matrix.CreateLookAt(this.CamPos, this.CamTarget, this.UpVector);
         }
 
+        private readonly CGame Game;
         #region SourcData
         internal readonly Vector3 CamPos;
         internal Vector3 AxisAngles;
@@ -174,8 +177,9 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         private static readonly Vector3 DefaultX = new Vector3(1, 0, 0);
         private static readonly Vector3 DefaultY = new Vector3(0, 1, 0);
         private static readonly Vector3 DefaultZ = new Vector3(0, 0, 1);
-        internal static CAvatar Default
-            => new CAvatar(Vector3.Zero,
+        internal static CAvatar Default(CGame aGame)
+            => new CAvatar(aGame,
+                           Vector3.Zero,
                            Vector3.Zero);
 
         internal Vector3 CamTargetOffset => this.CamTarget - this.CamPos;
@@ -191,7 +195,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         //   - Werte werden immer auf eindeutiger basis (AngleVec) berechnet.
         //      * Pro: läuft nicht gegen positive/negative infinity / nan
         //      * Con: "Only" a FPS Cam like described herein: https://www.3dgep.com/understanding-the-view-matrix/
-        internal bool AccumulativeIsEnabled => true;
+        internal bool AccumulativeIsEnabled => this.Game.AccumulativeViewMatrixFeature.Enabled;
 
         // Nach oben oder unten schauen: pitch (rotation about the X axis)
         internal CAvatar LookUpDown(float aRadians)
@@ -211,7 +215,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         {
             var a1 = this.AxisAngles;
             var a2 = new Vector3(a1.X + aRadians, a1.Y, a1.Z);
-            var a = new CAvatar(this.CamPos, a2);
+            var a = new CAvatar(this.Game, this.CamPos, a2);
             return a;
         }
 
@@ -220,7 +224,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         {
             var a1 = this.AxisAngles;
             var a2 = new Vector3(a1.X, a1.Y + aRadians, a1.Z);
-            var a = new CAvatar(this.CamPos, a2);
+            var a = new CAvatar(this.Game, this.CamPos, a2);
             return a;
         }
 
@@ -232,7 +236,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             var t = this.CamPos + m.Rotate(this.CamTargetOffset);
             var x = this.AxisX;
             var y = m.Rotate(this.AxisY);
-            var a = this.CheckValid(new CAvatar(this.CamPos, 
+            var a = this.CheckValid(new CAvatar(this.Game, 
+                                                this.CamPos, 
                                                 t, // CamTarget/Lookat
                                                 u, // UpVector
                                                 x, // X-Axis
@@ -249,7 +254,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             var t = this.CamPos + m.Rotate(this.CamTargetOffset);
             var x = m.Rotate(this.AxisX);
             var y = this.AxisY;
-            var a = this.CheckValid(new CAvatar(this.CamPos, 
+            var a = this.CheckValid(new CAvatar(this.Game, 
+                                                this.CamPos, 
                                                 t,  // CamTarget/Lookat
                                                 u,  // UpVector
                                                 x,  // X-Axis
@@ -262,17 +268,22 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         {
             var a1 = this.AxisAngles;
             var a2 = new Vector3(a1.X, a1.Y, a1.Z + aRadians);
-            var a = new CAvatar(this.CamPos, a2);
+            var a = new CAvatar(this.Game, this.CamPos, a2);
             return a;
         }
 
         internal CAvatar MoveToOffset(Vector3 aMoveVector)
         {
-            return this;
-            //var aNewCameraPosition = this.CamPos + aMoveVector;
-            //var aNewCameraTarget = this.CamTarget + aMoveVector;
-            //var aAvatar = new CAvatar(aNewCameraPosition, aNewCameraTarget, this.UpVector, this.AxisX, this.AxisY);
-            //return aAvatar;
+            if (this.AccumulativeIsEnabled)
+            {
+                return this;
+            }
+            else
+            {
+                var aNewCameraPosition = this.CamPos + aMoveVector;
+                var aAvatar = new CAvatar(this.Game, aNewCameraPosition, this.AxisAngles);
+                return aAvatar;
+            }
         }
         // => new CAvatar(this.CamPos + aMoveVector, this.CamTargetOffset.Transform(aMoveVector), this.UpVector, true);
         private CAvatar CheckValid(CAvatar aAvatar)
@@ -309,20 +320,28 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         internal CAvatar MoveAlongViewAngle(float aDistance)
         {
-            return this;
-            //if (aDistance != 0f)
-            //{
-            //    var aMoveVector = this.CamTargetOffset;
-            //    var aLonger = aMoveVector.MakeLongerDelta(aDistance);
-            //    var aNewCameraPosition = this.CamPos + aLonger;
-            //    var aNewCameraTarget = this.CamTarget + aLonger;
-            //    var aAvatar = new CAvatar(aNewCameraPosition, aNewCameraTarget, this.UpVector, this.AxisX, this.AxisY);
-            //    return aAvatar;
-            //}
-            //else
-            //{
-            //    return this;
-            //}
+            if (this.AccumulativeIsEnabled)
+            {
+                var aMoveVector = this.CamTargetOffset;
+                var aLonger = aMoveVector.MakeLongerDelta(aDistance);
+                var aNewCameraPosition = this.CamPos + aLonger;
+                var aNewCameraTarget = this.CamTarget + aLonger;
+                var aAvatar = new CAvatar(this.Game, aNewCameraPosition, aNewCameraTarget, this.UpVector, this.AxisX, this.AxisY);
+                return aAvatar;
+            }
+            else if (aDistance != 0f)
+            {
+                var aMoveVector = this.CamTargetOffset;
+                var aLonger = aMoveVector.MakeLongerDelta(aDistance);
+                var aNewCameraPosition = this.CamPos + aLonger;
+               // var aNewCameraTarget = this.CamTarget + aLonger;
+                var aAvatar = new CAvatar(this.Game, aNewCameraPosition, this.AxisAngles);
+                return aAvatar;
+            }
+            else
+            {
+                return this;
+            }
         }
         #region SErialize
         internal void Write(Stream aStream)
@@ -335,7 +354,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             //aStream.Write(this.AxisY);
         }
 
-        internal static CAvatar Read(Stream aStream)
+        internal static CAvatar Read(CGame aGame, Stream aStream)
         {
             throw new NotImplementedException();
             //var aCamPos = aStream.ReadVector3();
@@ -354,7 +373,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             aMemoryStream.Seek(0, SeekOrigin.Begin);
             File.WriteAllBytes(CAvatar.FileInfo.FullName, aMemoryStream.ToArray());
         }
-        internal static CAvatar Load()
+        internal static CAvatar Load(CGame aGame)
         {
             var aFileInfo = FileInfo;
             if (aFileInfo.Exists)
@@ -362,15 +381,15 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 try
                 {
                     var aMemoryStream = new MemoryStream(File.ReadAllBytes(aFileInfo.FullName));
-                    var aAvatar = Read(aMemoryStream);
+                    var aAvatar = Read(aGame,aMemoryStream);
                     return aAvatar;
                 }
                 catch (Exception)
                 {
-                    return CAvatar.Default;
+                    return CAvatar.Default(aGame);
                 }
             }
-            return CAvatar.Default;
+            return CAvatar.Default(aGame);
         }
         #endregion
         internal CVector3Dbl WorldPos => this.CamPos.ToVector3Dbl();
@@ -414,7 +433,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         protected override void LoadContent()
         {
 
-            this.Avatar = CAvatar.Load();
+            this.Avatar = CAvatar.Load(this);
             this.MonoFacade.MonoModels.LoadContent();
 
 
@@ -469,6 +488,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         private static readonly CFeatureDeclaration FullScreenFeatureDeclaration = new CFeatureDeclaration(new Guid("99a83ab0-c037-4d78-9d2d-2adc1bcd627e"), "FullScreen", false);
         private CFeature FullScreenFeatureM;
         private CFeature FullScreenFeature => CLazyLoad.Get(ref this.FullScreenFeatureM, () => CFeature.Get(this.World, FullScreenFeatureDeclaration));
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration AccumulativeViewMatrixFeatureDeclaration = new CFeatureDeclaration(new Guid("e94a7502-aea0-45fc-a332-506e2ee750dc"), "AccumulativeViewMatrix", CStaticParameters.Feature_AccumulativeViewMatrix);
+        private CFeature AccumulativeViewMatrixFeatureM;
+        internal CFeature AccumulativeViewMatrixFeature => CLazyLoad.Get(ref this.AccumulativeViewMatrixFeatureM, () => CFeature.Get(this.World, AccumulativeViewMatrixFeatureDeclaration));
         #endregion
         #region Mouse
         private CMouse MouseM;
@@ -718,10 +741,10 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.GraphicsDevice.RasterizerState = aRasterizerState;
         }
         #region Avatar
-        private CAvatar AvatarM = CAvatar.Default;
+        private CAvatar? AvatarM;
         internal CAvatar Avatar
         {
-            get => this.AvatarM;
+            get => CLazyLoad.Get(ref this.AvatarM, ()=>CAvatar.Default(this));
             set
             {
                 if (value.CheckValid())
@@ -740,9 +763,9 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         private float CamSpeedY => this.CamSpeedRatio;
         private float CamSpeedX => this.CamSpeedRatio;
 
-        private float CamSpeedRx => (float) Math.PI * 4f *  7f;
-        private float CamSpeedRy => (float) Math.PI * 4f * 7f;
-        private float CamSpeedRz => (float) Math.PI * 4f * 7f;
+        private float CamSpeedRx => (float) Math.PI * 4f *  4f;
+        private float CamSpeedRy => (float) Math.PI * 4f * 4f;
+        private float CamSpeedRz => (float) Math.PI * 4f * 4f;
         private float CamSpeedThroodle => this.CamSpeedRatio;
 
         #endregion

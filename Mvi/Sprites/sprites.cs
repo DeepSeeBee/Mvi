@@ -187,7 +187,7 @@ namespace CharlyBeck.Mvi.Sprites
         {
             var aG= 0.000000000066743d;
             var aAvatarMass = 1.0d;
-            var mf = 100000d;
+            var mf = 100d;
             var aOrbMass = this.Mass.Value * mf;
             var aDistance = this.DistanceToAvatar;
             var aDistancePow2 = aDistance * aDistance;

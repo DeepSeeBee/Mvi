@@ -1,0 +1,28 @@
+Hallo miteinander,
+
+jetzt bin ich grad echt demnächst am Mäuse melken hier. Ich komm einfach nicht drauf.
+
+Ich habe hier für mein 3D Spiel 2 Versionen einer Berechnung der ViewMatrix. (Diese besteht  im wesentlichen aus Position, Blickpunkt und Up-Vektor. Nun habe ich eine sehr hübsche methode geschaffen, die genauso funktioniert wie ich mir das vorstelle, wobei Werte  allerdings aufakkumuliert werden und deshalb ein gravierender Fehler entsteht: Die fliesskommawerte
+laufen wegen rundungsfehlern mit der zeit gegen unendlich bzw. double.nan dann. (Nachdem ich die Gravitation eingebaut habe,
+passiert das sogar sehr schnell.)
+
+Deshalb habe ich eine "Absolute" version der funktionen geschrieben. Diese verwendet einen Axis-Angle-Vektor und läuft nicht gegen unendlich, hat aber den Nachteil, dass wenn man nach oben blickt, also der upvektor (0,0,1) ist, dann bewirkt ein rotieren mit "LookLeftRight" nur eine rotation um die Y-Achse,  was ja dann, wenn man genau nach oben schaut wie eine drehung um die z achse wirkt. 
+
+Bei standard-3d-FPS (First PErsonView) [1] mag das ja sinnvoll sein, mein Spiel handelt aber im Weltraum wo es kein oben und unten gibt, planeten kann man von oben oder unten anfliegen und die achse soll erst beim landen gedreht werden. 
+
+Bei der fehlerhaften Version der funktion, funktioniert das so wie ich es mir vorstelle, wie man im Video sieht. 
+Allerdings will es mir irgnedwie nicht gelingen, das ähnlich zu machen, wie in der aufakkumulierten variante der methode, die ich nicht verwenden kann, weil sie binnen kürzester zeit nan werte produziert.
+
+Ich habe ein kurzes video dazu gemacht. [2]
+
+Den Code habe ich in einem Bild dargstellt [3]
+
+Der Komplette code findet sich unter [4].
+
+[1] https://www.3dgep.com/understanding-the-view-matrix/
+
+[2] https://www.youtube.com/watch?v=-0BuwYOi1tw
+
+[3] https://drive.google.com/file/d/1iQueLCPWq0WDxSvTakk-r6rZ2DqPu6ou/view?usp=sharing
+
+[4] https://github.com/DeepSeeBee/Mvi
