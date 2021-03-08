@@ -1,5 +1,6 @@
 ﻿using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Cube.Mvi;
+using CharlyBeck.Mvi.CubeMvi;
 using CharlyBeck.Mvi.Extensions;
 using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Internal;
@@ -39,15 +40,13 @@ namespace CharlyBeck.Mvi.Sprites
 
     }
 
-
-
-    public abstract class CSprite : CReuseable // CTileDescriptorBuildable
+    public abstract class CSprite : CReuseable
     {
         internal CSprite(CServiceLocatorNode aParent) : base(aParent)
         {
             this.Facade = this.ServiceContainer.GetService<CFacade>();
             this.PlatformSprite = this.NewPlatformSprite();
-            this.TileCubePos = new CCubePos(0);
+            this.TileCubePos = new CCubePos(0);            
         }
 
         private CSpritePool SpritePoolM;
@@ -70,6 +69,21 @@ namespace CharlyBeck.Mvi.Sprites
 
         internal virtual void Build(CSpriteBuildArgs a)
         {
+            if (this.PersistencyEnabled)
+            {
+                this.PersistentId = a.QuadrantBuildArgs.NewSpritePersistentId(this);
+
+            }
+            this.SpritePersistentData = a.QuadrantBuildArgs.GetSpritePersistentDataFunc(this);
+            //if (this.PersistentId.GetValueOrDefault(0) == 1)
+            //{
+            //    dynamic d = this.SpritePersistentData.ParentServiceLocatorNode;
+            //    var s = d.CubePosKey.ToString();
+            //    if(((object)s).ToString() == "0|0|0|")
+            //    {
+            //        System.Diagnostics.Debug.Assert(true);
+            //    }
+            //}
             this.TileCubePos = a.QuadrantBuildArgs.TileCubePos;
             this.TileWorldPos = this.GetWorldPos(a.QuadrantBuildArgs.TileCubePos);
             this.Reposition();
@@ -86,6 +100,8 @@ namespace CharlyBeck.Mvi.Sprites
             this.Radius = default;
             this.ObjectIdM = default;
             this.AttractionToAvatarM = default;
+            this.SpritePersistentData = default;
+            this.PersistentId = default;
         }
 
         private CObjectId ObjectIdM;
@@ -93,6 +109,11 @@ namespace CharlyBeck.Mvi.Sprites
         internal bool PlaysFlybySound;
         internal virtual void Draw()
         {
+            //if (this.TileCubePos.HasValue
+            //&& this.TileCubePos.Value.x == 31971)
+            //{
+            //    System.Diagnostics.Debug.Assert(true);
+            //}
             if (this.Visible)
                 this.PlatformSprite.Draw();
 
@@ -101,6 +122,7 @@ namespace CharlyBeck.Mvi.Sprites
 
         internal void OnHit(CShotSprite aShotSprite)
         {
+            this.Destroyed = true;
             this.World.OnDestroyed(this, aShotSprite);
         }
 
@@ -125,7 +147,7 @@ namespace CharlyBeck.Mvi.Sprites
         internal void Reposition()
             => this.PlatformSprite.Reposition();
         internal virtual int ChangesCount => 0;
-        internal virtual bool Visible => !this.IsHit;
+        internal virtual bool Visible => !this.IsHit && !this.Destroyed;
 
         private bool? IsNearestM;
         public bool IsNearest => CLazyLoad.Get(ref this.IsNearestM, () =>this.World.FrameInfo.SpriteDatasOrderedByDistance.OfType<CSprite>().First().RefEquals<CSprite>(this));
@@ -208,9 +230,23 @@ namespace CharlyBeck.Mvi.Sprites
             var aAttractionVec = aDistanceVec * new CVector3Dbl(aAttraction);
             return aAttractionVec;
         }
+        #endregion
+        #region Destroyed
+        private bool Destroyed 
+        {
+            get => this.SpritePersistentData is object
+                  ? this.SpritePersistentData.Destroyed
+                  :  false // ie. crosshairsprite doesn t get this.Build and has no perstistent data. maybe add a class hirarchy for that.
+                  ;
+            set =>this.SpritePersistentData.Destroyed = value;
+        }
 
+        #endregion
+        #region Persistency
+        internal virtual bool PersistencyEnabled => false;
 
-
+        private CSpritePersistentData SpritePersistentData;
+        internal int? PersistentId;
         #endregion
     }
 

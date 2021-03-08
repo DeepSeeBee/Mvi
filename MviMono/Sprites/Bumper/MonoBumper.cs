@@ -132,6 +132,10 @@ namespace MviMono.Sprites.Asteroid
             var aIsNearest = aBumperSprite.IsNearest;
             var aIsBelowSurface = aBumperSprite.IsBelowSurface;
 
+            //if (((int)aBumperSprite.Color.x * 1000) == ((int)0.0577762010776327 * 1000))
+            //{
+            //    System.Diagnostics.Debug.Assert(true);
+            //}
             var aAsteroidColor = aBumperSprite.Color.ToColor().SetAlpha(aInvertedAlpha);
             var aAsteroidColorWhite = Color.White.SetAlpha((float)aAlpha);
 

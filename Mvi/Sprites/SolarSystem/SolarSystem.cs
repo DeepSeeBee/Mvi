@@ -35,6 +35,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             this.PlaysFlybySound = true;
             this.MassIsDefined = true;
         }
+        internal override bool PersistencyEnabled => true;
         internal override void Build(CSpriteBuildArgs a)
         {
             base.Build(a);
@@ -124,6 +125,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         internal abstract CFeature OrbVisibleFeature { get; }
         internal override void Draw()
         {
+
             if (this.OrbVisibleFeature.Enabled)
             {
                 base.Draw();
@@ -167,7 +169,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         {
             base.Build(a);
             var aRandomGenerator = a.QuadrantBuildArgs.RandomGenerator;
-            this.YearDuration = TimeSpan.FromSeconds(aRandomGenerator.NextDoubleRange(this.TrabantYearDurationRange));
+            this.YearDuration = TimeSpan.FromSeconds(aRandomGenerator.NextFromDoubleRange(this.TrabantYearDurationRange));
             this.OrbitStartRadians = (aRandomGenerator.NextDouble() * Math.PI * 2d);
         }
 
@@ -313,7 +315,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         //    base.OnBuild();
         //}
         #region Trabants
-        internal override CIntegerRange TrabantCountRange => new CIntegerRange(this.World.TileAsteroidCountMin, this.World.TileAsteroidCountMax);
+        internal override CIntegerRange TrabantCountRange => new CIntegerRange(CStaticParameters.SunTrabantCountMin, CStaticParameters.SunTrabantCountMax);
         internal override bool HasTrabants => true;
         internal override CTrabant NewTrabant()
         {

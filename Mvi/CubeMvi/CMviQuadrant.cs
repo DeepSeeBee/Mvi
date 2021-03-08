@@ -48,11 +48,13 @@ namespace CharlyBeck.Mvi.Cube.Mvi
             this.CubeQuadrant = new CCubeQuadrant(this);
             this.AsteroidsQuadrant = new CAsteroidsQuadrant(this);
             this.SolarSystemQuadrant = new CSolarSystemQuadrant(this);
-            var aQuadrants = new CSpaceQuadrant[]
-            {
-                this.AsteroidsQuadrant,
-                this.SolarSystemQuadrant,
-            };
+            var aItems = new List<CSpaceQuadrant>();
+            if (CStaticParameters.Quadrant_Asteroids)
+                aItems.Add(this.AsteroidsQuadrant);
+            if (CStaticParameters.Quadrant_SolarSystem)
+                aItems.Add(this.SolarSystemQuadrant);
+
+            var aQuadrants = aItems.ToArray();
             this.RandomSpaceQuadrants = aQuadrants;
         }
         #endregion
@@ -65,6 +67,8 @@ namespace CharlyBeck.Mvi.Cube.Mvi
 
         internal override void Build(CQuadrantBuildArgs a)
         {
+            base.Build(a);
+
             var aRandomGenerator = a.RandomGenerator;
             this.RandomSpaceQuadrant = aRandomGenerator.NextItem(this.RandomSpaceQuadrants);
             this.RandomSpaceQuadrant.Build(a);

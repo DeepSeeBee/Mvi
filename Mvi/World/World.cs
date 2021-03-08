@@ -27,6 +27,8 @@ using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Sprites.Crosshair;
 using CharlyBeck.Mvi.Sprites.Explosion;
 using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Mvi.CubeMvi;
+using Utils3.Asap;
 
 namespace CharlyBeck.Mvi.World
 {
@@ -155,6 +157,7 @@ namespace CharlyBeck.Mvi.World
         #region ctor
         internal CWorld(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.SpaceSwitchQuadrantObjectPool = new CObjectPool<CSpaceSwitchQuadrant>();
             this.EdgeLen = 1.0d;
             this.EdgeLenAsPos = new CVector3Dbl(this.EdgeLen);
             this.TileAsteroidCountMin = CStaticParameters.TileAsteroidCountMin;
@@ -180,7 +183,11 @@ namespace CharlyBeck.Mvi.World
         public void Shoot()
             => this.ShotSprites.Shoot();
         #endregion
+        #region SpaceSwitchQuadrantObjectPool
+        private CObjectPool<CSpaceSwitchQuadrant> SpaceSwitchQuadrantObjectPool;
 
+
+        #endregion
         #region Cube
 
 
@@ -192,6 +199,10 @@ namespace CharlyBeck.Mvi.World
         private CWormholeCubes WormholeCubesM;
         internal CWormholeCubes WormholeCubes => CLazyLoad.Get(ref this.WormholeCubesM, ()=>new CWormholeCubes(this));
         #endregion
+        private CSpaceSwitchQuadrant NewSpaceSwitchQuadrant(CServiceLocatorNode aParent)
+        {
+            return this.SpaceSwitchQuadrantObjectPool.Allocate(new Func<CSpaceSwitchQuadrant>(() => new CSpaceSwitchQuadrant(aParent)));
+        }
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
@@ -201,13 +212,15 @@ namespace CharlyBeck.Mvi.World
             aServiceContainer.AddService<CWorld>(() => this);
             aServiceContainer.AddService<CNewBorderFunc>(() => new CNewBorderFunc(()=> this.CubeSize));
             aServiceContainer.AddService<CWormholeCubes>(() => this.WormholeCubes);
-            aServiceContainer.AddService<CNewQuadrantFunc>(() => new CNewQuadrantFunc(aParent => new CSpaceSwitchQuadrant(aParent)));
+            aServiceContainer.AddService<CNewQuadrantFunc>(() => new CNewQuadrantFunc(this.NewSpaceSwitchQuadrant));
+            aServiceContainer.AddService<CCubePersistentData>(() => this.CubePersistentData);
             return aServiceContainer;
         }
         #endregion
         #region Draw
         internal void Draw()
         {
+            //var aSuns = this.Sprites.OfType<CharlyBeck.Mvi.Sprites.SolarSystem.CSun>();
             foreach (var aSprite in this.Sprites)
                 aSprite.Draw();
         }
@@ -360,7 +373,10 @@ namespace CharlyBeck.Mvi.World
         }
         #endregion
 
-
+        #region CubePersistentData
+        private CCubePersistentData CubePersistentDataM;
+        internal CCubePersistentData CubePersistentData => CLazyLoad.Get(ref this.CubePersistentDataM, () => new CCubePersistentData(this));
+        #endregion
     }
 
     public struct CAvatarInfo

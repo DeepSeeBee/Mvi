@@ -10,6 +10,9 @@ namespace CharlyBeck.Mvi
 
     public static class CStaticParameters
     {
+        public const bool Quadrant_Asteroids = true;
+        public const bool Quadrant_SolarSystem = true;
+
         public const bool Feature_SolarSystem_Animate = true;
         public const bool Feature_SolarSystem_Sun_Visible = true;
         public const bool Feature_SolarSystem_Planet_Visible = true;
@@ -25,6 +28,8 @@ namespace CharlyBeck.Mvi
 
         public const int TileAsteroidCountMin = 3;
         public const int TileAsteroidCountMax = 10;
+        public const int SunTrabantCountMin = 3;// 3;
+        public const int SunTrabantCountMax = 8;//10;
 
         public static readonly CDoubleRange DefaultAsteroidRadiusMax = new CDoubleRange(0.0001d, 0.01d);
         public static readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.05d);

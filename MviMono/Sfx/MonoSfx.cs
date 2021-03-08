@@ -27,6 +27,8 @@ namespace MviMono.Sfx
             this.SoundEffect = aSong;
         }
 
+        public override double Volume { get => 1d; set { } }
+
         private SoundEffect SoundEffect;
         public override void Play()
         {

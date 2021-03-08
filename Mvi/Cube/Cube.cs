@@ -21,6 +21,8 @@ using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Feature;
 using Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.Bumper;
+using CharlyBeck.Mvi.Sprites.Cube;
+using CharlyBeck.Mvi.CubeMvi;
 
 namespace CharlyBeck.Mvi.Cube
 {
@@ -71,7 +73,7 @@ namespace CharlyBeck.Mvi.Cube
 
         }
 
-        internal double NextDoubleRange(CDoubleRange r)
+        internal double NextFromDoubleRange(CDoubleRange r)
             => this.NextDouble(r.Item1, r.Item2);
 
         internal CVector3Dbl NextWorldPos()
@@ -109,7 +111,7 @@ namespace CharlyBeck.Mvi.Cube
         }
 
         internal TimeSpan NextFromTimeSpanRange(CTimeSpanRange aRange)
-            => TimeSpan.FromMilliseconds(this.NextDoubleRange(new CDoubleRange(aRange.Item1.TotalMilliseconds, aRange.Item2.TotalMilliseconds)));
+            => TimeSpan.FromMilliseconds(this.NextFromDoubleRange(new CDoubleRange(aRange.Item1.TotalMilliseconds, aRange.Item2.TotalMilliseconds)));
 
         internal T NextEnum<T>()
            => this.NextItem(typeof(T).GetEnumValues().Cast<T>().ToArray());
@@ -272,7 +274,7 @@ namespace CharlyBeck.Mvi.Cube
 
         internal UInt64 GetSeed(Int64 aCubeTileCount)
             => (UInt64)(this.x + (this.y * aCubeTileCount) + (this.z * aCubeTileCount * aCubeTileCount)); // TODO: Das gibt bei negativen coordinaten dieselben seeds wie bei positiven.
-        internal CCubePosKey GetKey(Int64 aEdgeLen) => new CCubePosKey(this, aEdgeLen);
+        internal CCubePosKey GetKey(Int64 aCubeDepth) => new CCubePosKey(this, aCubeDepth);
         //{
         //    var aSeed = default(Int64);
         //    var aLen = (Int64)aCoordinates.Length;
@@ -346,15 +348,23 @@ namespace CharlyBeck.Mvi.Cube
 
     internal struct CQuadrantBuildArgs
     {
-        internal CQuadrantBuildArgs(CRandomGenerator aRanomdGenerator, CCubePos aTileCubePos, CVector3Dbl aTileWorldPos)
+        internal CQuadrantBuildArgs(CRandomGenerator aRanomdGenerator, 
+                                    CCubePos aTileCubePos, 
+                                    CVector3Dbl aTileWorldPos, 
+                                    Func<CSprite, CSpritePersistentData> aGetSpritePersistentDataFunc,
+                                    Func <CSprite, int> aNewSpritePersistentId)
         {
             this.RandomGenerator = aRanomdGenerator;
             this.TileCubePos = aTileCubePos;
             this.TileWorldPos = aTileWorldPos;
+            this.GetSpritePersistentDataFunc = aGetSpritePersistentDataFunc;
+            this.NewSpritePersistentId = aNewSpritePersistentId;
         }
         internal readonly CRandomGenerator RandomGenerator;
         internal readonly CCubePos TileCubePos;
         internal readonly CVector3Dbl TileWorldPos;
+        internal readonly Func<CSprite, int> NewSpritePersistentId;
+        internal readonly Func<CSprite, CSpritePersistentData> GetSpritePersistentDataFunc;
     }
 
     internal abstract class CQuadrant  : CReuseable
@@ -365,23 +375,44 @@ namespace CharlyBeck.Mvi.Cube
         }
         internal readonly CCube Cube;
         internal CCubePos? TileCubePos { get; private set; }
-        internal CVector3Dbl? TileWorldPos { get; private set; }
 
         protected override void OnEndUse()
         {
             base.OnEndUse();
 
             this.TileCubePos = default;
-            this.TileWorldPos = default;
+            this.QuadrantPersistentDataM = default;
+            this.LastSpritePersistentDataId = default;
         }
 
         internal virtual void Build(CQuadrantBuildArgs a)
         {
+            this.ResetLAstSpritePersistentData();
             this.TileCubePos = a.TileCubePos;
-            this.TileWorldPos = a.TileWorldPos;
         }
 
-
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            //aServiceContainer.AddService<CGetSpritePersistentDataFunc>(() => new CGetSpritePersistentDataFunc(aSprite => this.QuadrantPersistentData.GetSpritePersistentData(aSprite)));
+            return aServiceContainer;
+        }
+        #region Persistency
+        private CQuadrantPersistentData QuadrantPersistentDataM;
+        internal CQuadrantPersistentData QuadrantPersistentData => CLazyLoad.Get(ref this.QuadrantPersistentDataM, () => this.Cube.CubePersistentData.GetQuadrantPersistentData(this.TileCubePos.Value.GetKey(this.Cube.Depth)));
+        private int? LastSpritePersistentDataId;
+        internal int NewSpritePersistentDataId()
+        {
+            this.LastSpritePersistentDataId = this.LastSpritePersistentDataId.Value + 1;
+            return this.LastSpritePersistentDataId.Value;
+        }
+        internal void ResetLAstSpritePersistentData()
+        {
+            this.LastSpritePersistentDataId = 0;
+        } 
+        #endregion
     }
     internal abstract class CDimension : CBase//, IDrawable
     {
@@ -508,9 +539,6 @@ namespace CharlyBeck.Mvi.Cube
             }
         }
         #endregion
-        #region Data
-        internal virtual bool HasData => false;
-        #endregion
         #region LeafDimensions
         internal bool IsLeafContainer => this.DimensionIdx == 1;
         internal virtual IEnumerable<CLeafDimension> GetLeafDimensions(bool aLoaded)
@@ -589,8 +617,11 @@ namespace CharlyBeck.Mvi.Cube
         #region ctor
         internal CTile(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.NewQuadrantFunc = this.ServiceContainer.GetService<CNewQuadrantFunc>();
+            this.Cube = this.ServiceContainer.GetService<CCube>();
+ 
+
             this.Init();
-            this.Quadrant = this.ServiceContainer.GetService<CNewQuadrantFunc>()(this.Cube);
         }
         internal static CTile New(CServiceLocatorNode aParent, CDimPos aCoordinates)
         {
@@ -605,9 +636,6 @@ namespace CharlyBeck.Mvi.Cube
         {
             base.Init();
 
-            this.Cube = this.ServiceContainer.GetService<CCube>();
-
-           // this.TileDataLoadProxy = this.NewTileDataLoadProxy();
         }
         public override T Throw<T>(Exception aException) => aException.Throw<T>();
         #endregion
@@ -621,9 +649,6 @@ namespace CharlyBeck.Mvi.Cube
             => (aCoord.x + aCoord.y * this.Depth + aCoord.z * this.Depth * this.Depth);
         internal Int64 RelativeIndex =>
             this.GetIndex(this.RelativeCubeCoordinates);
-        #endregion
-        #region TileData
-        internal override bool HasData => true;
         #endregion
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
@@ -648,14 +673,31 @@ namespace CharlyBeck.Mvi.Cube
         internal CVector3Dbl WorldPos => this.MultiVerseCube.GetWorldPos(this.TileCubePos);
         #endregion
         #region Quadrant
+        private CNewQuadrantFunc NewQuadrantFunc;
         private CQuadrant QuadrantM;
         internal CQuadrant Quadrant 
         {
-            get => this.QuadrantM;
-            set
+            get => CLazyLoad.Get(ref this.QuadrantM, () => this.QuadrantM = this.NewQuadrantFunc(this.Cube));
+            //set
+            //{
+            //    this.QuadrantM = value;
+            //    this.BuildIsDone = false;
+            //}
+        }
+        internal void SetQuadrant(CQuadrant aQuadrant, bool aDeallocateOld, bool aBuildIsDone)
+        {
+            if(!object.Equals(aQuadrant, this.QuadrantM))
             {
-                this.QuadrantM = value;
-                this.BuildIsDone = false;
+                if(this.QuadrantM is object)
+                {
+                    if(aDeallocateOld)
+                    {
+                        this.QuadrantM.Deallocate();
+                    }
+                    this.QuadrantM = default;
+                }
+                this.QuadrantM = aQuadrant;
+                this.BuildIsDone = aBuildIsDone;
             }
         }
         internal bool BuildIsDone { get; private set; }
@@ -668,7 +710,14 @@ namespace CharlyBeck.Mvi.Cube
             {
                 var aTileCubePos = this.TileCubePos;
                 var aTileWorldPos = this.GetWorldPosByCubePos(aTileCubePos);
-                var aQuadrantBuildArgs = new CQuadrantBuildArgs(aRandomGenerator, aTileCubePos, aTileWorldPos);
+                var aQuadrant = this.Quadrant;
+                var aNewPersistentIdFunc = new Func<CSprite, int>(aSprite =>
+                {
+                    var aId = aQuadrant.NewSpritePersistentDataId();
+                    return aId;
+                });
+                var aGetSpritePersistentDataFunc = new Func<CSprite, CSpritePersistentData>(aSprite => this.Quadrant.QuadrantPersistentData.GetSpritePersistentData(aSprite));
+                var aQuadrantBuildArgs = new CQuadrantBuildArgs(aRandomGenerator, aTileCubePos, aTileWorldPos, aGetSpritePersistentDataFunc, aNewPersistentIdFunc);
                 this.Quadrant.Build(aQuadrantBuildArgs);
             }
             finally
@@ -741,8 +790,6 @@ namespace CharlyBeck.Mvi.Cube
                 aTile.Load();
             }
         }
-        public override T Throw<T>(Exception aException)
-        => aException.Throw<T>();
         #endregion
         #region ICube
          IEnumerable<CQuadrant> ICube.Quadrants => this.Quadrants;
@@ -769,7 +816,7 @@ namespace CharlyBeck.Mvi.Cube
         internal override CDimension NewDimension(CServiceLocatorNode aParent, CDimPos aDimPos)
         {
             switch (aDimPos.Length)
-            {
+            { // TODO-ObjektPool verwenden.
                 case 1:
                     return CPlane.New(aParent, aDimPos);
                 case 2:
@@ -793,7 +840,17 @@ namespace CharlyBeck.Mvi.Cube
         #region Move
         internal CCubePos CenterOffset => this.NewCoords((this.Depth - 1) / 2);
 
-
+        private IEnumerable<CTile> Tiles => this.GetLeafDimensions(false).OfType<CTile>();
+        private Dictionary<CCubePosKey, CTile> NewMoveDic(Dictionary<CCubePosKey, CTile> aDic)
+        {
+            aDic.Clear();
+            var aTiles = this.Tiles;
+            foreach (var aTile in aTiles)
+            {
+                aDic.Add(aTile.TileCubePos.GetKey(this.Depth), aTile);
+            }
+            return aDic;
+        }
         internal void MoveTo(CCubePos aCenteredOrAvatar, bool aTranslateAvatarPos)
         {
             var aNewCubePos = aTranslateAvatarPos
@@ -806,10 +863,61 @@ namespace CharlyBeck.Mvi.Cube
             }
             else
             {
-                this.CubePos = aNewCubePos;
-                foreach (var aTile in this.GetLeafDimensions(false).OfType<CTile>())
+                var aOptimize = false;
+
+                if (!aOptimize)// TODO_OPT
                 {
-                    this.Build(aTile); // TODO_OPT
+                    this.CubePos = aNewCubePos;
+                    foreach(var aTile in this.Tiles)
+                    {
+                        aTile.SetQuadrant(default, true, false);
+                    }
+
+                    foreach (var aTile in this.Tiles)
+                    {
+                        this.Build(aTile); 
+                    }
+                }
+                else
+                {
+                    var aDic1 = this.NewMoveDic(this.MoveDic1);
+                    this.CubePos = aNewCubePos;
+                    var aDic2 = this.NewMoveDic(this.MoveDic2); // TODO_OPT: Mapping in dict2 ist unnöti.
+                    foreach(var aKvp in aDic2)
+                    {
+                        var aTile = aKvp.Value;
+                        var aKey = aKvp.Key;
+
+                        if(this.TileInitDone
+                        && aDic1.ContainsKey(aKey))
+                        {
+                            var aOldTile = aDic1[aKey];
+                            var aReuseBuildIsDone = aOldTile.BuildIsDone;
+                            var aReuseQuadrant = aOldTile.Quadrant;
+                            aOldTile.SetQuadrant(default, false, false);
+                            var aOverwrittenQuadrant = aTile.Quadrant;
+                            var aOverwrittenQuadrantBuildIsDone = aTile.BuildIsDone;
+                            aTile.SetQuadrant(aReuseQuadrant, false, aReuseBuildIsDone);
+                            aOldTile.SetQuadrant(aOverwrittenQuadrant, false, aOverwrittenQuadrantBuildIsDone);
+                            if (!(aTile.Quadrant.TileCubePos is object)) // ?!?! TODO
+                            {
+                                System.Diagnostics.Debug.Assert(false);
+                                this.Build(aTile);
+                            }
+                        }
+                        else
+                        {
+                            this.Build(aTile);
+                        }
+                    }
+
+                    this.TileInitDone = true;
+                    var aTilesToBuild = this.Tiles.Where(aTile => !aTile.BuildIsDone);
+                    foreach(var aTile in aTilesToBuild)
+                    {
+                        this.Build(aTile);
+                        //Debug.Print(aTile.TileCubePos.ToString());
+                    }
                 }
 
                 //#region InitQuadrants
@@ -890,45 +998,47 @@ namespace CharlyBeck.Mvi.Cube
                 //}
                 //this.InitQuadrants();
             }
-
-
-
-            // throw new NotImplementedException();
-            //var aNewCubePos = aTranslateAvatarPos
-            //             ? aCenteredOrAvatar.Subtract(this.CenterOffset)
-            //             : aCenteredOrAvatar
-            //             ;
-            //if (aNewCubePos.IsEqual(this.CubePosAbs))
-            //{
-            //    // no change
-            //}
-            //else
-            //{
-            //    var aDic = this.MoveDic;
-            //    aDic.Clear();
-            //    var aLeafs1 = (from aLeaf in this.LoadedLeafDimensions.OfType<CTile>() select aLeaf).ToArray();
-            //    var aLeafs2 = (from aLeaf in aLeafs1 select new Tuple<CCubePosKey, CTile, CTileDescriptor>(aLeaf.AbsoluteCubeCoordinates.GetKey(this.Depth), aLeaf, aLeaf.TileDescriptor)).ToArray();
-            //    foreach (var aLeaf in aLeafs2)
-            //        aDic.Add(aLeaf.Item1, aLeaf);
-            //    this.CubePosAbs = aNewCubePos;
-            //    foreach (var aLeaf in aLeafs1)
-            //    {
-            //        var aAbsIndex = aLeaf.AbsoluteCubeCoordinates;
-            //        var aAbsIndexKey = new CCubePosKey(aAbsIndex, this.Depth);
-            //        var aExists = aDic.ContainsKey(aAbsIndexKey);
-            //        if (aExists)
-            //        {
-            //            var aOldData = aDic[aAbsIndexKey];
-            //            var aTileDescriptor = aOldData.Item3;
-            //            aLeaf.ReplaceTileData(aTileDescriptor)();
-            //        }
-            //        else
-            //        {
-            //            aLeaf.ReplaceTileData()();
-            //        }
-            //    }
-            //}
         }
+
+
+        // throw new NotImplementedException();
+        //var aNewCubePos = aTranslateAvatarPos
+        //             ? aCenteredOrAvatar.Subtract(this.CenterOffset)
+        //             : aCenteredOrAvatar
+        //             ;
+        //if (aNewCubePos.IsEqual(this.CubePosAbs))
+        //{
+        //    // no change
+        //}
+        //else
+        //{
+        //    var aDic = this.MoveDic;
+        //    aDic.Clear();
+        //    var aLeafs1 = (from aLeaf in this.LoadedLeafDimensions.OfType<CTile>() select aLeaf).ToArray();
+        //    var aLeafs2 = (from aLeaf in aLeafs1 select new Tuple<CCubePosKey, CTile, CTileDescriptor>(aLeaf.AbsoluteCubeCoordinates.GetKey(this.Depth), aLeaf, aLeaf.TileDescriptor)).ToArray();
+        //    foreach (var aLeaf in aLeafs2)
+        //        aDic.Add(aLeaf.Item1, aLeaf);
+        //    this.CubePosAbs = aNewCubePos;
+        //    foreach (var aLeaf in aLeafs1)
+        //    {
+        //        var aAbsIndex = aLeaf.AbsoluteCubeCoordinates;
+        //        var aAbsIndexKey = new CCubePosKey(aAbsIndex, this.Depth);
+        //        var aExists = aDic.ContainsKey(aAbsIndexKey);
+        //        if (aExists)
+        //        {
+        //            var aOldData = aDic[aAbsIndexKey];
+        //            var aTileDescriptor = aOldData.Item3;
+        //            aLeaf.ReplaceTileData(aTileDescriptor)();
+        //        }
+        //        else
+        //        {
+        //            aLeaf.ReplaceTileData()();
+        //        }
+        //    }
+        //}
+        private readonly Dictionary<CCubePosKey, CTile> MoveDic1 = new Dictionary<CCubePosKey, CTile>();
+        private readonly Dictionary<CCubePosKey, CTile> MoveDic2 = new Dictionary<CCubePosKey, CTile>();
+        private bool TileInitDone;
 
         internal CCubePos NewCoords(Int64 aCoord)
             => new CCubePos(aCoord);
@@ -939,6 +1049,10 @@ namespace CharlyBeck.Mvi.Cube
 
         #endregion
         internal override bool SubDimensionsIsDefined => true;
+        #region CubePersistentData
+        private CCubePersistentData CubePersistentDataM;
+        internal CCubePersistentData CubePersistentData => CLazyLoad.Get(ref this.CubePersistentDataM, () => this.ServiceContainer.GetService<CCubePersistentData>());
+        #endregion
     }
 
     internal interface ICube

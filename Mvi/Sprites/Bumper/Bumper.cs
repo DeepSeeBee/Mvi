@@ -89,7 +89,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             this.TargetCubePos = aRandomGenerator.NextCubePos();
         }
         internal virtual double BuildRadius(CRandomGenerator aRandomGenerator)
-            => aRandomGenerator.NextDoubleRange(this.AsteroidRadiusMax);
+            => aRandomGenerator.NextFromDoubleRange(this.AsteroidRadiusMax);
 
         internal abstract CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator);
         internal CVector3Dbl GenerateDefaultWorldPos(CRandomGenerator aRandomGenerator)
@@ -157,6 +157,9 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         private CWormholeCubes WormholeCubesM;
 
         private CWormholeCubes WormholeCubes => CLazyLoad.Get(ref this.WormholeCubesM, () => this.ServiceContainer.GetService<CWormholeCubes>());
+        #endregion
+        #region PersistencyEnabled
+        internal override bool PersistencyEnabled => true;
         #endregion
     }
 

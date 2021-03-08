@@ -82,6 +82,7 @@ namespace CharlyBeck.Mvi.Sfx
         {
         }
         public  abstract bool IsPlaying { get; }
+        public abstract double Volume { get; set; }
         public abstract void Play();
         public abstract void Stop();
      //   public abstract void SetTargetPosition(double aMs);
@@ -100,6 +101,7 @@ namespace CharlyBeck.Mvi.Sfx
         {
         }
         public override bool IsPlaying => false;
+        public override double Volume { get => 0d; set { } }
     }
 
     public abstract class CSoundLoader : CServiceLocatorNode
@@ -164,6 +166,12 @@ namespace CharlyBeck.Mvi.Sfx
         internal readonly CWorld World;
         internal bool CreateDirectoryDic;
         private Dictionary<CSoundDirectoryEnum, List<CSoundFile>> SoundFileDic  = new Dictionary<CSoundDirectoryEnum, List<CSoundFile>>();
+
+        internal void Play(CSoundFile aSoundFile)
+        {
+            aSoundFile.SoundBuffer.Volume = this.RandomGenerator.NextFromDoubleRange(this.GetVolumeRange());
+            aSoundFile.SoundBuffer.Play();
+        }
 
         internal IEnumerable<CSoundFile> GetSoundFiles(CSoundDirectoryEnum aDirectoryEnum)
         {
@@ -265,6 +273,9 @@ namespace CharlyBeck.Mvi.Sfx
             this.RunHitPointStateMachine();
             this.RunRandomSoundScapeStateMachine();
         }
+
+        protected virtual CDoubleRange GetVolumeRange()
+            => new CDoubleRange(0.75d, 1.0d);
         #region RandomSoundScape
         internal bool RandomSoundScapeIsEnabled;
         private void RunRandomSoundScapeStateMachine()
