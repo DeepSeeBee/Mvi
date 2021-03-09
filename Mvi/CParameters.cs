@@ -39,7 +39,10 @@ namespace CharlyBeck.Mvi
         public const  double Shot_MinSpeed = 1.4;
         public const double Shot_DistanceToAvatarWhenDead = 2.0;
         public static readonly TimeSpan Shot_FireRate = new TimeSpan(0, 0, 0, 0, 333);
-        public const bool Feature_Gravitation = false;
+        public const bool Gravity_Enabled = false;
+        public const double Gravity_MassMultiply = 3000d;
+        public const double Gravity_G = 0.000000000066743d;
+        public const double Gravity_NoImpactDistance = 1d;
         public const bool Sound_Loading_Enabled = true;
     }
 }

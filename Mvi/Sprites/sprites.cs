@@ -207,15 +207,18 @@ namespace CharlyBeck.Mvi.Sprites
         public CVector3Dbl AttractionToAvatar => CLazyLoad.Get(ref this.AttractionToAvatarM, this.NewAttractionToAvatar);
         public CVector3Dbl NewAttractionToAvatar()
         {
-            var aG= 0.000000000066743d;
+            if (this.Destroyed)
+                return new CVector3Dbl(0);
+
+            var aG= CStaticParameters.Gravity_G;
             var aAvatarMass = 1.0d;
-            var mf = 1000000d;
+            var mf = CStaticParameters.Gravity_MassMultiply;
             var aOrbMass = this.Mass.Value * mf;
             var aDistance = this.DistanceToAvatar;
             var aDistancePow2 = aDistance * aDistance;
             var aAttraction1 = ((aAvatarMass * aOrbMass) / aDistancePow2) * aG;
             var aRadius = this.Radius.Value;
-            var aNoImpactDistance1 = 1d;
+            var aNoImpactDistance1 = CStaticParameters.Gravity_NoImpactDistance; // TODO_OPT
             var aNoImpactDistance2 = aNoImpactDistance1 + aRadius;
             var aNoImpactDistance = aNoImpactDistance2;
             var aAttractionImpact = aDistance < aRadius

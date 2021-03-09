@@ -43,7 +43,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Sfx;
     using CharlyBeck.Mvi.Mono.Sprites.Explosion;
     using CharlyBeck.Mvi.Sprites.Explosion;
-
+    using CharlyBeck.Mvi.Extensions;
     internal abstract class CBase : CServiceLocatorNode
     {
         internal CBase(CServiceLocatorNode aParent) : base(aParent)
@@ -130,34 +130,103 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
     internal struct CAvatar
     {
+        /// <summary>
+        /// Konstruktor für Akkumulative berechnung. (Produziert nans)
+        /// </summary>
         internal CAvatar(CGame aGame, Vector3 aCameraPos, Vector3 aCameraTarget, Vector3 aUpVector, Vector3 aAxisX, Vector3 aAxisY)
         {
+            if(double.IsNaN(aUpVector.X))
+            {
+                Debug.Assert(true);
+            }
             this.Game = aGame;
             this.AxisAngles = default;
             this.CamPos = aCameraPos;
-            this.CamTarget = aCameraTarget;
-            this.UpVector = aUpVector;
+            this.CamTarget = SetLength(aCameraTarget, ReferenceLength);
+            this.UpVector = SetLength(aUpVector, ReferenceLength);
             this.ViewMatrix = Matrix.CreateLookAt(this.CamPos, aCameraTarget, this.UpVector);
             this.AxisX = aAxisX;
             this.AxisY = aAxisY;
         }
-        internal CAvatar(CGame aGame, Vector3 aCamPos, Vector3 aa)
+        private const float ReferenceLength = 1000f;
+
+        private static Vector3 SetLength(Vector3 v, float d)
         {
-            //var aa = new Vector3((float)(aa1.X % (Math.PI * 4)),
-            //                     (float)(aa1.Y % (Math.PI * 4)),
-            //                     (float)(aa1.Z % (Math.PI * 4))
-            //                     );
-            this.Game = aGame;
-            this.CamPos = aCamPos;
-            this.AxisAngles = aa;
-            this.ViewMatrix = default;
-            this.AxisX = DefaultX;
-            this.AxisY = DefaultY;
+            // TODO
+            // omg... :'(
 
-            this.UpVector = DefaultY.RotateX(aa.X).RotateY(aa.Y).RotateZ(aa.Z);
-            this.CamTarget = DefaultZ.RotateX(aa.X).RotateY(aa.Y).RotateZ(aa.Z);
+            var l = v.GetLength();
+            if(l < float.MaxValue / 2f
+            && l > float.MinValue / 2f)
+                return v;
+            else if (l == 1f)
+                return v; // watn glück...^^
+            else if(l < 1f)
+            {
+                var ld = 1f - l;
+                return v.MakeLonger(ld);
+            }
+            else if(l > 1f)
+            {
+                var ld = l - 1.0f;
+                return v.MakeLonger(-ld);
+            }
+            else
+            {
+                // 42...
+                return v;
+            }
+        }
 
-            this.ViewMatrix = Matrix.CreateLookAt(this.CamPos, this.CamTarget, this.UpVector);
+        /// <summary>
+        /// Konstruktor für neuen ansatz. Sollte ansatztechnisch keine nans produzieren funktioniert aber 
+        /// noch nicht, wenn man sich bewegt. (Rumgucken im stillstand funktioniert aber)
+        /// DAzu gravity abschalten...
+        /// </summary>
+        /// <param name="aGame"></param>
+        /// <param name="c"></param>
+        /// <param name="aa">Axis angle</param>
+        internal CAvatar(CGame aGame, Vector3 c, Vector3 aa)
+        {
+            var aNew = true;
+            if(aNew)
+            {       
+                // Jetzt dreht es sich nicht mehr um die eigene achse, wenn man 90° nach oben/unten schaut.
+                // Dafür passiert das gleiche, wenn man 90° nach rechts/links schaut... XD
+                // Wieder nix XD
+                var t = DefaultZ;
+                var my = Matrix.CreateFromAxisAngle(DefaultY, aa.Y);
+                var mx = Matrix.CreateFromAxisAngle(DefaultX, aa.X);
+                var ax = mx.Rotate(DefaultX);
+                var ay = my.Rotate(DefaultY);
+                var u = DefaultY;
+                u = my.Rotate(u);
+                u = mx.Rotate(u);
+                t = my.Rotate(t);
+                t = mx.Rotate(t);
+                t = c + t;
+                this.CamPos = c;
+                this.CamTarget = t;
+                this.UpVector = u;
+                this.ViewMatrix = Matrix.CreateLookAt(this.CamPos, this.CamTarget, this.UpVector);
+                this.AxisX = ax;
+                this.AxisY = ay;
+                this.Game = aGame;
+                this.AxisAngles = aa;
+            }
+            else 
+            { 
+                this.Game = aGame;
+                this.CamPos = c;
+                this.AxisAngles = aa;
+                this.ViewMatrix = default;
+                this.AxisX = DefaultX;
+                this.AxisY = DefaultY;
+
+                this.UpVector = DefaultY.RotateX(aa.X).RotateY(aa.Y).RotateZ(aa.Z);
+                this.CamTarget = DefaultZ.RotateX(aa.X).RotateY(aa.Y).RotateZ(aa.Z);
+                this.ViewMatrix = Matrix.CreateLookAt(this.CamPos, this.CamTarget, this.UpVector);
+            }
         }
 
         private readonly CGame Game;
@@ -288,7 +357,6 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 return aAvatar;
             }
         }
-        // => new CAvatar(this.CamPos + aMoveVector, this.CamTargetOffset.Transform(aMoveVector), this.UpVector, true);
         private CAvatar CheckValid(CAvatar aAvatar)
         {
             if (aAvatar.CheckValid())
@@ -337,7 +405,6 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 var aMoveVector = this.CamTargetOffset;
                 var aLonger = aMoveVector.MakeLongerDelta(aDistance);
                 var aNewCameraPosition = this.CamPos + aLonger;
-               // var aNewCameraTarget = this.CamTarget + aLonger;
                 var aAvatar = new CAvatar(this.Game, aNewCameraPosition, this.AxisAngles);
                 return aAvatar;
             }
@@ -346,7 +413,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 return this;
             }
         }
-        #region SErialize
+        #region Serialize
         internal void Write(Stream aStream)
         {
             throw new NotImplementedException();
@@ -480,11 +547,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         #region Features
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration SlowDownNearObjectFeatureDeclaration = new CFeatureDeclaration(new Guid("4c4030e4-4477-4350-be27-3ad0db397e40"), "Game.SlowDownNearObject", false);
-        private CFeature SlowDownNearObjectFeatureM;
-        private CFeature SlowDownNearObjectFeature => CLazyLoad.Get(ref this.SlowDownNearObjectFeatureM, () => CFeature.Get(this.World, SlowDownNearObjectFeatureDeclaration));
-        [CFeatureDeclaration]
         private static readonly CFeatureDeclaration XnaMouseEnabledFeatureDeclaration = new CFeatureDeclaration(new Guid("99e270ec-f288-4a86-8cde-caaf8af85cff"), "Mouse.Xna", false);
+       
         private CFeature XnaMouseEnabledFeatureM;
         private CFeature XnaMouseEnabledFeature => CLazyLoad.Get(ref this.XnaMouseEnabledFeatureM, () => CFeature.Get(this.World, XnaMouseEnabledFeatureDeclaration));
         [CFeatureDeclaration]
@@ -559,7 +623,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 var aRadians = aRadians1 + aRadians2;
                 if (aRadians != 0.0f)
                 {
-                    aAvatar = aAvatar.LookLeftRight(aRadians);
+                    aAvatar = aAvatar.LookLeftRight(aRadians);                    
                     aChanged = true;
                 }
             }
@@ -605,18 +669,23 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
             aThroodle += (float)(-aJoystick.GetThroodle() * 2.0d);
 
+            
+
             if (aThroodle != 0f)
             {
                 var aDistance1 = (float)(aThroodle * this.CamSpeedThroodle * aGameTime.ElapsedGameTime.TotalSeconds);
-                var aDistance2 = this.SlowDownNearObjectFeature.Enabled
-                               ? aDistance1 * this.World.FrameInfo.NearPlanetSpeed
-                               : aDistance1 * 0.4;
-                var aDistance3 = aDistance2 * this.World.Speed;
+                var aDistance2 = aDistance1 * 0.4;
+                var aDistance3 = aDistance2; // * this.World.Speed;
                 var aDistance = aDistance3;
-                aAvatar = aAvatar.MoveAlongViewAngle((float)aDistance);
+                this.World.Throodle = aDistance;
+
+                //aAvatar = aAvatar.MoveAlongViewAngle((float)aDistance);
                 aChanged = true;
             }
-
+            else
+            {
+                this.World.Throodle = 0d;
+            }
             this.World.AvatarSpeed = aThroodle;
 
             var aDx = 0.0f;
@@ -661,7 +730,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             {
                 if(!this.DidL)
                 {
-                    this.SlowDownNearObjectFeature.Enabled = !this.SlowDownNearObjectFeature.Enabled;
+                    this.World.SlowDownNearObjectFeature.Enabled = !this.World.SlowDownNearObjectFeature.Enabled;
                     this.DidL = true;
                 }
             }
@@ -682,6 +751,12 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             {
                 this.DidM = false;
             }
+            this.World.ThroodleDirection = aAvatar.CamTargetOffset.ToVector3Dbl();
+
+            var aMoveVector = this.World.MoveVector * new CVector3Dbl(this.World.GameTimeElapsed.TotalMilliseconds);
+            aAvatar = aAvatar.MoveToOffset(aMoveVector.ToVector3());
+            this.World.Speed = aMoveVector.GetLength();
+            aChanged = true;
 
             if (aChanged)
             {

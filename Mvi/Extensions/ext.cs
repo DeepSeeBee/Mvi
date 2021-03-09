@@ -44,7 +44,7 @@ namespace CharlyBeck.Mvi.Extensions
             => vs.DotsToLineList(false);
         public static IEnumerable<T> DotsToPolygonLineList<T>(this T[] vs)
             => vs.DotsToLineList(true);
-        internal static double GetLength(this CVector3Dbl aPoint) // Not tested, https://www.engineeringtoolbox.com/distance-relationship-between-two-points-d_1854.html
+        public static double GetLength(this CVector3Dbl aPoint) // Not tested, https://www.engineeringtoolbox.com/distance-relationship-between-two-points-d_1854.html
             => Math.Sqrt((aPoint.x * aPoint.x) + (aPoint.y * aPoint.y) + (aPoint.z * aPoint.z));
         internal static CVector3Dbl MakeLongerDelta(this CVector3Dbl aVector, double aLength) // Not tested, https://www.freemathhelp.com/forum/threads/extend-length-of-line-in-3d-space-find-new-end-point.125160/
              => (new CVector3Dbl(aLength) / new CVector3Dbl(aVector.GetLength())) * aVector;

@@ -316,13 +316,14 @@ namespace CharlyBeck.Mvi.World
         internal bool InitFrame = true;
         #region Features
         [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration GravitationFeatureDeclaration = new CFeatureDeclaration(new Guid("61de4feb-eb03-4569-baea-055d520844b9"), "Gravitation", CStaticParameters.Feature_Gravitation);
+        private static readonly CFeatureDeclaration GravitationFeatureDeclaration = new CFeatureDeclaration(new Guid("61de4feb-eb03-4569-baea-055d520844b9"), "Gravitation", CStaticParameters.Gravity_Enabled);
         private CFeature GravitationFeatureM;
         public  CFeature GravitationFeature => CLazyLoad.Get(ref this.GravitationFeatureM, () => CFeature.Get(this, GravitationFeatureDeclaration));
         #endregion
         public void Update()
         {
             this.InitFrame = false;
+            this.MoveVectorM = default;
 
             this.Cube.MoveTo(this.GetCubePos(this.AvatarWorldPos), true);
 
@@ -377,6 +378,46 @@ namespace CharlyBeck.Mvi.World
         private CCubePersistentData CubePersistentDataM;
         internal CCubePersistentData CubePersistentData => CLazyLoad.Get(ref this.CubePersistentDataM, () => new CCubePersistentData(this));
         #endregion
+        #region MoveVector
+        public CVector3Dbl ThroodleDirection { get; set; }
+
+        internal CVector3Dbl OldMoveVector;
+        CVector3Dbl? MoveVectorM;
+        public CVector3Dbl MoveVector => CLazyLoad.Get(ref this.MoveVectorM, ()=>this.NewMoveVector());
+        internal CVector3Dbl NewMoveVector()
+        {
+            var aMoveVector = this.OldMoveVector;
+            var aAttraction = this.FrameInfo.Attraction;
+            var aThroodle = this.Throodle;
+            var aThroodleVec = this.ThroodleDirection.MakeLongerDelta(aThroodle);
+            var aNewMoveVector1 = aMoveVector
+                               + aThroodleVec
+                               + aThroodleVec
+                               ;
+            var aNewMoveVector2a = this.SlowDownNearObjectFeature.Enabled
+                               ? aNewMoveVector1 * new CVector3Dbl(this.FrameInfo.NearPlanetSpeed)
+                               : aNewMoveVector1
+                               ;
+            var aNewMoveVector2 = aNewMoveVector2a * new CVector3Dbl(0.05d);
+            //this.OldMoveVector = aNewMoveVector2;
+
+            var aMaxSpeed = new CVector3Dbl(0.0002);
+            var aNewMoveVector3 = aNewMoveVector2.Min(aMaxSpeed);
+            var aNewMoveVector4 = aNewMoveVector3 + aAttraction;
+            
+            return aNewMoveVector2;
+        }
+        public double Throodle
+        {
+            get;
+            set;
+        }
+        #endregion
+        [CFeatureDeclaration]
+        private static readonly CFeatureDeclaration SlowDownNearObjectFeatureDeclaration = new CFeatureDeclaration(new Guid("4c4030e4-4477-4350-be27-3ad0db397e40"), "Game.SlowDownNearObject", false);
+        private CFeature SlowDownNearObjectFeatureM;
+        public CFeature SlowDownNearObjectFeature => CLazyLoad.Get(ref this.SlowDownNearObjectFeatureM, () => CFeature.Get(this, SlowDownNearObjectFeatureDeclaration));
+
     }
 
     public struct CAvatarInfo

@@ -1,2 +1,1 @@
-﻿- Sonnen verschwinden und tauchen wieder auf
-- Sehr sellten ist alles dunkel, auch keine schüsse.
+﻿- Sehr sellten ist alles dunkel, auch keine schüsse. Akkumulative matrixberechnung.
