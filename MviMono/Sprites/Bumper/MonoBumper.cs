@@ -16,7 +16,7 @@ using Microsoft.Xna.Framework;
 using System.Collections;
 using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Mvi.Models;
-using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Mvi.Value;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Mvi.Mono.Sprites;
 using CharlyBeck.Mvi.Sprites.Bumper;
@@ -182,7 +182,7 @@ namespace MviMono.Sprites.Asteroid
         {
             var aBumperSprite = aAsteroidSprite.Sprite;
             if (aBumperSprite.OrbitIsDefined
-            && this.DrawOrbitsFeature.Enabled)
+            && this.DrawOrbitsValue.Value)
             {
                 var aGraphicsDevice = this.Game.GraphicsDevice;
                 var aOrbit = aBumperSprite.Orbit;
@@ -236,11 +236,12 @@ namespace MviMono.Sprites.Asteroid
 
         }
 
-        #region Features
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration DrawOrbitsFeatureDeclaration = new CFeatureDeclaration(new Guid("54570387-102d-48a8-aac9-a68044fefc54"), "SolarSystem.Orbits.Draw", true);
-        private CFeature DrawOrbitsFeatureM;
-        private CFeature DrawOrbitsFeature => CLazyLoad.Get(ref this.DrawOrbitsFeatureM, () => CFeature.Get(this, DrawOrbitsFeatureDeclaration));
+        #region Values
+        [CMemberDeclaration]
+        private static readonly CBoolValDecl DrawOrbitsValueDeclaration = new CBoolValDecl
+            ( CValueEnum.SolarSystem_Orbits, new Guid("54570387-102d-48a8-aac9-a68044fefc54"), true, true);
+        private CBoolValue DrawOrbitsValueM;
+        private CBoolValue DrawOrbitsValue => CLazyLoad.Get(ref this.DrawOrbitsValueM, () => CValue.GetStaticValue<CBoolValue>(this, DrawOrbitsValueDeclaration));
         #endregion
     }
 

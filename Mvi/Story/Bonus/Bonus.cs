@@ -24,13 +24,16 @@ namespace CharlyBeck.Mvi.Story.Bonus
         AmmoSpeed,           // Offense       <AMSP> // Schüsse flieen schneller
         FireRate,            // Offense       <FIRR> // Erhöht feuerrate
         LaserEnergyGem,      // Offense       <LSEN> // zum zerstören von asteroiden                              
-        NuclearMissileGem,   // Offense       <NUKE> // zum zerstören von sonnen                                  Destroy a sun. (Dont do when planets remain)
+        NuclearMissileGem,   // Offense       <NUKE> // zum zerstören von sonnen4Destroy a sun. (Dont do when planets remain)
         GuidedMissile,       // Offense       <GDEM> // Hilfeich zum zsertören kleiner monde.                     Shoot to fire, press again to follow target.
         ThermalShieldGem,    // Navigation    <THSH> // Zum landen auf planeten                                   Land on a planet.
         KruskalScannerGem,   // Navigation    <WHLE> // Zum öffnen von wurmlöchern                                Turn a sun into a wormhole to teleport and teleport..
         SlowMotion,          // Navigation    <SLMO> // Verlangsamt alles                                         Turn down the speed of time.
         Antigravity,         // Navigation    <AGRA> // Gravitation von planeten hat keinen/weniger einfluss.     Turn off or lower gravity.
         AutoPilot,           // Navigation    <AUTP> // Zum automatischen folgen von umlaufbahnen.                Follow path of orb. Press when orb is focused.
+
+        SpaceGrip, // Trägheit auf minimum.
+
 
         //
         //FuelGem,

@@ -18,7 +18,7 @@ namespace CharlyBeck.Mvi.Mono.Input.Mouse.Internal
 
 namespace CharlyBeck.Mvi.Mono.Input.Mouse
 {
-    using CharlyBeck.Mvi.Feature;
+    using CharlyBeck.Mvi.Value;
     using CharlyBeck.Mvi.Mono.Input.Mouse.Internal;
     using CharlyBeck.Utils3.Exceptions;
     using CharlyBeck.Utils3.LazyLoad;
@@ -49,7 +49,7 @@ namespace CharlyBeck.Mvi.Mono.Input.Mouse
         private CMousePos LastPosition;
         internal CMousePos Offset
         {
-            get => !this.WinFormMouseEnabledFeature.Enabled
+            get => !this.WinFormMouseEnabledValue.Value
                 ? new CMousePos(0d, 0d)
                 : this.LastPosition is object
                 ? this.Position.Subtract(this.LastPosition)
@@ -59,7 +59,7 @@ namespace CharlyBeck.Mvi.Mono.Input.Mouse
         private bool Enabled;
         internal void NextFrame()
         {
-            if(this.WinFormMouseEnabledFeature.Enabled)
+            if(this.WinFormMouseEnabledValue.Value)
             {
                 var m = this.PositionMax;
                 var x = m.Item1 / 2.0d;
@@ -74,10 +74,11 @@ namespace CharlyBeck.Mvi.Mono.Input.Mouse
             }
         }
 
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration WinFormMouseEnabledFeatureDeclaration = new CFeatureDeclaration(new Guid("2ea42139-7041-469a-ab1e-90157e61c5ee"), "Mouse.WinForm", false);
-        private CFeature WinFormMouseEnabledFeatureM;
-        internal CFeature WinFormMouseEnabledFeature => CLazyLoad.Get(ref this.WinFormMouseEnabledFeatureM, () => CFeature.Get(this, WinFormMouseEnabledFeatureDeclaration));
+        [CMemberDeclaration]
+        private static readonly CValueDeclaration WinFormMouseEnabledValueDeclaration = new CBoolValDecl
+            ( CValueEnum.Mouse_WinForm, new Guid("2ea42139-7041-469a-ab1e-90157e61c5ee"), true, false);
+        private CBoolValue WinFormMouseEnabledValueM;
+        internal CBoolValue WinFormMouseEnabledValue => CLazyLoad.Get(ref this.WinFormMouseEnabledValueM, () => CValue.GetStaticValue<CBoolValue>(this, WinFormMouseEnabledValueDeclaration));
 
         public bool IsLeftButtonDown => System.Windows.Input.Mouse.LeftButton == System.Windows.Input.MouseButtonState.Pressed;
 

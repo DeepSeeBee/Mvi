@@ -27,7 +27,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Sprites.Asteroid;
     using MviMono.Sprites.Asteroid;
     using CharlyBeck.Mvi.Sprites.Cube;
-    using CharlyBeck.Mvi.Feature;
+    using CharlyBeck.Mvi.Value;
     using CharlyBeck.Mvi.Mono.GameViewModel;
     using CharlyBeck.Mvi.Mono.Input.Mouse;
     using CharlyBeck.Mvi.Mono.Input.Hid;
@@ -148,27 +148,27 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.AxisX = aAxisX;
             this.AxisY = aAxisY;
         }
-        private const float ReferenceLength = 1000f;
-
+        private const float ReferenceLength = 5f;
+        private const float ToleranceLength = float.MaxValue / 2f;
         private static Vector3 SetLength(Vector3 v, float d)
         {
             // TODO
             // omg... :'(
 
             var l = v.GetLength();
-            if(l < float.MaxValue / 2f
-            && l > float.MinValue / 2f)
+            if(l < ToleranceLength
+            && l > -ToleranceLength)
                 return v;
-            else if (l == 1f)
+            else if (l == ReferenceLength)
                 return v; // watn glück...^^
-            else if(l < 1f)
+            else if(l < ReferenceLength)
             {
-                var ld = 1f - l;
+                var ld = ReferenceLength - l;
                 return v.MakeLonger(ld);
             }
-            else if(l > 1f)
+            else if(l > ReferenceLength)
             {
-                var ld = l - 1.0f;
+                var ld = l - ReferenceLength;
                 return v.MakeLonger(-ld);
             }
             else
@@ -264,7 +264,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         //   - Werte werden immer auf eindeutiger basis (AngleVec) berechnet.
         //      * Pro: läuft nicht gegen positive/negative infinity / nan
         //      * Con: "Only" a FPS Cam like described herein: https://www.3dgep.com/understanding-the-view-matrix/
-        internal bool AccumulativeIsEnabled => this.Game.AccumulativeViewMatrixFeature.Enabled;
+        internal bool AccumulativeIsEnabled => this.Game.AccumulativeViewMatrixValue.Value;
 
         // Nach oben oder unten schauen: pitch (rotation about the X axis)
         internal CAvatar LookUpDown(float aRadians)
@@ -280,7 +280,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
              ;
 
         // Akkumulative version der Methode "LookUpDown"
-        internal CAvatar LookUpDownAbsolute(float aRadians)
+        private CAvatar LookUpDownAbsolute(float aRadians)
         {
             var a1 = this.AxisAngles;
             var a2 = new Vector3(a1.X + aRadians, a1.Y, a1.Z);
@@ -289,7 +289,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
 
         // "Absolute" version der Methode "LookLeftRight"
-        public CAvatar LookLeftRightAbsolute(float aRadians)
+        private CAvatar LookLeftRightAbsolute(float aRadians)
         {
             var a1 = this.AxisAngles;
             var a2 = new Vector3(a1.X, a1.Y + aRadians, a1.Z);
@@ -298,7 +298,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
 
         // "Akkumulative" version der Methode "LookUpDown"
-        internal CAvatar LookUpDownAccumulative(float aRadians)
+        private CAvatar LookUpDownAccumulative(float aRadians)
         {
             var m = Matrix.CreateFromAxisAngle(this.AxisX, aRadians);
             var u = m.Rotate(this.UpVector);
@@ -316,7 +316,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         }
 
         // "Akkumulative" version der Methode "LookLeftRight"
-        internal CAvatar LookLeftRightAccumulative(float aRadians)
+        private CAvatar LookLeftRightAccumulative(float aRadians)
         {
             var m = Matrix.CreateFromAxisAngle(this.AxisY, aRadians);
             var u = m.Rotate(this.UpVector);
@@ -333,7 +333,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             return a;
         }
 
-        public CAvatar RotateZ(float aRadians)
+        internal CAvatar RotateZ(float aRadians)
         {
             var a1 = this.AxisAngles;
             var a2 = new Vector3(a1.X, a1.Y, a1.Z + aRadians);
@@ -416,7 +416,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         #region Serialize
         internal void Write(Stream aStream)
         {
-            throw new NotImplementedException();
+           //throw new NotImplementedException();
             //aStream.Write(this.CamPos);
             //aStream.Write(this.CamTarget);
             //aStream.Write(this.UpVector);
@@ -472,7 +472,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.Parent = aParent;
             this.GraphicsDeviceManager = new GraphicsDeviceManager(this);
             this.Content.RootDirectory = "Content\\bin";
-            this.OriginFeature = CFeature.Get(this.ServiceLocatorNode, OriginFeatureDeclaration);
+            this.OriginValue = CValue.GetStaticValue<CBoolValue>(this.ServiceLocatorNode, OriginValueDeclaration);
         }
         internal CGame():this(new CDefaultServiceLocatorNode())
         {
@@ -495,6 +495,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         internal CMonoFacade MonoFacade => CLazyLoad.Get(ref this.MonoFacadeM, () => new CMonoFacade(this.Parent, this));
         public object VmMonoFacade => this.MonoFacade;
         #endregion
+        
+
         internal CWorld World => this.MonoFacade.World;
         private readonly GraphicsDeviceManager GraphicsDeviceManager;
         private SpriteBatch SpriteBatch;
@@ -545,20 +547,23 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.Draw3d();
         }
 
-        #region Features
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration XnaMouseEnabledFeatureDeclaration = new CFeatureDeclaration(new Guid("99e270ec-f288-4a86-8cde-caaf8af85cff"), "Mouse.Xna", false);
+        #region Values
+        //[CMemberDeclaration]
+        private static readonly CBoolValDecl XnaMouseEnabledValueDeclaration = new CBoolValDecl
+            ( CValueEnum.Mouse_Xna,  new Guid("99e270ec-f288-4a86-8cde-caaf8af85cff"), true, false);
        
-        private CFeature XnaMouseEnabledFeatureM;
-        private CFeature XnaMouseEnabledFeature => CLazyLoad.Get(ref this.XnaMouseEnabledFeatureM, () => CFeature.Get(this.World, XnaMouseEnabledFeatureDeclaration));
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration FullScreenFeatureDeclaration = new CFeatureDeclaration(new Guid("99a83ab0-c037-4d78-9d2d-2adc1bcd627e"), "FullScreen", false);
-        private CFeature FullScreenFeatureM;
-        private CFeature FullScreenFeature => CLazyLoad.Get(ref this.FullScreenFeatureM, () => CFeature.Get(this.World, FullScreenFeatureDeclaration));
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration AccumulativeViewMatrixFeatureDeclaration = new CFeatureDeclaration(new Guid("e94a7502-aea0-45fc-a332-506e2ee750dc"), "AccumulativeViewMatrix", CStaticParameters.Feature_AccumulativeViewMatrix);
-        private CFeature AccumulativeViewMatrixFeatureM;
-        internal CFeature AccumulativeViewMatrixFeature => CLazyLoad.Get(ref this.AccumulativeViewMatrixFeatureM, () => CFeature.Get(this.World, AccumulativeViewMatrixFeatureDeclaration));
+        private CBoolValue XnaMouseEnabledValueM;
+        private CBoolValue XnaMouseEnabledValue => CLazyLoad.Get(ref this.XnaMouseEnabledValueM, () => CValue.GetStaticValue<CBoolValue>(this.World, XnaMouseEnabledValueDeclaration));
+        [CMemberDeclaration]
+        private static readonly CBoolValDecl FullScreenValueDeclaration = new CBoolValDecl
+            ( CValueEnum.FullScreen, new Guid("99a83ab0-c037-4d78-9d2d-2adc1bcd627e"), true, false);
+        private CBoolValue FullScreenValueM;
+        private CBoolValue FullScreenValue => CLazyLoad.Get(ref this.FullScreenValueM, () => CValue.GetStaticValue<CBoolValue>(this.World, FullScreenValueDeclaration));
+        [CMemberDeclaration]
+        private static readonly CBoolValDecl AccumulativeViewMatrixValueDeclaration = new CBoolValDecl
+            ( CValueEnum.AccumulativeViewMatrix, new Guid("e94a7502-aea0-45fc-a332-506e2ee750dc"), true, CStaticParameters.Value_AccumulativeViewMatrix);
+        private CBoolValue AccumulativeViewMatrixValueM;
+        internal CBoolValue AccumulativeViewMatrixValue => CLazyLoad.Get(ref this.AccumulativeViewMatrixValueM, () => CValue.GetStaticValue<CBoolValue>(this.World, AccumulativeViewMatrixValueDeclaration));
         #endregion
         #region Mouse
         private CMouse MouseM;
@@ -567,8 +572,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         private void UpdateInput(GameTime aGameTime)
         {
-            var aXnaMouse = this.XnaMouseEnabledFeature.Enabled;
-
+            var aXnaMouse = false;// this.XnaMouseEnabledValue.Value;
             var aJoystick = this.MonoFacade.Joystick1;
             var aMouse = this.Mouse;
             var aKeyboardState = Keyboard.GetState();
@@ -615,8 +619,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                     aRotX += 1.0f;
                 if (aKeyboardState.IsKeyDown(Keys.Left))
                     aRotX -= 1.0f;
-
-
+                aRotX  = aRotX +(float)this.World.LookLeftRight.ToDegrees();
+                this.World.LookLeftRight = 0d;
 
                 var aRadians1 = MathHelper.ToRadians((float)(aRotX * this.CamSpeedRy * aGameTime.ElapsedGameTime.TotalSeconds));
                 var aRadians2 = this.DebugWindowUpdate.LookLeftRight.Retrieve();
@@ -646,7 +650,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                     aRotY += 1.0f;
                 if (aKeyboardState.IsKeyDown(Keys.Up))
                     aRotY -= 1.0f;
-
+                aRotY = aRotY + (float)this.World.LookUpDown.ToDegrees();
+                this.World.LookUpDown = 0d;
                 //aRotY += (float)aJoystick.GetAxis(CJoystick1.CAxisEnum.Y);
 
                 var aRadians1 = MathHelper.ToRadians((float)(aRotY * this.CamSpeedRx * aGameTime.ElapsedGameTime.TotalSeconds));
@@ -693,6 +698,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 aDx += 1.0f;
             if (aKeyboardState.IsKeyDown(Keys.NumPad6))
                 aDx -= 1.0f;
+
             if (aDx != 0)
             {
                 aAvatar = aAvatar.MoveSidewardsHorizontal((float)(aDx * this.CamSpeedX * aGameTime.ElapsedGameTime.TotalSeconds));
@@ -705,6 +711,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                 aDy += 1.0f;
             if (aKeyboardState.IsKeyDown(Keys.NumPad2))
                 aDy -= 1.0f;
+     
             if (aDy != 0)
             {
                 aAvatar = aAvatar.MoveSidewardsVertical((float)(aDy * this.CamSpeedY * aGameTime.ElapsedGameTime.TotalSeconds));
@@ -730,7 +737,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             {
                 if(!this.DidL)
                 {
-                    this.World.SlowDownNearObjectFeature.Enabled = !this.World.SlowDownNearObjectFeature.Enabled;
+                    this.World.SlowDownNearObjectValue.Value = !this.World.SlowDownNearObjectValue.Value;
                     this.DidL = true;
                 }
             }
@@ -743,7 +750,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             {
                 if (!this.DidM)
                 {
-                    this.Mouse.WinFormMouseEnabledFeature.Enabled = !this.Mouse.WinFormMouseEnabledFeature.Enabled;
+                    this.Mouse.WinFormMouseEnabledValue.Value = !this.Mouse.WinFormMouseEnabledValue.Value;
                     this.DidM = true;
                 }
             }
@@ -772,15 +779,15 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
 
             base.EndDraw();
-            this.GraphicsDeviceManager.IsFullScreen = this.FullScreenFeature.Enabled;
+            this.GraphicsDeviceManager.IsFullScreen = this.FullScreenValue.Value;
 
         }
 
         internal void Escape()
         {
-            this.XnaMouseEnabledFeature.Enabled = false;
-            this.Mouse.WinFormMouseEnabledFeature.Enabled = false;
-            this.FullScreenFeature.Enabled = false;
+       //     this.XnaMouseEnabledValue.Value = false;
+            this.Mouse.WinFormMouseEnabledValue.Value = false;
+            this.FullScreenValue.Value = false;
         }
         private void UpdateWorld(GameTime aGameTime)
         {
@@ -857,7 +864,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         protected override void OnDeactivated(object sender, EventArgs args)
         {
             base.OnDeactivated(sender, args);
-            this.Mouse.WinFormMouseEnabledFeature.Enabled = false;
+            this.Mouse.WinFormMouseEnabledValue.Value = false;
 
         }
         #region ViewMatrix
@@ -1034,13 +1041,14 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             var aVertexBuffer = aLines.ToVertexBuffer(this.GraphicsDevice);
             return aVertexBuffer;
         }
-        [CFeatureDeclaration]
-        internal static readonly CFeatureDeclaration OriginFeatureDeclaration = new CFeatureDeclaration(new Guid("64f3ce9c-9960-443c-9553-a10c395695a0"), "OriginCoordinates", CStaticParameters.Feature_Origin_Visible);
-        private readonly CFeature OriginFeature;
+        [CMemberDeclaration]
+        internal static readonly CValueDeclaration OriginValueDeclaration = new CBoolValDecl
+            ( CValueEnum.Origin, new Guid("64f3ce9c-9960-443c-9553-a10c395695a0"), true, CStaticParameters.Value_Origin_Visible);
+        private readonly CBoolValue OriginValue;
 
         private void DrawCoordinates()
         {
-            var aDrawCoordinates = this.OriginFeature.Enabled;
+            var aDrawCoordinates = this.OriginValue.Value;
             if (aDrawCoordinates)
             {
                 foreach (var aEffectPass in this.BasicEffect.CurrentTechnique.Passes)

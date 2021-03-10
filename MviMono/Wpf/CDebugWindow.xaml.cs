@@ -1,5 +1,5 @@
 ﻿using CharlyBeck.Mvi.Cube;
-using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.Mono.GameCore;
 using CharlyBeck.Mvi.Mono.Input.Hid;
 using CharlyBeck.Mvi.Sprites.Asteroid;
@@ -87,28 +87,23 @@ namespace CharlyBeck.Mvi.Mono.Wpf
             get => this.LookDegreesF + "°";
         }
 
-        private void LookLeft(object sender, RoutedEventArgs e)
-        {
-            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookLeftRight.Value = (-LookDegreesF).ToRadians(); });
-        }
-
-        private void LookUp(object sender, RoutedEventArgs e)
-        {
-            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookUpDown.Value = (-LookDegreesF).ToRadians(); });
-        }
-
-        private void LookRight(object sender, RoutedEventArgs e)
-        {
-            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookLeftRight.Value = (LookDegreesF).ToRadians(); });
-        }
-
-        private void LookDown(object sender, RoutedEventArgs e)
-        {
-            this.UpdateGame(delegate () { this.Game.DebugWindowUpdate.LookUpDown.Value = (LookDegreesF).ToRadians(); });
-        }
-
         private readonly CGameState GameState;
         public object VmGameState => this.GameState;
+
+        private void Command_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var aFe = (FrameworkElement)sender;
+                var aDc = aFe.DataContext;
+                var aCmd = (CCommand)aDc;
+                aCmd.Invoke();
+            }
+            catch (Exception aExc)
+            {
+
+            }
+        }
     }
 
     internal sealed class CGameState : CChangeNotifier

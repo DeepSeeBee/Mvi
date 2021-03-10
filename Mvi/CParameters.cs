@@ -13,29 +13,30 @@ namespace CharlyBeck.Mvi
         public const bool Quadrant_Asteroids = true;
         public const bool Quadrant_SolarSystem = true;
 
-        public const bool Feature_SolarSystem_Animate = true;
-        public const bool Feature_SolarSystem_Sun_Visible = true;
-        public const bool Feature_SolarSystem_Planet_Visible = true;
-        public const bool Feature_SolarSystem_Moon_Visible = true;
-        public const bool Feature_SolarSystem_Orbit_Visible = true;
-        public const bool Feature_Origin_Visible = true;
-        public const bool Feature_Joystick = true;
-        public const bool Feature_QuadrantGridLines = false;
-        public const bool Feature_AccumulativeViewMatrix = true;
+        public const bool Value_SolarSystem_Animate = true;
+        public const bool Value_SolarSystem_Sun_Visible = true;
+        public const bool Value_SolarSystem_Planet_Visible = true;
+        public const bool Value_SolarSystem_Moon_Visible = true;
+        public const bool Value_SolarSystem_Orbit_Visible = true;
+        public const bool Value_Origin_Visible = true;
+        public const bool Value_Joystick = true;
+        public const bool Value_QuadrantGridLines = false;
+        public const bool Value_AccumulativeViewMatrix = true;
 
-        public const int Cube_Size = 2;
+        public const int Cube_Size = 1;
         public const Int64 Cube_Pos_Max = 100000;
 
         public const int TileAsteroidCountMin = 3;
-        public const int TileAsteroidCountMax = 10;
+        public const int TileAsteroidCountMax = 8;
         public const int SunTrabantCountMin = 3;// 3;
         public const int SunTrabantCountMax = 8;//10;
 
         public static readonly CDoubleRange DefaultAsteroidRadiusMax = new CDoubleRange(0.0001d, 0.01d);
         public static readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.05d);
         public static readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.5d, 0.8d);
-        public static readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.3d, 0.6d);
-        
+        public static readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.5d, 0.7d);
+        public static readonly double SolarSystem_InheritOrbPlaneSlopePropabiltiy = 0.7d;
+
         public const  double Shot_MinSpeed = 1.4;
         public const double Shot_DistanceToAvatarWhenDead = 2.0;
         public static readonly TimeSpan Shot_FireRate = new TimeSpan(0, 0, 0, 0, 333);

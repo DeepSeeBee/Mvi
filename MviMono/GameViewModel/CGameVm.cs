@@ -1,4 +1,4 @@
-﻿using CharlyBeck.Mvi.Feature;
+﻿using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.Mono.Input.Hid;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;

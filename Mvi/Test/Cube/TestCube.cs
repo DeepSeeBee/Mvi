@@ -157,12 +157,12 @@
 
 //            internal readonly CSpriteTester SpriteTester = new CSpriteTester();
 
-//            public override ISprite<T> NewSprite<T>(T aData) // where T : CSpriteData Schweregrad	Code	Beschreibung	Projekt	Datei	Zeile	Unterdrückungszustand Fehler CS8370  Das Feature "Einschränkungen für Außerkraftsetzung und explizite Schnittstellenimplementierungsmethoden" ist in C# 7.3 nicht verfügbar. Verwenden Sie Sprachversion 8.0 oder höher.	
+//            public override ISprite<T> NewSprite<T>(T aData) // where T : CSpriteData Schweregrad	Code	Beschreibung	Projekt	Datei	Zeile	Unterdrückungszustand Fehler CS8370  Das Value "Einschränkungen für Außerkraftsetzung und explizite Schnittstellenimplementierungsmethoden" ist in C# 7.3 nicht verfügbar. Verwenden Sie Sprachversion 8.0 oder höher.	
 //            {
 //                return new CTestSprite<T>(this.SpriteTester, (T)(object)aData);
 //            }
 //        }
-//        internal sealed class CTestSprite<T> : ISprite<T> // where T : CSpriteData Schweregrad	Code	Beschreibung	Projekt	Datei	Zeile	Unterdrückungszustand Fehler CS8370  Das Feature "Einschränkungen für Außerkraftsetzung und explizite Schnittstellenimplementierungsmethoden" ist in C# 7.3 nicht verfügbar. Verwenden Sie Sprachversion 8.0 oder höher.	
+//        internal sealed class CTestSprite<T> : ISprite<T> // where T : CSpriteData Schweregrad	Code	Beschreibung	Projekt	Datei	Zeile	Unterdrückungszustand Fehler CS8370  Das Value "Einschränkungen für Außerkraftsetzung und explizite Schnittstellenimplementierungsmethoden" ist in C# 7.3 nicht verfügbar. Verwenden Sie Sprachversion 8.0 oder höher.	
 //        {
 //            internal CTestSprite(CSpriteTester aSpriteTester, T aSpriteData) { this.SpriteDataM = aSpriteData; this.SpriteTester = aSpriteTester; this.SpriteTester.Add(this); }
 //            public CSpriteData SpriteData { get => (CSpriteData)(object)this.SpriteDataM; }

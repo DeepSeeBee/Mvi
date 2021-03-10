@@ -1,4 +1,4 @@
-﻿using CharlyBeck.Mvi.Feature; // CChangeNotifier
+﻿using CharlyBeck.Mvi.Value; // CChangeNotifier
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.ServiceLocator;
@@ -140,7 +140,7 @@ namespace CharlyBeck.Mvi.Mono.Input.Hid
         }
         internal double GetAxis(CAxisEnum aAxis)
         {
-            if (this.HidJoystickEnabledFeature.Enabled)
+            if (this.HidJoystickEnabledValue.Value)
             {
                 switch (aAxis)
                 {
@@ -161,16 +161,17 @@ namespace CharlyBeck.Mvi.Mono.Input.Hid
         }
 
         internal double GetThroodle()
-            => this.HidJoystickEnabledFeature.Enabled 
+            => this.HidJoystickEnabledValue.Value 
             ? this.GetAxisByByteIndex(5)
             : 0.0d
             ;
         #endregion
-        #region Feature
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration HidJoystickEnabledFeatureDeclaration = new CFeatureDeclaration(new Guid("e9f664f7-1fba-43e1-84ce-265fb7fd8d02"), "Jostick (HID)", CStaticParameters.Feature_Joystick);
-        private CFeature HidJoystickEnabledFeatureM;
-        internal CFeature HidJoystickEnabledFeature => CLazyLoad.Get(ref this.HidJoystickEnabledFeatureM, () => CFeature.Get(this, HidJoystickEnabledFeatureDeclaration));
+        #region Value
+        [CMemberDeclaration]
+        private static readonly CBoolValDecl HidJoystickEnabledValueDeclaration = new CBoolValDecl
+            ( CValueEnum.Joystick, new Guid("e9f664f7-1fba-43e1-84ce-265fb7fd8d02"), true, CStaticParameters.Value_Joystick);
+        private CBoolValue HidJoystickEnabledValueM;
+        internal CBoolValue HidJoystickEnabledValue => CLazyLoad.Get(ref this.HidJoystickEnabledValueM, () => CBoolValue.GetStaticValue<CBoolValue>(this, HidJoystickEnabledValueDeclaration));
         #endregion
     }
 

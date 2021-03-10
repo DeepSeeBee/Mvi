@@ -2,7 +2,7 @@
 using CharlyBeck.Mvi.Cube.Mvi;
 using CharlyBeck.Mvi.Extensions;
 using CharlyBeck.Mvi.Facade;
-using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.Sfx;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sprites.Bumper;
@@ -39,10 +39,16 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         internal override void Build(CSpriteBuildArgs a)
         {
             base.Build(a);
+
             var aWorld = this.World;
             var aRandomGenerator = a.QuadrantBuildArgs.RandomGenerator;
-            this.GeneratedOrbitPlaneSlope = aRandomGenerator.NextVector3Dbl(Math.PI * 2);
+            this.OrbitPlaneSlopeMaxM = a.QuadrantBuildArgs.RandomGenerator.NextDouble();
+            this.GeneratedOrbitPlaneSlope = aRandomGenerator.NextVector3Dbl(Math.PI * 2) *  new CVector3Dbl(this.OrbitPlaneSlopeMax);
             this.DayDuration = TimeSpan.FromSeconds(aRandomGenerator.NextDouble(aWorld.OrbDayDurationMin, aWorld.OrbDayDurationMax));
+            if(!this.ParentOrbIsDefined)
+            {
+                this.OwnInheritOrbPlaneSlope = aRandomGenerator.NextDouble() < CStaticParameters.SolarSystem_InheritOrbPlaneSlopePropabiltiy;
+            }
             this.BuildTrabants(a);
         }
         protected override void OnEndUse()
@@ -53,8 +59,20 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             this.GeneratedOrbitPlaneSlope = default;
             this.DayDuration = default;
             this.Trabants = default;
+            this.OwnInheritOrbPlaneSlope = default;
+            this.OrbitPlaneSlopeMaxM = default;
         }
+        internal double? OrbitPlaneSlopeMaxM;
         #endregion
+        internal bool? OwnInheritOrbPlaneSlope;
+        //internal virtual bool InheritOrbitPlaneSlope => this.ParentOrbIsDefined
+        //                                              ? this.ParentOrb.InheritOrbitPlaneSlope 
+        //                                              : this.OwnInheritOrbPlaneSlope.Value;
+        internal abstract COrb ParentOrb { get; }
+        internal abstract bool ParentOrbIsDefined { get; }
+        internal COrb RootOrb => this.ParentOrbIsDefined ? this.ParentOrb.RootOrb : this;
+
+        internal double OrbitPlaneSlopeMax => this.ParentOrbIsDefined ? this.ParentOrb.OrbitPlaneSlopeMax : this.OrbitPlaneSlopeMaxM.Value;
         internal IEnumerable<CSprite> Sprites
         {
             get
@@ -68,7 +86,11 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         internal override CDoubleRange AsteroidRadiusMax => this.World.PlanetRadiusMax;
 
         internal virtual CVector3Dbl GeneratedOrbitPlaneSlope { get; set; }
-        internal CVector3Dbl OrbitPlaneSlopeCur => this.OrbitPlaneSlopeFeature.Enabled ? this.GeneratedOrbitPlaneSlope : new CVector3Dbl(0d);
+        internal CVector3Dbl OrbitPlaneSlopeCur => 
+            !this.OrbitPlaneSlopeValue.Value
+            ? new CVector3Dbl(0d)
+            : this.GeneratedOrbitPlaneSlope 
+            ;
 
         #region Trabants
         internal virtual double TrabantPropability => 1d;
@@ -122,11 +144,11 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             }
         }
         #endregion
-        internal abstract CFeature OrbVisibleFeature { get; }
+        internal abstract CBoolValue OrbVisibleValue { get; }
         internal override void Draw()
         {
 
-            if (this.OrbVisibleFeature.Enabled)
+            if (this.OrbVisibleValue.Value)
             {
                 base.Draw();
             }
@@ -144,18 +166,19 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #endregion
 
         internal TimeSpan DayDuration { get; private set; }
-
-        #region Features
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration OrbitPlaneSlopeFeatureDeclaration = new CFeatureDeclaration(new Guid("4f7f5808-f120-4e66-acb5-ac3f0bfa3429"), "SolarSystem.Orbits.PlaneSlope", CStaticParameters.Feature_SolarSystem_Orbit_Visible);
-        private CFeature OrbitPlaneSlopeFeatureM;
-        private CFeature OrbitPlaneSlopeFeature => CLazyLoad.Get(ref this.OrbitPlaneSlopeFeatureM, () => CFeature.Get(this, OrbitPlaneSlopeFeatureDeclaration));
+        #region Values
+        [CMemberDeclaration]
+        private static readonly CBoolValDecl OrbitPlaneSlopeValueDeclaration = new CBoolValDecl
+            ( CValueEnum.SolarSystem_OrbitPlaneSlope, new Guid("4f7f5808-f120-4e66-acb5-ac3f0bfa3429"), true, CStaticParameters.Value_SolarSystem_Orbit_Visible);
+        private CBoolValue OrbitPlaneSlopeValueM;
+        private CBoolValue OrbitPlaneSlopeValue => CLazyLoad.Get(ref this.OrbitPlaneSlopeValueM, () => CValue.GetStaticValue<CBoolValue>(this, OrbitPlaneSlopeValueDeclaration));
         #endregion
-        #region Features
-        [CFeatureDeclaration]
-        private static CFeatureDeclaration AnimateSolarSystemFeatureDeclaration = new CFeatureDeclaration(new Guid("cb53ccd6-dc7e-496f-a720-cbab040e5234"), "SolarSystem.Animate", CStaticParameters.Feature_SolarSystem_Animate);
-        private CFeature AnimateSolarSystemFeatureM;
-        internal CFeature AnimateSolarSystemFeature => CLazyLoad.Get(ref this.AnimateSolarSystemFeatureM, () => CFeature.Get(this, AnimateSolarSystemFeatureDeclaration));
+        #region Values
+        [CMemberDeclaration]
+        private static CValueDeclaration AnimateSolarSystemValueDeclaration = new CBoolValDecl
+            ( CValueEnum.SolarSystem_Animate, new Guid("cb53ccd6-dc7e-496f-a720-cbab040e5234"), true, CStaticParameters.Value_SolarSystem_Animate);
+        private CBoolValue AnimateSolarSystemValueM;
+        internal CBoolValue AnimateSolarSystemValue => CLazyLoad.Get(ref this.AnimateSolarSystemValueM, () => CValue.GetStaticValue<CBoolValue>(this, AnimateSolarSystemValueDeclaration));
         #endregion
 
     }
@@ -184,14 +207,14 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
 
         internal double? OrbitRadius;
         public override bool OrbitIsDefined => true;
+        internal override bool ParentOrbIsDefined => true;
         public override COrbit Orbit => new COrbit(this.OrbitPlaneSlopeCur, this.ParentOrb.WorldPos, this.OrbitRadius.Value, this.OrbitCurrentRadians);
 
         internal TimeSpan YearDuration { get; private set; }
-        internal double OrbitCurrentRadians => this.AnimateSolarSystemFeature.Enabled
+        internal double OrbitCurrentRadians => this.AnimateSolarSystemValue.Value
                                           ? ((this.World.GameTimeTotal.TotalSeconds * Math.PI * 2d / this.YearDuration.TotalSeconds).ToRadians() + this.OrbitStartRadians).AvoidNan()
                                           : 0.0d;
         private double OrbitStartRadians { get; set; }
-        internal abstract COrb ParentOrb { get; }
         internal override CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator)
             => this.GetWorldPosByOrbitRadians(0d);
         public override CVector3Dbl WorldPos
@@ -251,12 +274,13 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             return aServiceContainer;
         }
         #endregion
-        #region Features
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration PlanetsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("3412f4ab-14f3-447d-81fe-923f57993019"), "SolarSystem.Planets.Visible", CStaticParameters.Feature_SolarSystem_Planet_Visible);
-        private CFeature PlanetsVisibleFeatureM;
-        private CFeature PlanetsVisibleFeature => CLazyLoad.Get(ref this.PlanetsVisibleFeatureM, () => CFeature.Get(this, PlanetsVisibleFeatureDeclaration));
-        internal override CFeature OrbVisibleFeature => this.PlanetsVisibleFeature;
+        #region Values
+        [CMemberDeclaration]
+        private static readonly CBoolValDecl PlanetsVisibleValueDeclaration = new CBoolValDecl
+            ( CValueEnum.SolarSystem_PlanetVisible, new Guid("3412f4ab-14f3-447d-81fe-923f57993019"), true, CStaticParameters.Value_SolarSystem_Planet_Visible);
+        private CBoolValue PlanetsVisibleValueM;
+        private CBoolValue PlanetsVisibleValue => CLazyLoad.Get(ref this.PlanetsVisibleValueM, () => CValue.GetStaticValue<CBoolValue>(this, PlanetsVisibleValueDeclaration));
+        internal override CBoolValue OrbVisibleValue => this.PlanetsVisibleValue;
         #endregion
         #region CategorName
         public override string CategoryName => "Planet";
@@ -278,16 +302,18 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         }
         internal CPlanet Planet;
         internal override COrb ParentOrb => this.Planet;
+
         internal override CDoubleRange AsteroidRadiusMax => this.World.MoonRadiusMax;
         internal override CDoubleRange TrabantYearDurationRange => this.World.MoonYearDurationRange;
-        internal override bool Visible => base.Visible && this.MoonsVisibleFeature.Enabled;
+        internal override bool Visible => base.Visible && this.MoonsVisibleValue.Value;
 
-        #region Features
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration MoonsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("7962faea-31d9-482d-aab4-60667b797d54"), "SolarSystem.Moons.Visible", CStaticParameters.Feature_SolarSystem_Moon_Visible);
-        private CFeature MoonsVisibleFeatureM;
-        private CFeature MoonsVisibleFeature => CLazyLoad.Get(ref this.MoonsVisibleFeatureM, () => CFeature.Get(this, MoonsVisibleFeatureDeclaration));
-        internal override CFeature OrbVisibleFeature => this.MoonsVisibleFeature;
+        #region Values
+        [CMemberDeclaration]
+        private static readonly CBoolValDecl MoonsVisibleValueDeclaration = new CBoolValDecl
+            ( CValueEnum.SolarSystem_MoonVisible, new Guid("7962faea-31d9-482d-aab4-60667b797d54"), true, CStaticParameters.Value_SolarSystem_Moon_Visible);
+        private CBoolValue MoonsVisibleValueM;
+        private CBoolValue MoonsVisibleValue => CLazyLoad.Get(ref this.MoonsVisibleValueM, () => CValue.GetStaticValue<CBoolValue>(this, MoonsVisibleValueDeclaration));
+        internal override CBoolValue OrbVisibleValue => this.MoonsVisibleValue;
         #endregion
         public override string CategoryName => "Moon";
     }
@@ -301,7 +327,14 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         }
         internal override void Build(CSpriteBuildArgs a)
         {
+            
+
             base.Build(a);
+        }
+        protected override void OnEndUse()
+        {
+            base.OnEndUse();
+
         }
         #endregion
         internal override CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator)
@@ -309,7 +342,8 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         internal Vector3 OrbitAxis => new Vector3(1, 1, 1);
         internal override CDoubleRange AsteroidRadiusMax => this.World.SunRadiusMax;
 
-
+        internal override COrb ParentOrb => throw new InvalidOperationException();
+        internal override bool ParentOrbIsDefined => false;
         //protected override void OnBuild()
         //{
         //    base.OnBuild();
@@ -335,14 +369,23 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             return aServiceContainer;
         }
         #endregion
-        #region Features
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration SunsVisibleFeatureDeclaration = new CFeatureDeclaration(new Guid("afeb49da-5453-49d5-87ac-94d703e6cb3b"), "SolarSystem.Suns.Visible", CStaticParameters.Feature_SolarSystem_Sun_Visible);
-        private CFeature SunsVisibleFeatureM;
-        private CFeature SunsVisibleFeature => CLazyLoad.Get(ref this.SunsVisibleFeatureM, () => CFeature.Get(this, SunsVisibleFeatureDeclaration));
-        internal override CFeature OrbVisibleFeature => this.SunsVisibleFeature;
+        #region Values
+        [CMemberDeclaration]
+        private static readonly CBoolValDecl SunsVisibleValueDeclaration = new CBoolValDecl
+            ( CValueEnum.SolarSystem_SunVisible, new Guid("afeb49da-5453-49d5-87ac-94d703e6cb3b"), true, CStaticParameters.Value_SolarSystem_Sun_Visible);
+        private CBoolValue SunsVisibleValueM;
+        private CBoolValue SunsVisibleValue => CLazyLoad.Get(ref this.SunsVisibleValueM, () => CBoolValue.GetStaticValue<CBoolValue>(this, SunsVisibleValueDeclaration));
+        internal override CBoolValue OrbVisibleValue => this.SunsVisibleValue;
         #endregion
         public override string CategoryName => "Sun";
+        #region Chaos
+        [CMemberDeclaration]
+        internal static CDoubleDeclaration ChaosDecl = new CDoubleDeclaration
+            (CValueEnum.SolarSystem_Chaos, new Guid("ef38d532-b91a-4865-b054-b46a4f1e8773"), true, CGuiEnum.Slider, CUnitEnum.Percent, 0d, 0d, 1d, 0.01d, 0.1d, 0);
+        private CDoubleValue ChaosM;
+        internal CDoubleValue Chaos => CLazyLoad.Get(ref this.ChaosM, ()=>CValue.GetStaticValue<CDoubleValue>(this, ChaosDecl));
+        
+        #endregion
     }
 
     internal sealed class CSolarSystemQuadrant : CSpaceQuadrant

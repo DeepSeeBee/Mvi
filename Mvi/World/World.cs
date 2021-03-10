@@ -26,7 +26,7 @@ using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Sprites.Crosshair;
 using CharlyBeck.Mvi.Sprites.Explosion;
-using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.CubeMvi;
 using Utils3.Asap;
 
@@ -178,6 +178,10 @@ namespace CharlyBeck.Mvi.World
             this.Cube.Load();
         }
         #endregion
+        #region Look
+        public double LookUpDown { get; set; }
+        public double LookLeftRight { get; set; }
+        #endregion
         #region Shot
         internal readonly CShotSprites ShotSprites;
         public void Shoot()
@@ -263,7 +267,7 @@ namespace CharlyBeck.Mvi.World
         internal double OrbDayDurationMax => 20d;
         internal CDoubleRange PlanetYearDurationRange => new CDoubleRange(0.1d, 0.3d); // new CDoubleRange(0.01d, 20d);
         internal CDoubleRange MoonYearDurationRange => new CDoubleRange(0.01d, 0.5d);
-        internal CIntegerRange PlanetMoonCountRange => new CIntegerRange(0, 3);
+        internal CIntegerRange PlanetMoonCountRange => new CIntegerRange(0, 2);
         internal double PlanetHasMoonsProbability => 0.3d;
         internal CDoubleRange PlanetOrbitRange => new CDoubleRange(2d, 3d);
         internal CDoubleRange MoonOrbitRange => new CDoubleRange(4.0d, 5.0d);
@@ -314,11 +318,12 @@ namespace CharlyBeck.Mvi.World
         }
 
         internal bool InitFrame = true;
-        #region Features
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration GravitationFeatureDeclaration = new CFeatureDeclaration(new Guid("61de4feb-eb03-4569-baea-055d520844b9"), "Gravitation", CStaticParameters.Gravity_Enabled);
-        private CFeature GravitationFeatureM;
-        public  CFeature GravitationFeature => CLazyLoad.Get(ref this.GravitationFeatureM, () => CFeature.Get(this, GravitationFeatureDeclaration));
+        #region Values
+        [CMemberDeclaration]
+        private static readonly CBoolValDecl GravitationValueDeclaration = new CBoolValDecl
+            ( CValueEnum.Gravitation, new Guid("61de4feb-eb03-4569-baea-055d520844b9"), true, CStaticParameters.Gravity_Enabled);
+        private CBoolValue GravitationValueM;
+        public  CBoolValue GravitationValue => CLazyLoad.Get(ref this.GravitationValueM, () => CValue.GetStaticValue<CBoolValue>(this, GravitationValueDeclaration));
         #endregion
         public void Update()
         {
@@ -394,7 +399,7 @@ namespace CharlyBeck.Mvi.World
                                + aThroodleVec
                                + aThroodleVec
                                ;
-            var aNewMoveVector2a = this.SlowDownNearObjectFeature.Enabled
+            var aNewMoveVector2a = this.SlowDownNearObjectValue.Value
                                ? aNewMoveVector1 * new CVector3Dbl(this.FrameInfo.NearPlanetSpeed)
                                : aNewMoveVector1
                                ;
@@ -413,11 +418,11 @@ namespace CharlyBeck.Mvi.World
             set;
         }
         #endregion
-        [CFeatureDeclaration]
-        private static readonly CFeatureDeclaration SlowDownNearObjectFeatureDeclaration = new CFeatureDeclaration(new Guid("4c4030e4-4477-4350-be27-3ad0db397e40"), "Game.SlowDownNearObject", false);
-        private CFeature SlowDownNearObjectFeatureM;
-        public CFeature SlowDownNearObjectFeature => CLazyLoad.Get(ref this.SlowDownNearObjectFeatureM, () => CFeature.Get(this, SlowDownNearObjectFeatureDeclaration));
-
+        [CMemberDeclaration]
+        private static readonly CBoolValDecl LandingDeclaration = new CBoolValDecl
+            (CValueEnum.LandingMode, new Guid("065a36b6-cebe-43c4-bffc-c4e9bae64334"), false, false);
+        private CBoolValue SlowDownNearObjectValueM;
+        public CBoolValue SlowDownNearObjectValue => CLazyLoad.Get(ref this.SlowDownNearObjectValueM, () => CValue.GetStaticValue<CBoolValue>(this, LandingDeclaration));
     }
 
     public struct CAvatarInfo
@@ -468,7 +473,7 @@ namespace CharlyBeck.Mvi.World
         public CVector3Dbl Attraction => CLazyLoad.Get(ref this.AttractionM, this.NewAttraction);
         private CVector3Dbl NewAttraction()
         {
-            if (this.World.GravitationFeature.Enabled)
+            if (this.World.GravitationValue.Value)
             {
                 var aSprites = this.Sprites;
                 var aAttractions = from aSprite in aSprites

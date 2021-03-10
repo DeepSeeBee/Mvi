@@ -1,7 +1,7 @@
 ﻿using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Cube.Mvi;
 using CharlyBeck.Mvi.Facade;
-using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.Exceptions;
@@ -75,7 +75,7 @@ namespace CharlyBeck.Mvi.Sprites.Cube
     {
         internal CCubeSprite(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.QuadrantFeature = CFeature.Get(this.World, QuadrantFeatureDeclaration);
+            this.QuadrantValue = CValue.GetStaticValue<CBoolValue>(this.World, QuadrantValueDeclaration);
         }
 
         internal override void Build(CSpriteBuildArgs a)
@@ -85,11 +85,12 @@ namespace CharlyBeck.Mvi.Sprites.Cube
         internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Cube;
         public CCubeModel CubeModel => this.World.Models.CubeModel;
 
-        #region Features
-        [CFeatureDeclaration]
-        internal static readonly CFeatureDeclaration QuadrantFeatureDeclaration = new CFeatureDeclaration(new Guid("4af89c99-2734-4c25-a8d5-9417a2d17b77"), "Quadrant.GridLines", CStaticParameters.Feature_QuadrantGridLines);
-        public readonly CFeature QuadrantFeature;
-        internal override bool Visible => base.Visible && this.QuadrantFeature.Enabled;
+        #region Values
+        [CMemberDeclaration]
+        internal static readonly CBoolValDecl QuadrantValueDeclaration = new CBoolValDecl
+            ( CValueEnum.GridLines, new Guid("4af89c99-2734-4c25-a8d5-9417a2d17b77"), true, CStaticParameters.Value_QuadrantGridLines);
+        public readonly CBoolValue QuadrantValue;
+        internal override bool Visible => base.Visible && this.QuadrantValue.Value;
         #endregion
         public override CVector3Dbl WorldPos => this.GetWorldPos(this.TileCubePos.Value);
     

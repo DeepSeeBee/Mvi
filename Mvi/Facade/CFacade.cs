@@ -1,5 +1,5 @@
 ﻿using CharlyBeck.Mvi.Cube;
-using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.Internal;
 using CharlyBeck.Mvi.Sfx;
 using CharlyBeck.Mvi.Sprites;
@@ -15,6 +15,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Utils3.Asap;
+using Microsoft.Xna.Framework;
+using System.Threading;
 
 namespace CharlyBeck.Mvi.Facade
 {
@@ -34,7 +36,7 @@ namespace CharlyBeck.Mvi.Facade
     }
 
 
-    public delegate void CAddInGameTheradAction(Action aAction);
+    public delegate void CAddInGameThreadAction(Action aAction);
     public enum CPlatformSpriteEnum
     {
         Bumper,
@@ -94,6 +96,10 @@ namespace CharlyBeck.Mvi.Facade
         public CFacade(CServiceLocatorNode aParent) : base(aParent)
         {
             this.World = new CWorld(this);
+            this.LookUp.Load();
+            this.LookDown.Load();
+            this.LookLeft.Load();
+            this.LookRight.Load();
         }
 
         public CFacade() : this(new CDefaultServiceLocatorNode())
@@ -137,24 +143,43 @@ namespace CharlyBeck.Mvi.Facade
             this.SoundManager.Update();
         }
 
-        #region Features
-        private CFeatures FeaturesM;
-        public CFeatures Features => CLazyLoad.Get(ref this.FeaturesM, this.NewFeatureRegistry);
-        public object VmFeatures => this.Features;
-        private CFeatures NewFeatureRegistry()
+        #region Values
+        private CValues ValuesM;
+        public CValues Values => CLazyLoad.Get(ref this.ValuesM, this.NewValueRegistry);
+        public object VmValues => this.Values;
+        private CValues NewValueRegistry()
         {
-            var aFeatureRegistry = new CFeatures(this);
-            this.BuildFeatureRegistry(aFeatureRegistry);
-            return aFeatureRegistry;
+            var aValueRegistry = new CValues(this);
+            this.BuildValueRegistry(aValueRegistry);
+            return aValueRegistry;
         }
-        protected virtual void BuildFeatureRegistry(CFeatures aFeatureRegistry)
+        protected virtual void BuildValueRegistry(CValues aValueRegistry)
         {
             var aAssemblies = new Assembly[] { typeof(CFacade).Assembly, this.GetType().Assembly };
-            aFeatureRegistry.AddRange(aAssemblies);
+            aValueRegistry.AddRange(aAssemblies);
         }
         #endregion
-
-
+        #region IngameSequence
+        public Task RunIngameTimedSequence(Action<int> aRunItem, TimeSpan aDelay, int aCount)
+        {
+            var aIngameAction = this.ServiceContainer.GetService<CAddInGameThreadAction>();
+            var aTask = Task.Factory.StartNew(delegate ()
+            {
+                var aDoneEvent = new AutoResetEvent(false);
+                for (var aIdx = 0; aIdx < aCount; ++aIdx)
+                {
+                    aIngameAction(delegate ()
+                    {
+                        aRunItem(aIdx);
+                        aDoneEvent.Set();
+                    });
+                    System.Threading.Thread.Sleep((int)aDelay.TotalMilliseconds);
+                    aDoneEvent.WaitOne();
+                }
+            });
+            return aTask;
+        }
+        #endregion
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
@@ -162,13 +187,79 @@ namespace CharlyBeck.Mvi.Facade
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CFacade>(() => this);
-            aServiceContainer.AddService<CFeatures>(() => this.Features);
-            aServiceContainer.AddService<CAddInGameTheradAction>(() => new CAddInGameTheradAction(this.AddInGameThreadAction));
+            aServiceContainer.AddService<CValues>(() => this.Values);
+            aServiceContainer.AddService<CAddInGameThreadAction>(() => new CAddInGameThreadAction(this.AddInGameThreadAction));
             aServiceContainer.AddService<CWorld>(() => this.World);
             return aServiceContainer;
         }
         #endregion   
         public abstract void AddInGameThreadAction(Action aAction);
+        #region Look
+
+        [CMemberDeclaration]
+        internal static readonly CCommandDeclaration LookUpDecl = new CCommandDeclaration(CValueEnum.Look_Up, new Guid("790166c7-a357-4355-953f-a4c3fc78ae97"));
+            [CMemberDeclaration]
+        internal static readonly CCommandDeclaration LookDownDecl = new CCommandDeclaration(CValueEnum.Look_Down, new Guid("eef4fc43-1ff7-479e-b38a-f0190dffcc06"));
+        [CMemberDeclaration]
+        internal static readonly CCommandDeclaration LookRightDecl = new CCommandDeclaration(CValueEnum.Look_Right, new Guid("afbc52f7-b718-4710-94b2-9cb3d4a90e28"));
+        [CMemberDeclaration]
+        internal static readonly CCommandDeclaration LookLeftDecl = new CCommandDeclaration(CValueEnum.Look_Left, new Guid("5f01a09a-7e94-45e5-b292-2d53c16b029c"));
+        [CMemberDeclaration]
+        internal static readonly CDoubleDeclaration LookAngleDecl = new CDoubleDeclaration(CValueEnum.Look_Angle, new Guid("492d14aa-9870-48c0-9031-f7517550827e"), true, CGuiEnum.Slider, CUnitEnum.Radians, (45d).ToRadians(), (0d).ToRadians(), (360d).ToRadians(), (45d).ToRadians(), (180d).ToRadians(), 0);
+
+        private CDoubleValue LookAngleM;
+        private CDoubleValue LookAngle => CLazyLoad.Get(ref this.LookAngleM, () => CDoubleValue.GetStaticValue<CDoubleValue>(this, LookAngleDecl));
+
+        private void Look(Action aAction)
+        {
+            var aAngle = (int) this.LookAngle.Value.ToDegrees();
+            this.RunIngameTimedSequence(i=>aAction(), new TimeSpan(0, 0, 0, 0, 10), aAngle);
+        }
+        private CCommand LookUpM;
+        private CCommand LookUp => CLazyLoad.Get(ref this.LookUpM, this.NewLookUp);
+        private CCommand NewLookUp()
+        {
+            var aCmd = CCommand.GetStaticValue<CCommand>(this, LookUpDecl);
+            aCmd.Invoked += delegate ()
+            {
+               this.Look(delegate () { this.World.LookUpDown = this.World.LookUpDown + 1d.ToRadians(); });
+            };
+            return aCmd;
+        }
+        private CCommand LookDownM;
+        private CCommand LookDown => CLazyLoad.Get(ref this.LookDownM, this.NewLookDown);
+        private CCommand NewLookDown()
+        {
+            var aCmd = CCommand.GetStaticValue<CCommand>(this, LookDownDecl);
+            aCmd.Invoked += delegate ()
+            {
+               this.Look(delegate () { this.World.LookUpDown = this.World.LookUpDown - 1d.ToRadians(); });
+            };
+            return aCmd;
+        }
+        private CCommand LookLeftM;
+        private CCommand LookLeft => CLazyLoad.Get(ref this.LookLeftM, this.NewLookLeft);
+        private CCommand NewLookLeft()
+        {
+            var aCmd = CCommand.GetStaticValue<CCommand>(this, LookLeftDecl);
+            aCmd.Invoked += delegate ()
+            {
+               this.Look(delegate () { this.World.LookLeftRight = this.World.LookLeftRight + 1d.ToRadians(); });
+            };
+            return aCmd;
+        }
+        private CCommand LookRightM;
+        private CCommand LookRight => CLazyLoad.Get(ref this.LookRightM, this.NewLookRight);
+        private CCommand NewLookRight()
+        {
+            var aCmd = CCommand.GetStaticValue<CCommand>(this, LookRightDecl);
+            aCmd.Invoked += delegate ()
+            {
+               this.Look(delegate () { this.World.LookLeftRight = this.World.LookLeftRight - 1d.ToRadians(); });
+            };
+            return aCmd;
+        }
+        #endregion
 
     }
 

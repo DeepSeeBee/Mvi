@@ -9,8 +9,8 @@
         SizeToContent="Manual"
         Top="0"
         Left="0"
-        Height="600"
-        Width="200"
+        Height="750"
+        Width="350"
         
              d:DesignHeight="100" d:DesignWidth="800">
     <Grid>
@@ -20,16 +20,6 @@
             <TextBlock DockPanel.Dock="Top" FontSize="15" TextAlignment="Center" Text="Just a multiverse." />
             <Border DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="1" Margin="5,5,5,5"/>
 
-            <UniformGrid Rows="3" Columns="3" DockPanel.Dock="Top">
-                <Control/>
-                <Button Content="Top" Click="LookUp"/>
-                <Control/>
-                <Button Content="Left" Click="LookLeft"/>
-                <TextBox TextAlignment="Center" Text="{Binding LookDegrees, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"/>
-                <Button Content="Right" Click="LookRight"/>
-                <Control/>
-                <Button Content="Down" Click="LookDown"/>
-            </UniformGrid>
             <GroupBox DockPanel.Dock="Top" Header="Quadrant" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
                     <TextBlock Text="{Binding VmCubePos}"/>
             </GroupBox>
@@ -45,7 +35,7 @@
                     <TextBlock Text="{Binding VmAvatarPos}"/>
                 </UniformGrid>
             </GroupBox>-->
-            <GroupBox  DockPanel.Dock="Bottom" Header="Speed" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
+            <GroupBox Visibility="Collapsed"  DockPanel.Dock="Bottom" Header="Speed" DataContext="{Binding VmGameState, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}">
                 <Slider Orientation="Horizontal" Minimum="1" Maximum="50" Value="{Binding VmSpeed, Mode=TwoWay}" LargeChange="10" SmallChange="1">
 
                 </Slider>
@@ -54,19 +44,80 @@
                 <hid:CHidDevicesGui x:Name="HidDevicesGui">
                 </hid:CHidDevicesGui>
             </Expander>
-            <GroupBox DockPanel.Dock="Bottom" Header="Features" >
+            <GroupBox DockPanel.Dock="Bottom" Header="Values" >
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Stretch" TextAlignment="Center" Text="ESC to uncapture Mouse/Exit Fullscreen" FontSize="9"/>
-                    <ItemsControl  DockPanel.Dock="Top" ItemsSource="{Binding VmMonoFacade.VmFeatures}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <CheckBox IsChecked="{Binding VmEnabled}" Content="{Binding VmFeatureDeclaration.VmName}">
-                                    </CheckBox>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <ListView DockPanel.Dock="Top" ItemsSource="{Binding VmMonoFacade.VmValues}">
+                        <ListView.View>
+                            <GridView>
+                                <GridView.Columns>
+                                    <GridViewColumn Header="Name" Width="150" DisplayMemberBinding="{Binding VmValueDeclaration.VmName}" />
+                                    <GridViewColumn Header="Value" Width="150">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <DockPanel>
+                                                    <ContentControl HorizontalContentAlignment="Stretch" Width="120" Height="15">
+                                                        <Control.Resources>
+                                                            <Style x:Key="CmdButtonStyle" TargetType="Button">
+                                                                <EventSetter Event="Click" Handler="Command_Click"/>
+                                                            </Style>
+                                                        </Control.Resources>
+                                                        <Control.Style>
+                                                            <!-- TODO_OPT -->
+                                                            <Style TargetType="Control">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding VmValueDeclaration.GuiEnum}" Value="CheckBox">
+                                                                        <Setter Property="Template">
+                                                                            <Setter.Value>
+                                                                                <ControlTemplate>
+                                                                                    <CheckBox IsChecked="{Binding VmValue}" >
+                                                                                    </CheckBox>
+                                                                                </ControlTemplate>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding VmValueDeclaration.GuiEnum}" Value="Slider">
+                                                                        <Setter Property="Template">
+                                                                            <Setter.Value>
+                                                                                <ControlTemplate>
+                                                                                    <Slider Value="{Binding VmValue}"
+                                                                                            Minimum="{Binding VmMinumum}"
+                                                                                            Maximum="{Binding VmMaximum}"
+                                                                                            SmallChange="{Binding VmSmallChange}"
+                                                                                            LargeChange="{Binding VmLargeChange}">
+                                                                                        
+                                                                                    </Slider>
+                                                                                </ControlTemplate>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </DataTrigger>
+
+
+                                                                    <DataTrigger Binding="{Binding VmValueDeclaration.GuiEnum}" Value="Button">
+                                                                        <Setter Property="Template">
+                                                                            <Setter.Value>
+                                                                                <ControlTemplate>
+                                                                                    <Button  Style="{StaticResource CmdButtonStyle}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                                                                    </Button>
+                                                                                </ControlTemplate>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Control.Style>
+                                                    </ContentControl>
+                                                </DockPanel>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                </GridView.Columns>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    
+                  
                 </DockPanel>
             </GroupBox>
 

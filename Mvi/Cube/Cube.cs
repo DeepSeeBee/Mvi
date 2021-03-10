@@ -18,7 +18,7 @@ using CDoubleRange = System.Tuple<double, double>;
 using CIntegerRange = System.Tuple<int, int>;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.Sprites.Asteroid;
-using CharlyBeck.Mvi.Feature;
+using CharlyBeck.Mvi.Value;
 using Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.Sprites.Cube;
@@ -289,7 +289,7 @@ namespace CharlyBeck.Mvi.Cube
         //}
     }
 
-    internal static class CCoordinatesExtensions
+    public static class CCoordinatesExtensions
     {
 
         internal static Int64 Pow2(this Int64 aValue)
