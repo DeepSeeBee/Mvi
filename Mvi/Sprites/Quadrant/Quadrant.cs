@@ -120,7 +120,7 @@ namespace CharlyBeck.Mvi.Cube.Mvi
             this.QuadrantContent = aRandomGenerator.NextItem(this.QuadrantContents);
             this.QuadrantContent.Build(a);
             this.CubeQuadrant.Build(a);
-        }
+        }   
         public override IEnumerable<CSprite> Sprites 
             => this.QuadrantContent is object
             ? this.QuadrantContent.Sprites.Concat(this.CubeQuadrant.Sprites)

@@ -29,12 +29,12 @@ namespace CharlyBeck.Mvi
         internal const int Cube_EdgeLen = Cube_Size * 2 + 1;
         internal static int Cube_QuadrantCount = Cube_EdgeLen * Cube_EdgeLen * Cube_EdgeLen;
 
-        public const int TileAsteroidCountMin = 3;
-        public const int TileAsteroidCountMax = 7;
+        public const int TileAsteroidCountMin = 0;
+        public const int TileAsteroidCountMax = 3;
         public const int SunTrabantCountMin = 3;// 3;
         public const int SunTrabantCountMax = 7;//10;
 
-        public static readonly CDoubleRange DefaultAsteroidRadiusMax = new CDoubleRange(0.0001d, 0.01d);
+        public static readonly CDoubleRange DefaultAsteroidRadiusMax = new CDoubleRange(0.01d, 0.04d);
         public static readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.04d);
         public static readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.5d, 0.7d);
         public static readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.5d, 0.6d);

@@ -189,7 +189,7 @@ namespace CharlyBeck.Mvi.Sprites
         public double GetAlpha(CVector3Dbl aCameraPos)
         {
             var d = this.WorldPos.Value.GetDistance(aCameraPos);
-            var dmax = (this.Cube.Depth -1) / 2; // ; ; // * ((this.World.Cube.EdgeLength - 1) / 2);
+            var dmax = ((this.Cube.Depth -1) / 2) + 0; // ; ; // * ((this.World.Cube.EdgeLength - 1) / 2);
             var df = Math.Min(1d, Math.Max(0d, d / dmax));
             //var em = 1.0d;
             var a = 1d - df; // 1 - (Math.Exp(df * em) / Math.Pow( Math.E ,em));
