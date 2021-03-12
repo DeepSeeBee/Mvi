@@ -5,7 +5,6 @@ using CharlyBeck.Mvi.Mono.Sprites.Shot;
 using CharlyBeck.Mvi.Sprites;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sprites.Bumper;
-using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Utils3.LazyLoad;

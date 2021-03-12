@@ -43,13 +43,28 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
     {
         internal CAvatarManager(CServiceLocatorNode aParent) :base(aParent)
         {
-            this.AvatarSprite = this.AllocateSprite();
-            this.AddSprite(this.AvatarSprite);
+            this.AddOnAllocate = true;
+
+            this.Init();
+        }
+
+        protected override void Init()
+        {
+            base.Init();
+
+            var aLock = true;
+            this.Reserve(1, aLock);
+        }
+
+        internal override void InitialAllocate()
+        {
+            base.InitialAllocate();
+            this.AvatarSprite = this.AllocateSpriteNullable();
         }
         protected override CAvatarSprite NewSprite()
             => new CAvatarSprite(this);
 
-        private readonly CAvatarSprite AvatarSprite;
+        private CAvatarSprite AvatarSprite;
 
         internal CVector3Dbl AvatarPos { get => this.AvatarSprite.AvatarPos; set => this.AvatarSprite.AvatarPos = value; }
     }

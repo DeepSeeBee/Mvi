@@ -13,11 +13,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CharlyBeck.Mvi.Sprites.Cube
+namespace CharlyBeck.Mvi.Sprites.GridLines
 {
-    public sealed class CCubeModel : CModel
+    public sealed class CGridLinesModel : CModel
     {
-        internal CCubeModel(CServiceLocatorNode aParent) : base(aParent)
+        internal CGridLinesModel(CServiceLocatorNode aParent) : base(aParent)
         {
 
             this.FrontSquare = new CVector3Dbl[] { this.FrontBottomLeft, this.FrontTopLeft, this.FrontTopRight, this.FrontBottomRight };
@@ -71,12 +71,12 @@ namespace CharlyBeck.Mvi.Sprites.Cube
 
     }
 
-    public sealed class CCubeSprite : CSprite
+    public sealed class CGridLinesSprite : CSprite
     {
-        internal CCubeSprite(CServiceLocatorNode aParent) : base(aParent)
+        internal CGridLinesSprite(CServiceLocatorNode aParent) : base(aParent)
         {
             this.QuadrantValue = CValue.GetStaticValue<CBoolValue>(this.World, QuadrantValueDeclaration);
-            this.PlattformSpriteEnum = CPlatformSpriteEnum.Cube;
+            this.PlattformSpriteEnum = CPlatformSpriteEnum.GridLines;
 
             this.Init();
         }
@@ -87,7 +87,7 @@ namespace CharlyBeck.Mvi.Sprites.Cube
 
             this.WorldPos = this.GetWorldPos(this.TileCubePos.Value);
         }
-        public CCubeModel CubeModel => this.World.Models.CubeModel;
+        public CGridLinesModel CubeModel => this.World.Models.GridLinesModel;
 
         #region Values
         [CMemberDeclaration]
@@ -98,62 +98,56 @@ namespace CharlyBeck.Mvi.Sprites.Cube
         #endregion    
     }
 
-    internal sealed class CCubeQuadrant : CSpaceQuadrant
+    internal sealed class CGridLinesQuadrantContent : CQuadrantContent
     {
         #region ctor
-        internal CCubeQuadrant(CServiceLocatorNode aParent) :base(aParent)
+        internal CGridLinesQuadrantContent(CServiceLocatorNode aParent) :base(aParent)
         {
-            this.CubeSprite = new CCubeSprite(aParent);
-            this.SpritesM = new CSprite[] { this.CubeSprite };
         }
         #endregion
 
-        private readonly CCubeSprite CubeSprite;
-        private readonly CSprite[] SpritesM;
+        internal override void AllocateStaticSprites()
+        {
+            base.AllocateStaticSprites();
+            this.GridLinesSprite = this.SolarSystemSpriteManager.AllocateGridLinesSpriteNullable();
+            this.SpritesM = this.GridLinesSprite is object
+                          ? new CSprite[] { this.GridLinesSprite }
+                          : Array.Empty<CSprite>()
+                          ;
+        }
+
+        private CGridLinesSprite GridLinesSprite;
+        private CSprite[] SpritesM;
         public override IEnumerable<CSprite> Sprites => this.SpritesM;
 
         internal override void Build(CQuadrantBuildArgs a)
         {
-            base.Build(a);
-            this.CubeSprite.Build(a);
+            this.GridLinesSprite.Build(a);
         }
 
     }
 
+    internal sealed class CCubeSpriteManager  : CSinglePoolSpriteManager<CGridLinesSprite>
+    {
+        internal CCubeSpriteManager(CServiceLocatorNode aParent):base(aParent)
+        {
+            this.Init();
+        }
+        protected override void Init()
+        {
+            base.Init();
 
-    //public sealed class CBeyoundSpaceSpriteData : CSpriteData
-    //{
-    //    internal CBeyoundSpaceSpriteData(CServiceLocatorNode aParent, CTileBuilder aTileBuilder, CTileDescriptor aTileDescriptor) :  base(aParent, aTileBuilder, aTileDescriptor)
-    //    {
-    //        this.Init();
-    //        this.Build();
-    //    }
-    //    public override T Throw<T>(Exception aException)
-    //        => aException.Throw<T>();
-    //    protected override void OnBuild()
-    //    {
-    //    }
-    //    internal override ISprite NewSprite()
-    //        => this.NewSprite(this);
+            var aEdgeLen = CStaticParameters.Cube_Size * 2 + 1;
+            var aCubeQuadrantCount = aEdgeLen * aEdgeLen * aEdgeLen;
+            var aQuadrantCount = aCubeQuadrantCount * CStaticParameters.Cube_Count;
+            var aLock = true;
+            this.Reserve(aQuadrantCount, aLock);
+        }
+        protected override CGridLinesSprite NewSprite()
+            => new CGridLinesSprite(this);
 
-    //    public override CVector3Dbl WorldPos => this.World.GetWorldPos(this.AbsoluteCubeCoordinates);
-    //}
-
-    //internal sealed class CBeyoundSpaceTileDescriptor : CQuadrantTileDescriptor
-    //{
-    //    #region ctor
-    //    internal CBeyoundSpaceTileDescriptor(CServiceLocatorNode aParent, CTileBuilder aTileBuilder) : base(aParent, aTileBuilder)
-    //    {
-    //        this.BeyoundSpaceSprite = new CBeyoundSpaceSpriteData(this, aTileBuilder, this);
-    //    }
-    //    public override T Throw<T>(Exception aException)
-    //        => throw aException;
-    //    #endregion
-    //    private readonly CBeyoundSpaceSpriteData BeyoundSpaceSprite;
-    //    protected override void OnBuild()
-    //    {
-    //    }
-
-    //}
+        internal CGridLinesSprite AllocateCubeNullable()
+            => this.AllocateSpriteNullable();
+    }
 
 }

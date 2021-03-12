@@ -49,11 +49,16 @@ namespace CharlyBeck.Mvi.Sprites.Asteroid
             this.WorldPos = this.GetRandomWorldPos(a.QuadrantBuildArgs.RandomGenerator);
         }
     }
-    internal sealed class CAsteroids : CQuadrantContent
+    internal sealed class CAsteroidsQuadrantContent : CQuadrantContent
     {
         #region ctor
-        public CAsteroids(CServiceLocatorNode aParent) : base(aParent)
+        public CAsteroidsQuadrantContent(CServiceLocatorNode aParent) : base(aParent)
         {
+        }
+
+        protected override void Init()
+        {
+            base.Init();
         }
         protected override void OnEndUse()
         {
@@ -76,8 +81,11 @@ namespace CharlyBeck.Mvi.Sprites.Asteroid
             this.Asteroids.DeallocateItems();
             for (var aIdx = 0; aIdx < aAsteroidCount; ++aIdx)
             {
-                var aAsteroid = this.SolarSystemSpriteManager.AllocateAsteroid();
-                aAsteroid.Build(aQuadrantBuildArgs);
+                var aAsteroid = this.SolarSystemSpriteManager.AllocateAsteroidNullable();
+                if (aAsteroid is object)
+                {
+                    aAsteroid.Build(aQuadrantBuildArgs);
+                }
                 aAsteroids[aIdx] = aAsteroid;
             }
             this.Asteroids = aAsteroids;

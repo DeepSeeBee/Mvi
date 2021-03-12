@@ -14,7 +14,6 @@ using CharlyBeck.Utils3.Enumerables;
 using Mvi.Models;
 using CharlyBeck.Mvi.Sprites;
 using CharlyBeck.Mvi.Internal;
-using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using Microsoft.Xna.Framework;
 using CharlyBeck.Mvi.Extensions;
@@ -27,7 +26,6 @@ using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Sprites.Crosshair;
 using CharlyBeck.Mvi.Sprites.Explosion;
 using CharlyBeck.Mvi.Value;
-using CharlyBeck.Mvi.CubeMvi;
 using Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.Avatar;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
@@ -154,85 +152,6 @@ namespace CharlyBeck.Mvi.World
     //    #endregion
     //}
 
-    internal sealed class CSpriteManagers : CSpriteManager
-    {
-        #region ctor
-        internal CSpriteManagers(CServiceLocatorNode aParent) : base(aParent)
-        {
-            this.ShotManager = new CShotManager(this);
-            this.CrosshairManager = new CCrosshairManager(this);
-            this.ExplosionsManager = new CExplosionsManager(this);
-            this.AvatarManager = new CAvatarManager(this);
-
-            this.SolarSystemSpriteManagers = this.Cube.Quadrants.Select(aQ => aQ.ServiceContainer.GetService<CSolarSystemSpriteManager>()).ToArray();
-        }
-        #endregion
-        #region ShotSprites
-        internal readonly CShotManager ShotManager;
-        internal void Shoot()
-            => this.ShotManager.Shoot();
-        #endregion
-        #region Crosshair
-        private readonly CCrosshairManager CrosshairManager;
-        #endregion
-        #region Explosions
-        internal readonly CExplosionsManager ExplosionsManager;
-        #endregion
-        #region Avatar
-        private readonly CAvatarManager AvatarManager;
-        internal CVector3Dbl AvatarPos { get => this.AvatarManager.AvatarPos; set => this.AvatarManager.AvatarPos = value; }
-        #endregion     
-        #region Cubes
-        internal ICube Cube => this.WormholeCubes; 
-        private CWormholeCubes WormholeCubesM;
-        internal CWormholeCubes WormholeCubes => CLazyLoad.Get(ref this.WormholeCubesM, () => new CWormholeCubes(this));
-        #endregion
-        #region SolarSystemSpriteManagers
-        internal readonly CSolarSystemSpriteManager[] SolarSystemSpriteManagers;
-        #endregion
-        #region Composite
-        internal IEnumerable<CSpriteManager> Items
-        {
-            get
-            {
-                yield return this.ShotManager;
-                yield return this.CrosshairManager;
-                yield return this.ExplosionsManager;
-                foreach (var aSpriteManager in this.SolarSystemSpriteManagers)
-                    yield return aSpriteManager;
-            }
-        }
-
-        internal override IEnumerable<CSprite> BaseSprites
-        {
-            get
-            {
-                foreach(var aItem in this.Items)
-                    foreach (var aSprite in aItem.BaseSprites)
-                        yield return aSprite;
-            }
-        }
-
-        internal override void Update(CFrameInfo aFrameInfo)
-        {
-            var a = from aItem in this.Items.OfType<CSolarSystemSpriteManager>()
-                    where !aItem.Sprites.IsEmpty()
-                    select aItem;
-
-            foreach (var aItem in this.Items)
-                aItem.Update(aFrameInfo);
-        }
-
-        internal override void UpdateAvatarPos()
-        {
-            foreach (var aItem in this.Items)
-            {
-                aItem.UpdateAvatarPos();
-            }
-        }
-        #endregion
-
-    }
 
     public sealed class CWorld : CServiceLocatorNode
     {
@@ -263,11 +182,11 @@ namespace CharlyBeck.Mvi.World
         public double LookLeftRight { get; set; }
         #endregion
         #region SpriteManagers
-        private CSpriteManagers SpriteManagersM;
-        private CSpriteManagers SpriteManagers => CLazyLoad.Get(ref this.SpriteManagersM, this.NewSpriteManagers);
-        private CSpriteManagers NewSpriteManagers()
+        private CWorldSpriteManagers SpriteManagersM;
+        private CWorldSpriteManagers SpriteManagers => CLazyLoad.Get(ref this.SpriteManagersM, this.NewSpriteManagers);
+        private CWorldSpriteManagers NewSpriteManagers()
         {
-            var aSpriteManagers = new CSpriteManagers(this);
+            var aSpriteManagers = new CWorldSpriteManagers(this);
             aSpriteManagers.ShotManager.ShotFired += this.OnShotFired;
             return aSpriteManagers;
         }
@@ -366,8 +285,8 @@ namespace CharlyBeck.Mvi.World
                     foreach (var aSprite in this.SpriteManagers.BaseSprites)
                         yield return aSprite;
 
-                    foreach (var aSprite in from aItem in this.SpaceQuadrants from aSprite in aItem.Sprites select aSprite)
-                        yield return aSprite;
+                    //foreach (var aSprite in from aItem in this.SpaceQuadrants from aSprite in aItem.Sprites select aSprite)
+                    //    yield return aSprite;
 
                 }
             }
@@ -394,24 +313,12 @@ namespace CharlyBeck.Mvi.World
         {
             this.InitFrame = false;
             this.MoveVectorM = default;
-
             this.Cube.MoveTo(this.GetCubePos(this.AvatarWorldPos), true);
-
-            //var aSprites = this.Sprites;
-            //foreach (var aSprite in aSprites)
-            //{
-            //    aSprite.UpdateAvatarPos();
-            //}
             this.SpriteManagers.UpdateAvatarPos();
-
             this.RefreshFrameInfo();
-
-            //foreach (var aSprite in aSprites)
-            //{
-            //    aSprite.Update(this.FrameInfo);
-            //}
-
             this.SpriteManagers.Update(this.FrameInfo);
+            this.SpriteManagers.Collide();
+            this.SpriteManagers.RemoveDeadSprites();
         }
 
         internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
@@ -525,7 +432,7 @@ namespace CharlyBeck.Mvi.World
             this.World = aWorld;
             var aCube = aWorld.Cube;
             {
-                this.Sprites = this.World.Sprites.ToArray();
+                this.Sprites = this.World.Sprites.Where(s=>s.BuildIsDone && s.IsInUse).ToArray();
                 this.SpriteDistances = (from aSprite in this.Sprites 
                                         select new Tuple<CSprite, double>(aSprite, aSprite.DistanceToAvatar)).ToArray().OrderBy(aDist => aDist.Item2).ToArray();
                 this.NearestBumperAndDistance = (from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSprite) select new Tuple<CBumperSprite, double>((CBumperSprite)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();

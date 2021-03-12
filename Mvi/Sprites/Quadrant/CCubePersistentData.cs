@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CharlyBeck.Mvi.CubeMvi
+namespace CharlyBeck.Mvi.Cube.Mvi
 {
     using CDataQuadrantDic = Dictionary<CCubePosKey, CQuadrantPersistentData>;
 

@@ -3,7 +3,6 @@ using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.Internal;
 using CharlyBeck.Mvi.Sfx;
 using CharlyBeck.Mvi.Sprites;
-using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.ServiceLocator;
@@ -41,7 +40,7 @@ namespace CharlyBeck.Mvi.Facade
     {
         Avatar,
         Bumper,
-        Cube,
+        GridLines,
         Shot,
         Crosshair,
         Explosion,

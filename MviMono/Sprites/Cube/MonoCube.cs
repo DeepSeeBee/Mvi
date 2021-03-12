@@ -1,6 +1,6 @@
 ﻿using CharlyBeck.Mvi.Mono.GameCore;
 using CharlyBeck.Mvi.Mono.Sprites;
-using CharlyBeck.Mvi.Sprites.Cube;
+using CharlyBeck.Mvi.Sprites.GridLines;
 using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.ServiceLocator;
@@ -19,19 +19,19 @@ namespace CharlyBeck.Mvi.Mono.Sprites.Cube
     {
         internal CMonoCubeModel(CServiceLocatorNode aParent) :base(aParent)
         {
-            this.CubeModel = this.Models.CubeModel;
+            this.CubeModel = this.Models.GridLinesModel;
             this.LineListVertexBuffer = this.CubeModel.LineList.ToVector3s().ToVertexPositionColor(CColors.QuadrantGridGray).ToVertexBuffer(this.GraphicsDevice);
         }
 
-        internal readonly CCubeModel CubeModel;
+        internal readonly CGridLinesModel CubeModel;
         internal readonly VertexBuffer LineListVertexBuffer;
     }
 
-    internal sealed class CMonoCubeSprite
+    internal sealed class CMonoGridLinesSprite
     :
-       CMonoSprite<CCubeSprite, CMonoCubeModel>
+       CMonoSprite<CGridLinesSprite, CMonoCubeModel>
     {
-        internal CMonoCubeSprite(CServiceLocatorNode aParent) : base(aParent)
+        internal CMonoGridLinesSprite(CServiceLocatorNode aParent) : base(aParent)
         {
             this.MonoModel = this.MonoModels.MonoCubeModel;
             this.TranslateToTilePosition = true;

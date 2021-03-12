@@ -1,4 +1,5 @@
-﻿using CharlyBeck.Utils3.ServiceLocator;
+﻿using CharlyBeck.Utils3.Enumerables;
+using CharlyBeck.Utils3.ServiceLocator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,19 +10,47 @@ namespace Utils3.Asap
 {
     public delegate CReuseable CNewFunc();
 
-    public abstract class CObjectPool 
+    public abstract class CObjectPoolBase
     {
-        protected CObjectPool()
-        {
+        #region NoOutOfMemoryException
+        private bool NoOutOfMemoryExceptionM;
+        public bool NoOutOfMemoryException 
+        { 
+            get => this.NoOutOfMemoryExceptionM; 
+            set
+            {
+                this.NoOutOfMemoryExceptionM = value;
+                this.OnNoOutOfMemoryExceptionChanged();
+            }
         }
-        #region Factory
+        internal virtual void OnNoOutOfMemoryExceptionChanged()
+        {
+
+        }
+        #endregion
+        #region Allocate
+        public event Action<CReuseable> Allocated;
+        protected virtual void OnAllocated(CReuseable aReusable)
+        {
+            if (this.Allocated is object)
+            {
+                this.Allocated(aReusable);
+            }
+        }
+        public Action<CReuseable> Deallocated;
+        protected virtual void OnDeallocated(CReuseable aReuseable)
+        {
+            if (this.Deallocated is object)
+                this.Deallocated(aReuseable);
+        }
         #endregion
     }
 
-    public class CSimpleObjectPool : CObjectPool
+
+    public class CObjectPool : CObjectPoolBase
     {
         #region ctor
-        public CSimpleObjectPool()
+        public CObjectPool()
         {
         }
         #endregion
@@ -29,13 +58,14 @@ namespace Utils3.Asap
         public CNewFunc NewFunc { get; set; }
 
         public bool Locked;
-        private readonly List<CReuseable> Free = new List<CReuseable>();
+        private readonly List<CReuseable> FreeList = new List<CReuseable>();
+        public IEnumerable<CReuseable> Frees => this.FreeList;
         public CReuseable Allocate()
             => this.Allocate(this.NewFunc);
         public CReuseable Allocate(CNewFunc aNewFunc)
         {
             CReuseable aReusable;
-            var aList = this.Free;
+            var aList = this.FreeList;
             lock(aList)
             {                
                 if(aList.Count > 0)
@@ -43,18 +73,30 @@ namespace Utils3.Asap
                     aReusable = aList[0];
                     aList.RemoveAt(0);
                 }
-                else  if(this.Locked)
-                {
-                    throw new OutOfMemoryException();
-                }
-                else
+                else  if(!this.Locked)
                 {
                     aReusable = this.BuildNew(aNewFunc);
                 }
+                else if(this.NoOutOfMemoryException)
+                {
+                    aReusable = default;
+                }
+                else
+                {
+                    throw new OutOfMemoryException();
+                }
+                if(aReusable is object)
+                {
+                    this.OnAllocated(aReusable);
+                }
             }
-            aReusable.BeginUse();
+            if(aReusable is object)
+            {
+                aReusable.BeginUse();
+            }
             return aReusable;
         }
+
         internal CReuseable BuildNew(CNewFunc aNewFunc)
         {
             var aNew = aNewFunc();
@@ -77,13 +119,13 @@ namespace Utils3.Asap
                 aReusable.DeallocateIsPending = true;
                 try
                 {
-                    this.OnDeallocating(aReusable);
+                    this.OnDeallocated(aReusable);
                 }
                 finally
                 {
                     aReusable.DeallocateIsPending = false;
                 }
-                var aList = this.Free;
+                var aList = this.FreeList;
                 lock (aList)
                 {
                     aList.Add(aReusable);
@@ -91,16 +133,12 @@ namespace Utils3.Asap
 
             }
         }
-        internal Action<CReuseable> Deallocating;
-        internal virtual void OnDeallocating(CReuseable aReuseable)
-        {
-            if (this.Deallocating is object)
-                this.Deallocating(aReuseable);
-        }
 
-        internal void Reserve(int aCount)
+        public int FreeCount => this.FreeList.Count;
+
+        internal void Reserve(int aCount, bool aLock = false)
         {
-            var aList = this.Free;
+            var aList = this.FreeList;
             for (var i = 0; i < aCount; ++i)
             {
                 var aItem = this.BuildNew(this.NewFunc);
@@ -109,15 +147,13 @@ namespace Utils3.Asap
                     aList.Add(aItem);
                 }
             }
+            if (aLock)
+                this.Locked = true;
         }
         #endregion
     }
 
-
-
-
-
-    public abstract class CMultiObjectPool : CObjectPool
+    public abstract class CMultiObjectPool : CObjectPoolBase
     {
         #region ctor
         protected CMultiObjectPool()
@@ -125,51 +161,47 @@ namespace Utils3.Asap
 
         }
 
-        public sealed class CMultiPoolItem : CSimpleObjectPool
+        public void Reserve(int aClassId, int aObjectCount, bool aLock)
         {
-            internal CMultiPoolItem()
-            {
-            }
-
-            public CMultiObjectPool MultiObjectPool { get; internal set; }
-
-            internal override void OnDeallocating(CReuseable aReuseable)
-            {
-                base.OnDeallocating(aReuseable);
-                this.MultiObjectPool.OnDeallocating(aReuseable);
-            }
-
+            var aItem = this.MultiPoolItems[aClassId];
+            aItem.Reserve(aObjectCount);
+            if (aLock)
+                aItem.Locked = true;
         }
+        public IEnumerable<CReuseable> Frees => this.MultiPoolItems.Select(aItem => aItem.Frees).Flatten();
         protected void AllocateObjectPool(int c)
-            => this.AllocateObjectPool(c, i => new CMultiPoolItem());
-        protected void AllocateObjectPool(int c, Func<int, CMultiPoolItem> aNewFunc)
+            => this.AllocateObjectPool(c, i => new CObjectPool());
+        protected void AllocateObjectPool(int c, Func<int, CObjectPool> aNewFunc)
         {
-            var aMultiPoolItems = new CMultiPoolItem[c];
+            var aObjectPoolItem = new CObjectPool[c];
             for (var i = 0; i < c; ++i)
             {
                 var aMultiPoolItem = aNewFunc(i);
-                aMultiPoolItem.Deallocating += this.OnDeallocating;
-                aMultiPoolItem.MultiObjectPool = this;
-                aMultiPoolItems[i] = aMultiPoolItem;
+                aMultiPoolItem.Allocated += this.OnAllocated;
+                aMultiPoolItem.Deallocated += this.OnDeallocated;
+                aMultiPoolItem.NoOutOfMemoryException = this.NoOutOfMemoryException;
+                aObjectPoolItem[i] = aMultiPoolItem;
             }
-            this.MultiPoolItems = aMultiPoolItems; 
+            this.MultiPoolItems = aObjectPoolItem; 
         }
         #endregion
         #region MultiPoolItems
-        private CMultiPoolItem[] MultiPoolItems;
+        private CObjectPool[] MultiPoolItems;
         #endregion
         #region Reusable
         public void SetNewFunc(int i, CNewFunc aNewFunc)
             => this.MultiPoolItems[i].NewFunc = aNewFunc;
         public CReuseable Allocate(int aPoolIdx)
             => this.MultiPoolItems[aPoolIdx].Allocate();
-
-        public event Action<CReuseable> Deallocating;
-        protected virtual void OnDeallocating(CReuseable aReusable)
+        #endregion
+        #region NoOutOfMemoryException
+        internal override void OnNoOutOfMemoryExceptionChanged()
         {
-            if(this.Deallocating is object)
+            base.OnNoOutOfMemoryExceptionChanged();
+            if(this.MultiPoolItems is object)
             {
-                this.Deallocating(aReusable);
+                foreach (var aItem in this.MultiPoolItems)
+                    aItem.NoOutOfMemoryException = this.NoOutOfMemoryException;
             }
         }
         #endregion
@@ -181,7 +213,7 @@ namespace Utils3.Asap
         protected CReuseable(CServiceLocatorNode aParent) : base(aParent)
         {
         }
-        internal CSimpleObjectPool SimpleObjectPool { set; get; }
+        internal CObjectPool SimpleObjectPool { set; get; }
         public bool IsInUse { get; internal set; }
         internal bool DeallocateIsPending;
 
@@ -233,19 +265,28 @@ namespace Utils3.Asap
     {
         public CObjectPool()
         {
-            this.SimpleObjectPool = new CSimpleObjectPool();
-            this.SimpleObjectPool.Deallocating += this.OnDeallocating;
+            this.SimpleObjectPool = new CObjectPool();
+            this.SimpleObjectPool.Deallocated += this.OnDeallocated;
+            this.SimpleObjectPool.Allocated += this.OnAllocated;
+
             this.SimpleObjectPool.NewFunc = new CNewFunc(this.New);
         }
-        public event Action<T> Deallocating;
-        private void OnDeallocating(CReuseable aReusable)
+        public event Action<T> Deallocated;
+        private void OnDeallocated(CReuseable aReusable)
         {
-            if (this.Deallocating is object)
-                this.Deallocating((T)aReusable);
+            if (this.Deallocated is object)
+                this.Deallocated((T)aReusable);
         }
-        private readonly CSimpleObjectPool SimpleObjectPool;
-        public void Reserve(int aCount)
-            => this.SimpleObjectPool.Reserve(aCount);
+        public event Action<T> Allocated;
+        private void OnAllocated(CReuseable aReusable)
+        {
+            if (this.Allocated is object)
+                this.Allocated((T)aReusable);
+        }
+        private readonly CObjectPool SimpleObjectPool;
+        public int FreeCount => this.SimpleObjectPool.FreeCount;
+        public void Reserve(int aCount, bool aLock = false)
+            => this.SimpleObjectPool.Reserve(aCount, aLock);
         public bool Locked { get => this.SimpleObjectPool.Locked; set => this.SimpleObjectPool.Locked = value; }
         public T Allocate()
             => (T)this.SimpleObjectPool.Allocate();
@@ -255,6 +296,9 @@ namespace Utils3.Asap
         public Func<T> NewFunc { get; set; }
         private CReuseable New() => this.NewFunc();
 
+        public IEnumerable<CReuseable> Frees => this.SimpleObjectPool.Frees;
+
+        public bool NoOutOfMemoryException { get => this.SimpleObjectPool.NoOutOfMemoryException; set => this.SimpleObjectPool.NoOutOfMemoryException = value; }
     }
     public static class CEntensions
     {

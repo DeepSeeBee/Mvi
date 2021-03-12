@@ -152,9 +152,11 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         private void OnSpriteDestroyedByShot(CSprite aDestroyed, CShotSprite aDestroying)
         {
             var aGemClass = this.GemPropability.Next();
-            var aGem = this.AllocateSprite(aGemClass);
-            aGem.BuildGem(aDestroyed, aDestroying, this.RandomGenerator);
-            this.AddSprite(aGem);
+            var aGem = this.AllocateSpriteNullable(aGemClass);
+            if(aGem is object)
+            {
+                aGem.BuildGem(aDestroyed, aDestroying, this.RandomGenerator);
+            }
         }
 
         #region ServiceContainer

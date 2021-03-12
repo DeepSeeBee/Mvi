@@ -24,7 +24,10 @@ namespace CharlyBeck.Mvi
         public const bool Value_AccumulativeViewMatrix = true;
 
         public const int Cube_Size = 2;
+        public const int Cube_Count = 2;
         public const Int64 Cube_Pos_Max = 100000;
+        internal const int Cube_EdgeLen = Cube_Size * 2 + 1;
+        internal static int Cube_QuadrantCount = Cube_EdgeLen * Cube_EdgeLen * Cube_EdgeLen;
 
         public const int TileAsteroidCountMin = 3;
         public const int TileAsteroidCountMax = 7;
@@ -45,5 +48,10 @@ namespace CharlyBeck.Mvi
         public const double Gravity_G = 0.000000000066743d;
         public const double Gravity_NoImpactDistance = 1d;
         public const bool Sound_Loading_Enabled = true;
+
+        public const int ExplosionCountMax = 10; // TODO-Not deterministic.
+        public const int Shot_Count_Max = 20;
+
+        public static readonly TimeSpan Shot_TimeToLive = new TimeSpan(0, 0, 0, 0, 1333);
     }
 }

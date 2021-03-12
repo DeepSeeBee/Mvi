@@ -57,17 +57,32 @@ namespace CharlyBeck.Mvi.Sprites.Explosion
 
         internal CExplosionsManager(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.AddOnAllocate = true;
+            this.Init();
         }
+
+        protected override void Init()
+        {
+            base.Init();
+
+            var aLock = true;
+            this.Reserve(CStaticParameters.ExplosionCountMax, aLock);
+        }
+
+     
         protected override CExplosionSprite NewSprite()
             => new CExplosionSprite(this);
 
 
         public void AddExplosion(CVector3Dbl aPos, double aRadius)
         {
-            var aExplosionSprite = this.AllocateSprite();
-            aExplosionSprite.WorldPos = aPos;
-            aExplosionSprite.Radius = aRadius;
-            this.AddSprite(aExplosionSprite);
+            var aExplosionSprite = this.AllocateSpriteNullable();
+            if(aExplosionSprite is object)
+            {
+                aExplosionSprite.WorldPos = aPos;
+                aExplosionSprite.Radius = aRadius;
+            }
+
         }
     }
 

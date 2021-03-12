@@ -4,7 +4,6 @@ using CharlyBeck.Mvi.Mono.GameCore;
 using CharlyBeck.Mvi.Mono.Input.Hid;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sprites.Bumper;
-using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
@@ -132,9 +131,10 @@ namespace CharlyBeck.Mvi.Mono.Wpf
             }
             else
             {
-                var aFrameInfo = this.Game.World.FrameInfo;
-                this.NearestAsteroidNullable = aFrameInfo.NearestBumperIsDefined ? aFrameInfo.NearestAsteroid : default;
-                this.CubePositions = aFrameInfo.CubePositions;
+                // TODO-Übergabe an Gui thread muss sauber von statten gehen.
+                //var aFrameInfo = this.Game.World.FrameInfo;
+                //this.NearestAsteroidNullable = aFrameInfo.NearestBumperIsDefined ? aFrameInfo.NearestAsteroid : default;
+                //this.CubePositions = aFrameInfo.CubePositions;
                // this.Speed = this.Game.World.Speed;
             }
         }

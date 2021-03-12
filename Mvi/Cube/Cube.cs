@@ -21,8 +21,7 @@ using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Value;
 using Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.Bumper;
-using CharlyBeck.Mvi.Sprites.Cube;
-using CharlyBeck.Mvi.CubeMvi;
+using CharlyBeck.Mvi.Cube.Mvi;
 
 namespace CharlyBeck.Mvi.Cube
 {
@@ -367,69 +366,7 @@ namespace CharlyBeck.Mvi.Cube
         internal readonly Func<CSprite, CSpritePersistentData> GetSpritePersistentDataFunc;
     }
 
-    internal abstract class CQuadrantContent : CReuseable
-    {
-        internal CQuadrantContent(CServiceLocatorNode aParent) : base(aParent)
-        {
-            this.World = this.ServiceContainer.GetService<CWorld>();
-        }
-
-        internal readonly CWorld World;
-        public abstract IEnumerable<CSprite> Sprites { get; }
-
-        internal abstract void Build(CQuadrantBuildArgs aQuadrantBuildArgs);
-
-        private CSolarSystemSpriteManager SolarSystemSpriteManagerM;
-        internal virtual CSolarSystemSpriteManager SolarSystemSpriteManager => CLazyLoad.Get(ref this.SolarSystemSpriteManagerM, () => this.ServiceContainer.GetService<CSolarSystemSpriteManager>());
-
-        internal virtual void DeallocateContent()
-        {
-        }
-    }
-
-
-    internal abstract class CQuadrant  : CQuadrantContent
-    {
-        internal CQuadrant(CServiceLocatorNode aParent) : base(aParent)
-        {
-            this.Cube = this.ServiceContainer.GetService<CCube>();
-        }
-        internal readonly CCube Cube;
-        internal CCubePos? TileCubePos { get; private set; }
-
-        protected override void OnEndUse()
-        {
-            base.OnEndUse();
-
-            this.TileCubePos = default;
-            this.QuadrantPersistentDataM = default;
-            this.LastSpritePersistentDataId = default;
-        }
-
-        internal override void Build(CQuadrantBuildArgs a)
-        {
-            this.ResetLAstSpritePersistentData();
-            this.TileCubePos = a.TileCubePos;
-        }
-
-        #region Persistency
-        private CQuadrantPersistentData QuadrantPersistentDataM;
-        internal CQuadrantPersistentData QuadrantPersistentData => CLazyLoad.Get(ref this.QuadrantPersistentDataM, () => this.Cube.CubePersistentData.GetQuadrantPersistentData(this.TileCubePos.Value.GetKey(this.Cube.Depth)));
-        private int? LastSpritePersistentDataId;
-        internal int NewSpritePersistentDataId()
-        {
-            this.LastSpritePersistentDataId = this.LastSpritePersistentDataId.Value + 1;
-            return this.LastSpritePersistentDataId.Value;
-        }
-        internal void ResetLAstSpritePersistentData()
-        {
-            this.LastSpritePersistentDataId = 0;
-        }
-        #endregion
-
-
-
-    }
+ 
     internal abstract class CDimension : CBase//, IDrawable
     {
         #region ctor

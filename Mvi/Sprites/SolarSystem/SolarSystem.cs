@@ -6,7 +6,6 @@ using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.Sfx;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sprites.Bumper;
-using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Utils3.Reflection;
@@ -19,6 +18,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Utils3.Asap;
+using CharlyBeck.Mvi.Sprites.GridLines;
 
 namespace CharlyBeck.Mvi.Sprites.SolarSystem
 {
@@ -104,7 +104,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #region Trabants
         internal virtual double TrabantPropability => 1d;
         internal virtual CIntegerRange TrabantCountRange => new CIntegerRange(0,0);
-        internal virtual CTrabant NewTrabant() => throw new NotImplementedException();
+        internal virtual CTrabant AllocateTrabantNullable() => throw new NotImplementedException();
         internal virtual CDoubleRange TrabantOrbitRange => this.Throw<CDoubleRange>(new NotImplementedException());
         private CTrabant[] Trabants;
         private void BuildTrabants(CSpriteBuildArgs aSpriteBuildArgs)
@@ -130,10 +130,13 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
                     for (var aIdx = 0; aIdx < aTrabantCount; ++aIdx)
                     {
                         var aTrabantOrbit = ((double)aIdx + 1) * aOrbitRadius;
-                        var aTrabant = this.NewTrabant();
-                        aTrabant.OrbitRadius = aTrabantOrbit;
-                        aTrabant.OrbitRadius = aTrabantOrbit;
-                        aTrabant.Build(aSpriteBuildArgs);
+                        var aTrabant = this.AllocateTrabantNullable();
+                        if(aTrabant is object)
+                        {
+                            aTrabant.OrbitRadius = aTrabantOrbit;
+                            aTrabant.OrbitRadius = aTrabantOrbit;
+                            aTrabant.Build(aSpriteBuildArgs);
+                        }
                         aTrabants[aIdx] = aTrabant;
                     }
                 }
@@ -288,11 +291,14 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #region Trabants
         internal override bool HasTrabants => true;
         internal override CIntegerRange TrabantCountRange => this.World.PlanetMoonCountRange;
-        internal override CTrabant NewTrabant()
+        internal override CTrabant AllocateTrabantNullable()
         {
-            var aMoon = this.SolarSystemSpriteManager.AllocateMoon();
-            aMoon.Planet = this;
-            aMoon.ParentOrb = this;
+            var aMoon = this.SolarSystemSpriteManager.AllocateMoonNullable();
+            if(aMoon is object)
+            {
+                aMoon.Planet = this;
+                aMoon.ParentOrb = this;
+            }
             return aMoon;
         }
         internal override double TrabantPropability =>this.World.PlanetHasMoonsProbability;
@@ -377,11 +383,14 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #region Trabants
         internal override CIntegerRange TrabantCountRange => new CIntegerRange(CStaticParameters.SunTrabantCountMin, CStaticParameters.SunTrabantCountMax);
         internal override bool HasTrabants => true;
-        internal override CTrabant NewTrabant()
+        internal override CTrabant AllocateTrabantNullable()
         {
-            var aPlanet = this.SolarSystemSpriteManager.AllocatePlanet();
-            aPlanet.Sun = this;
-            aPlanet.ParentOrb = this;
+            var aPlanet = this.SolarSystemSpriteManager.AllocatePlanetNullable();
+            if(aPlanet is object)
+            {
+                aPlanet.Sun = this;
+                aPlanet.ParentOrb = this;
+            }
             return aPlanet;
         }
         internal override CDoubleRange TrabantOrbitRange => this.World.PlanetOrbitRange;
@@ -414,10 +423,10 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #endregion
     }
 
-    internal sealed class CSolarSystems : CQuadrantContent
+    internal sealed class CSolarSystemQuadrantContent : CQuadrantContent
     {
         #region ctor
-        public CSolarSystems(CServiceLocatorNode aParent) : base(aParent)
+        public CSolarSystemQuadrantContent(CServiceLocatorNode aParent) : base(aParent)
         { 
         }
 
@@ -465,15 +474,16 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         private CServiceContainer NewServiceContainer()
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
-            aServiceContainer.AddService<CSolarSystems>(() => this);
+            aServiceContainer.AddService<CSolarSystemQuadrantContent>(() => this);
             return aServiceContainer;
         }
         #endregion
         
     }
 
-    internal enum CBumperClassEnum
+    internal enum CSolarSystemSpriteEnum
     {
+        GridLines,
         Asteroid,
         Sun,
         Planet,
@@ -481,37 +491,50 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
     }
 
 
-    internal sealed class CSolarSystemSpriteManager : CMultiPoolSpriteManager<CBumperSprite, CBumperClassEnum>
+    internal sealed class CSolarSystemSpriteManager : CMultiPoolSpriteManager<CSprite, CSolarSystemSpriteEnum>
     {
-        public static int InstanceCount;
         internal CSolarSystemSpriteManager(CServiceLocatorNode aParent): base(aParent)
         {
-            ++InstanceCount;
+            this.NoOutOfMemoryException = true;
             this.AddOnAllocate = true;
             this.Init();
         }
 
-        internal override int SpriteClassCount => typeof(CBumperClassEnum).GetEnumMaxValue() + 1;
-        internal override CNewFunc GetNewFunc(CBumperClassEnum aClassEnum)
+        protected override void Init()
+        {
+            base.Init();
+            var aLock = true;
+            this.Reserve(CSolarSystemSpriteEnum.GridLines, 1, aLock);
+            this.Reserve(CSolarSystemSpriteEnum.Asteroid, this.World.TileAsteroidCountMax, aLock);
+            this.Reserve(CSolarSystemSpriteEnum.Sun, 1, aLock);
+            this.Reserve(CSolarSystemSpriteEnum.Planet, CStaticParameters.SunTrabantCountMax, aLock);
+            this.Reserve(CSolarSystemSpriteEnum.Moon, CStaticParameters.SunTrabantCountMax * this.World.PlanetMoonCountRange.Item2, aLock);
+        }
+        
+        internal override int SpriteClassCount => typeof(CSolarSystemSpriteEnum).GetEnumMaxValue() + 1;
+        internal override CNewFunc GetNewFunc(CSolarSystemSpriteEnum aClassEnum)
         {
             switch(aClassEnum)
             {
-                case CBumperClassEnum.Asteroid: return new CNewFunc(() => new CAsteroid(this));
-                case CBumperClassEnum.Sun: return new CNewFunc(() => new CSun(this));
-                case CBumperClassEnum.Planet: return new CNewFunc(() => new CPlanet(this));
-                case CBumperClassEnum.Moon: return new CNewFunc(() => new CMoon(this));
+                case CSolarSystemSpriteEnum.GridLines: return new CNewFunc(() => new CGridLinesSprite(this));
+                case CSolarSystemSpriteEnum.Asteroid: return new CNewFunc(() => new CAsteroid(this));
+                case CSolarSystemSpriteEnum.Sun: return new CNewFunc(() => new CSun(this));
+                case CSolarSystemSpriteEnum.Planet: return new CNewFunc(() => new CPlanet(this));
+                case CSolarSystemSpriteEnum.Moon: return new CNewFunc(() => new CMoon(this));
                 default:
                     throw new InvalidOperationException();
             }
         }
 
-        internal CAsteroid AllocateAsteroid()
-            => (CAsteroid)this.AllocateSprite(CBumperClassEnum.Asteroid);
+        internal CAsteroid AllocateAsteroidNullable()
+            => (CAsteroid)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Asteroid);
         internal CSun AllocateSun()
-            => (CSun)this.AllocateSprite(CBumperClassEnum.Sun);
-        internal CPlanet AllocatePlanet()
-            => (CPlanet)this.AllocateSprite(CBumperClassEnum.Planet);
-        internal CMoon AllocateMoon()
-            => (CMoon)this.AllocateSprite(CBumperClassEnum.Moon);
+            => (CSun)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Sun);
+        internal CPlanet AllocatePlanetNullable()
+            => (CPlanet)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Planet);
+        internal CMoon AllocateMoonNullable()
+            => (CMoon)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Moon);
+        internal CGridLinesSprite AllocateGridLinesSpriteNullable()
+            => (CGridLinesSprite)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.GridLines);
     }
 }

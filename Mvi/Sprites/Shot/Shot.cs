@@ -38,6 +38,12 @@ namespace CharlyBeck.Mvi.Sprites.Shot
 
             this.Init();
         }
+        protected override void OnBeginUse()
+        {
+            base.OnBeginUse();
+
+            this.TimeToLive = CStaticParameters.Shot_TimeToLive;
+        }
         protected override void OnEndUse()
         {
             base.OnEndUse();
@@ -45,15 +51,20 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             this.MoveVector = default;
             this.Speed = default;
             this.DellocateIsQueued = false;
+            this.TimeToLive = default;
         }
         internal CVector3Dbl? MoveVector;
         internal double? Speed;
         internal bool DellocateIsQueued;
         internal double Scale = 0.01d;
 
+
         internal override void Update(CFrameInfo aFrameInfo)
         {
             base.Update(aFrameInfo);
+
+            
+
 
             this.WorldPos = this.WorldPos + this.MoveVector.Value.MakeLongerDelta(this.Speed.Value * aFrameInfo.GameTimeElapsed.TotalSeconds);
             this.WorldMatrix = Matrix.CreateScale((float)this.Scale) * Matrix.CreateTranslation(this.WorldPos.Value.ToVector3());
@@ -66,7 +77,7 @@ namespace CharlyBeck.Mvi.Sprites.Shot
         {
             base.OnCollide(aCollideWith, aDistance);
             aCollideWith.OnShotHit(this);
-            this.DellocateIsQueued = true;
+            //this.DellocateIsQueued = true;
         }
 
         internal override bool CanCollideWithTarget(CSprite aSprite)
@@ -106,8 +117,16 @@ namespace CharlyBeck.Mvi.Sprites.Shot
     {
         internal CShotManager(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.AddOnAllocate = true;
+            this.Init();
         }
+        protected override void Init()
+        {
+            base.Init();
 
+            var aLock = true;
+            this.Reserve(CStaticParameters.Shot_Count_Max, aLock);
+        }
         protected override CShotSprite NewSprite()
             => new CShotSprite(this);
 
@@ -120,12 +139,18 @@ namespace CharlyBeck.Mvi.Sprites.Shot
 
         private void AddShot(CVector3Dbl aShotWorldPos, CVector3Dbl aMoveVector, double aSpeed)
         {
-            var aShot = this.AllocateSprite();
-            aShot.WorldPos = aShotWorldPos;
-            aShot.MoveVector = aMoveVector;
-            aShot.Speed = aSpeed;
-            this.AddSprite(aShot);
-            this.OnShotFired();
+            var aShot = this.AllocateSpriteNullable();
+            if(aShot is object)
+            {
+                aShot.WorldPos = aShotWorldPos;
+                aShot.MoveVector = aMoveVector;
+                aShot.Speed = aSpeed;
+                this.OnShotFired();
+            }
+            else
+            {
+                // TODO-Fehlzündungssound
+            }
         }
 
         private TimeSpan? LastShot;

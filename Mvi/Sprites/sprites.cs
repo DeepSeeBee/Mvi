@@ -1,25 +1,29 @@
 ﻿using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Cube.Mvi;
-using CharlyBeck.Mvi.CubeMvi;
 using CharlyBeck.Mvi.Extensions;
 using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Internal;
 using CharlyBeck.Mvi.Sfx;
 using CharlyBeck.Mvi.Sprites.Asteroid;
-using CharlyBeck.Mvi.Sprites.Cube;
+using CharlyBeck.Mvi.Sprites.Avatar;
+using CharlyBeck.Mvi.Sprites.Crosshair;
+using CharlyBeck.Mvi.Sprites.Explosion;
 using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Mvi.XnaExtensions;
+using CharlyBeck.Utils3.Enumerables;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.Reflection;
 using CharlyBeck.Utils3.ServiceLocator;
+using CharlyBeck.Utils3.Strings;
 using Microsoft.Xna.Framework;
 using Mvi.Models;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -63,6 +67,7 @@ namespace CharlyBeck.Mvi.Sprites
             this.PlatformSprite = this.NewPlatformSprite();
         }
 
+        internal int? Id;
 
         internal CModels Models => this.World.Models;
         internal CSoundDirectoryEnum? DestroyedSound;
@@ -75,10 +80,13 @@ namespace CharlyBeck.Mvi.Sprites
         }
 
         internal void Build(CQuadrantBuildArgs a)
-        {
+        {            
             var aSpriteBuildArgs = new CSpriteBuildArgs(a);
             this.Build(aSpriteBuildArgs);
+            this.BuildIsDone = true;
         }
+
+        internal bool BuildIsDone;
 
         internal virtual void Build(CSpriteBuildArgs a)
         {
@@ -88,18 +96,10 @@ namespace CharlyBeck.Mvi.Sprites
 
             }
             this.SpritePersistentData = a.QuadrantBuildArgs.GetSpritePersistentDataFunc(this);
-            //if (this.PersistentId.GetValueOrDefault(0) == 1)
-            //{
-            //    dynamic d = this.SpritePersistentData.ParentServiceLocatorNode;
-            //    var s = d.CubePosKey.ToString();
-            //    if(((object)s).ToString() == "0|0|0|")
-            //    {
-            //        System.Diagnostics.Debug.Assert(true);
-            //    }
-            //}
             this.TileCubePos = a.QuadrantBuildArgs.TileCubePos;
             this.TileWorldPos = this.GetWorldPos(a.QuadrantBuildArgs.TileCubePos);
             this.Reposition();
+            this.BuildIsDone = true;
         }
 
         protected override void OnEndUse()
@@ -115,11 +115,14 @@ namespace CharlyBeck.Mvi.Sprites
             this.AttractionToAvatarM = default;
             this.SpritePersistentData = default;
             this.PersistentId = default;
+            this.BuildIsDone = false;
         }
 
         private CObjectId ObjectIdM;
         internal CObjectId ObjectId => CLazyLoad.Get(ref this.ObjectIdM, () => new CObjectId());
         internal bool PlaysFlybySound;
+        internal TimeSpan? TimeToLive;
+
         internal virtual void Draw()
         {
             if (this.Visible)
@@ -130,8 +133,12 @@ namespace CharlyBeck.Mvi.Sprites
 
         internal void OnShotHit(CShotSprite aShotSprite)
         {
-            this.Destroyed = true;
-            this.World.OnDestroyedByShot(this, aShotSprite);
+            if(!this.Destroyed)
+            {
+                this.Destroyed = true;
+                //this.DeallocateIsQueued = true;
+                this.World.OnDestroyedByShot(this, aShotSprite);
+            }
         }
 
         public CVector3Dbl? TileWorldPos { get; private set; }
@@ -167,7 +174,18 @@ namespace CharlyBeck.Mvi.Sprites
 
         private bool? IsNearestM;
         public bool IsNearest => CLazyLoad.Get(ref this.IsNearestM, () =>this.World.FrameInfo.SpritesOrderedByDistance.OfType<CSprite>().First().RefEquals<CSprite>(this));
-        internal virtual void Update(CFrameInfo aFrameInfo) { }
+        internal virtual void Update(CFrameInfo aFrameInfo) 
+        {   
+            if(this.TimeToLive.HasValue)
+            {
+                this.TimeToLive = this.TimeToLive.Value.Subtract(aFrameInfo.GameTimeElapsed);
+                if(this.TimeToLive.Value.TotalMilliseconds< 0d)
+                {
+                    this.DeallocateIsQueued = true;
+                }
+            }
+        }
+
         public double GetAlpha(CVector3Dbl aCameraPos)
         {
             var d = this.WorldPos.Value.GetDistance(aCameraPos);
@@ -278,17 +296,31 @@ namespace CharlyBeck.Mvi.Sprites
             => this.Collide(this.FrameInfo.Sprites.Where(aCanCollideWith));
         private void Collide(IEnumerable<CSprite> aSprites)
         {
+            var aTestForDupplicates = false;
+            if (aTestForDupplicates)
+            {
+                var aGroups = aSprites.GroupBy(a => a);
+                var aDuplicates = aGroups.Where(g => g.Count() > 1);
+                Debug.Assert(aDuplicates.IsEmpty());
+            }
             var aSprite = this;
             var aOwnPos = this.WorldPos.Value;
             foreach (var aCollideWith in aSprites)
             {
-                var aOtherPos = aCollideWith.WorldPos.Value;
-                var aOtherRadius = aCollideWith.Radius;
-                var aDistance = aOwnPos.GetDistance(aOtherPos);
-                var aIsHit = aDistance < aOtherRadius;
-                if (aIsHit)
+                if (aCollideWith.IsInUse)
                 {
-                    this.OnCollide(aCollideWith, aDistance);
+                    var aOtherPos = aCollideWith.WorldPos.Value;
+                    var aOtherRadius = aCollideWith.Radius;
+                    var aDistance = aOwnPos.GetDistance(aOtherPos);
+                    var aIsHit = aDistance < aOtherRadius;
+                    if (aIsHit)
+                    {
+                        this.OnCollide(aCollideWith, aDistance);
+                    }
+                }
+                else
+                {
+                    // TODO. das sollte hier gar nicht drinstehen, passiert aber sporadisch.
                 }
             }
         }
@@ -399,16 +431,153 @@ namespace CharlyBeck.Mvi.Sprites
         internal abstract void Update(CFrameInfo aFrameInfo);
 
         internal abstract IEnumerable<CSprite> BaseSprites { get; }
+
     }
 
-    internal abstract class CSpriteManager<TSprite> : CSpriteManager where TSprite : CSprite
+    internal abstract class CRootSpriteManager : CSpriteManager
     {
-        internal CSpriteManager(CServiceLocatorNode aParent): base(aParent)
+        internal CRootSpriteManager(CServiceLocatorNode aParent) : base(aParent)
+        {
+        }
+
+        protected override void Init()
+        {
+            base.Init();
+            var aFrees = this.Frees.ToArray();
+            var aCount = aFrees.Length;
+            for (var i = 0; i < aCount; ++i)
+                aFrees[i].Id = i + 1;
+            this.SpriteNullablesArray = new CSprite[aCount];
+            this.LeafSpriteManagersArray = this.LeafSpriteManagers.ToArray();
+
+            this.OnRootAllocateStaticSprites();
+        }
+
+        internal event Action RootAllocateStaticSprites;
+        private void OnRootAllocateStaticSprites()
+        {
+            if (this.RootAllocateStaticSprites is object)
+                this.RootAllocateStaticSprites();
+        }
+
+        internal CSprite[] SpriteNullablesArray { get; private set; }
+
+
+        internal readonly List<CLeafSpriteManager> LeafSpriteManagers = new List<CLeafSpriteManager>();
+        private CLeafSpriteManager[] LeafSpriteManagersArray;
+
+        private IEnumerable<CSprite> Frees => from aSpriteManager in this.LeafSpriteManagers
+                                             from aFree in aSpriteManager.Frees
+                                             select aFree;
+
+        internal void OnDealloated(CSprite aSprite) 
+        {
+            System.Diagnostics.Debug.Assert(this.SpriteNullablesArray[aSprite.Id.Value - 1].RefEquals<CSprite>(aSprite));
+            this.SpriteNullablesArray[aSprite.Id.Value - 1] = default;
+        }
+
+        internal void OnAllocated(CSprite aSprite) 
+        {
+            System.Diagnostics.Debug.Assert(!(this.SpriteNullablesArray[aSprite.Id.Value-1] is object));
+            this.SpriteNullablesArray[aSprite.Id.Value-1] = aSprite;
+        }
+
+        #region ServiceContainer
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            aServiceContainer.AddService<CRootSpriteManager>(() => this);
+            return aServiceContainer;
+        }
+        #endregion
+
+        internal override void Update(CFrameInfo aFrameInfo)
+        {
+            var a = this.SpriteNullablesArray;
+            for (var i = 0; i < a.Length; ++i)
+            {
+                var s = a[i];
+                if(s is object)
+                    s.Update(aFrameInfo);
+            }
+        }
+        internal override void UpdateAvatarPos()
+        {
+            this.DebugPrintSpriteTypeCounts();
+            var a = this.SpriteNullablesArray;
+            for (var i = 0; i < a.Length; ++i)
+            {
+                var s = a[i];
+                if (s is object)
+                    s.UpdateAvatarPos();
+            }
+        }
+
+        internal void Collide()
+        {
+            var a = this.SpriteNullablesArray;
+            for (var i = 0; i < a.Length; ++i)
+            {
+                var s = a[i];
+                if (s is object
+                && s.CollisionSourceEnum.HasValue)
+                    s.Collide();
+            }
+        }
+        internal void RemoveDeadSprites()
+        {
+            var a = this.LeafSpriteManagersArray;
+            for (var i = 0; i < a.Length; ++i)
+            {
+                var s = a[i];
+                s.RemoveDeadSprites();
+            }
+        }
+
+        private void DebugPrintSpriteTypeCounts()
+        {
+            var aDebugPrint = false;
+            if (aDebugPrint)
+            {
+                var aTexts = this.SpriteNullablesArray
+                                .Where(aItem => aItem is object)
+                                .GroupBy(aItem => aItem.GetType())
+                                .Select(aGroup => aGroup.Count() + " x " + aGroup.Key.ToString());
+                System.Diagnostics.Debug.Print(aTexts.JoinString(Environment.NewLine));
+            }
+        }
+    }
+
+    internal abstract class CLeafSpriteManager : CSpriteManager
+    {
+        internal CLeafSpriteManager(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.RootSpriteManager = this.ServiceContainer.GetService<CRootSpriteManager>();
+            this.RootSpriteManager.LeafSpriteManagers.Add(this);
+            this.RootSpriteManager.RootAllocateStaticSprites += this.InitialAllocate;
+        }
+
+        internal readonly CRootSpriteManager RootSpriteManager;
+        internal abstract IEnumerable<CSprite> Frees { get; }
+        internal virtual void InitialAllocate() { }
+        internal abstract void RemoveDeadSprites();
+
+    }
+
+    internal abstract class CLeafSpriteManager<TSprite> : CLeafSpriteManager where TSprite : CSprite
+    {
+        internal CLeafSpriteManager(CServiceLocatorNode aParent): base(aParent)
         {
             this.World = this.ServiceContainer.GetService<CWorld>();
         }
-
-
+        protected override void Init()
+        {
+            base.Init();
+            this.NoOutOfMemoryException = true;
+        }
+        internal abstract bool NoOutOfMemoryException { get; set; }
         protected bool AddOnAllocate;
 
         internal readonly CWorld World;
@@ -423,15 +592,20 @@ namespace CharlyBeck.Mvi.Sprites
             this.ActiveSprites.Add(aSprite);
 
         }
-
-        internal void OnAllocate(TSprite aSprite)
+        protected virtual void OnDeallocated(TSprite aSprite)
+        {
+            this.ActiveSprites.Remove(aSprite);
+            this.RootSpriteManager.OnDealloated(aSprite);
+        }
+        internal void OnAllocated(TSprite aSprite)
         {
             if (this.AddOnAllocate)
             {
                 this.AddSprite(aSprite);
             }
+            this.RootSpriteManager.OnAllocated(aSprite);
         }
-        private void RemoveDeadSprites()
+        internal override void RemoveDeadSprites()
         {
             var aDeadShots = (from aTest in this.ActiveSprites where aTest.DeallocateIsQueued  select aTest).ToArray();
             foreach (var aDeadShot in aDeadShots)
@@ -440,7 +614,6 @@ namespace CharlyBeck.Mvi.Sprites
                 aDeadShot.Deallocate();
             }
         }
-
         internal override void UpdateAvatarPos()
         {
             //this.RemoveDeadSprites();
@@ -460,21 +633,36 @@ namespace CharlyBeck.Mvi.Sprites
                 aSprite.Update(aFrameInfo);
                 aSprite.Collide();
             }
-            this.RemoveDeadSprites();
         }
     }
 
-    internal abstract class CMultiPoolSpriteManager<TSprite, TClassEnum> : CSpriteManager<TSprite> where TSprite : CSprite where TClassEnum : Enum
+    internal abstract class CMultiPoolSpriteManager<TSprite, TClassEnum> : CLeafSpriteManager<TSprite> where TSprite : CSprite where TClassEnum : Enum
     {
         internal CMultiPoolSpriteManager(CServiceLocatorNode aParent): base(aParent)
         {
             this.MultiSpritePool = new CMultiSpritePool(this);
+            this.MultiSpritePool.Allocated += delegate(CReuseable aReusable)
+            {
+                this.OnAllocated((TSprite)aReusable);
+            };
+            this.MultiSpritePool.Deallocated += delegate (CReuseable aReusable)
+            {
+                this.OnDeallocated((TSprite)aReusable);
+            };
         }
+
         protected override void Init()
         {
             base.Init();
             this.MultiSpritePool.Init();
         }
+        internal override bool NoOutOfMemoryException { get => this.MultiSpritePool.NoOutOfMemoryException; set => this.MultiSpritePool.NoOutOfMemoryException = value; }
+
+        protected void Reserve(TClassEnum aClassEnum, int aCount, bool aLock)
+        {
+            this.MultiSpritePool.Reserve((int)(object)aClassEnum, aCount, aLock);            
+        }
+        internal override IEnumerable<CSprite> Frees => this.MultiSpritePool.Frees.Cast<CSprite>();
         internal sealed class CMultiSpritePool : CMultiObjectPool
         {
             internal CMultiSpritePool(CMultiPoolSpriteManager<TSprite, TClassEnum> aMultiPoolSpriteManager)
@@ -491,55 +679,134 @@ namespace CharlyBeck.Mvi.Sprites
                 }
             }
             private readonly CMultiPoolSpriteManager<TSprite, TClassEnum> MultiPoolSpriteManager;
-            protected override void OnDeallocating(CReuseable aReusable)
-            {
-                base.OnDeallocating(aReusable);
-                this.MultiPoolSpriteManager.OnDeallocating((TSprite)aReusable);
-            }
         }
 
-        private void OnDeallocating(TSprite aSprite)
-        {
-            this.ActiveSprites.Remove(aSprite);
-        }
+
 
         internal abstract CNewFunc GetNewFunc(TClassEnum aClassEnum);
 
         internal abstract int SpriteClassCount { get; }
         private readonly CMultiSpritePool MultiSpritePool;
-        protected TSprite AllocateSprite(TClassEnum aClassEnum)
+        protected TSprite AllocateSpriteNullable(TClassEnum aClassEnum)
         {
             var aSprite = (TSprite)this.MultiSpritePool.Allocate((int)(object)aClassEnum);
-            this.OnAllocate(aSprite);
             return aSprite;
         }
         
     }
 
-    internal abstract class CSinglePoolSpriteManager<TSprite> : CSpriteManager<TSprite> where TSprite : CSprite
+    internal abstract class CSinglePoolSpriteManager<TSprite> : CLeafSpriteManager<TSprite> where TSprite : CSprite
     {
         internal CSinglePoolSpriteManager(CServiceLocatorNode aParent) : base(aParent)
         {
-            
             this.SpritePool = new CObjectPool<TSprite>();
             this.SpritePool.NewFunc = new Func<TSprite>(() => this.NewSprite());
-            this.SpritePool.Deallocating += this.OnDeallocating;
+            this.SpritePool.Deallocated += this.OnDeallocated;
+            this.SpritePool.Allocated += this.OnAllocated;
         }
+        internal override bool NoOutOfMemoryException { get => this.SpritePool.NoOutOfMemoryException; set => this.SpritePool.NoOutOfMemoryException = value; }
+        protected void Reserve(int aCountMax, bool aLock)
+            => this.SpritePool.Reserve(aCountMax, aLock);
 
-        protected void OnDeallocating(TSprite aSprite)
-        {
-            this.ActiveSprites.Remove(aSprite);
-        }
+        internal override IEnumerable<CSprite> Frees => this.SpritePool.Frees.Cast<CSprite>();
         protected abstract TSprite NewSprite();
 
         private readonly CObjectPool<TSprite> SpritePool;
-        protected TSprite AllocateSprite()
+        protected TSprite AllocateSpriteNullable()
         {
             var aSprite = this.SpritePool.Allocate();
-            if (this.AddOnAllocate)
-                this.AddSprite(aSprite);
+            if(!(aSprite is object))
+            {
+                Debug.Print("Sprite out of memory: " + typeof(TSprite).Name);
+            }
             return aSprite;
         }
+    }
+    internal sealed class CWorldSpriteManagers : CRootSpriteManager
+    {
+        #region ctor
+        internal CWorldSpriteManagers(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.ShotManager = new CShotManager(this);
+            this.CrosshairManager = new CCrosshairManager(this);
+            this.ExplosionsManager = new CExplosionsManager(this);
+            this.AvatarManager = new CAvatarManager(this);
+            this.SolarSystemSpriteManagers = this.Cube.Quadrants.Select(aQ => aQ.ServiceContainer.GetService<CSolarSystemSpriteManager>()).ToArray();
+            
+            this.Init();
+        }
+        #endregion
+        #region ShotSprites
+        internal readonly CShotManager ShotManager;
+        internal void Shoot()
+            => this.ShotManager.Shoot();
+        #endregion
+        #region Crosshair
+        private readonly CCrosshairManager CrosshairManager;
+        #endregion
+        #region Explosions
+        internal readonly CExplosionsManager ExplosionsManager;
+        #endregion
+        #region Avatar
+        private readonly CAvatarManager AvatarManager;
+        internal CVector3Dbl AvatarPos { get => this.AvatarManager.AvatarPos; set => this.AvatarManager.AvatarPos = value; }
+        #endregion     
+        #region Cubes
+        internal ICube Cube => this.WormholeCubes;
+        private CWormholeCubes WormholeCubesM;
+        internal CWormholeCubes WormholeCubes => CLazyLoad.Get(ref this.WormholeCubesM, () => new CWormholeCubes(this));
+        #endregion
+        #region ServiceContainer
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            aServiceContainer.AddService<CWorldSpriteManagers>(() => this);
+            return aServiceContainer;
+        }
+
+        #endregion
+        #region SolarSystemSpriteManagers
+        internal readonly CSolarSystemSpriteManager[] SolarSystemSpriteManagers;
+        #endregion
+        #region Composite
+        internal IEnumerable<CSpriteManager> Items
+        {
+            get
+            {
+                yield return this.ShotManager;
+                yield return this.CrosshairManager;
+                yield return this.ExplosionsManager;
+                foreach (var aSpriteManager in this.SolarSystemSpriteManagers)
+                    yield return aSpriteManager;
+            }
+        }
+
+        internal override IEnumerable<CSprite> BaseSprites
+        {
+            get
+            {
+                foreach (var aItem in this.Items)
+                    foreach (var aSprite in aItem.BaseSprites)
+                        yield return aSprite;
+            }
+        }
+
+        //internal override void Update(CFrameInfo aFrameInfo)
+        //{
+        //    foreach (var aItem in this.Items)
+        //        aItem.Update(aFrameInfo);
+        //}
+
+        //internal override void UpdateAvatarPos()
+        //{
+        //    foreach (var aItem in this.Items)
+        //    {
+        //        aItem.UpdateAvatarPos();
+        //    }
+        //}
+        #endregion
     }
 
 }

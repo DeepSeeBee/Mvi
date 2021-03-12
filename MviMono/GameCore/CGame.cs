@@ -26,7 +26,6 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using MviMono.Models;
     using CharlyBeck.Mvi.Sprites.Asteroid;
     using MviMono.Sprites.Asteroid;
-    using CharlyBeck.Mvi.Sprites.Cube;
     using CharlyBeck.Mvi.Value;
     using CharlyBeck.Mvi.Mono.GameViewModel;
     using CharlyBeck.Mvi.Mono.Input.Mouse;
@@ -46,6 +45,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Extensions;
     using CharlyBeck.Mvi.Mono.Sprites.Avatar;
     using CharlyBeck.Mvi.Sprites.Avatar;
+    using CharlyBeck.Mvi.Sprites.GridLines;
 
     internal abstract class CBase : CServiceLocatorNode
     {
@@ -91,7 +91,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         {
             aPlatformSpriteFactory[CPlatformSpriteEnum.Bumper] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoBumperSprite(aPair.Item1) { Sprite = (CBumperSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Crosshair] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoCrosshairSprite(aPair.Item1) { Sprite = (CCrosshairSprite)aPair.Item2 }; return aSprite; });
-            aPlatformSpriteFactory[CPlatformSpriteEnum.Cube] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoCubeSprite(aPair.Item1) { Sprite = (CCubeSprite)aPair.Item2 }; return aSprite; });
+            aPlatformSpriteFactory[CPlatformSpriteEnum.GridLines] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoGridLinesSprite(aPair.Item1) { Sprite = (CGridLinesSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Shot] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoShotSprite(aPair.Item1) { Sprite = (CShotSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Explosion] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoExplosionSprite(aPair.Item1) { Sprite = (CExplosionSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Avatar] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoAvatarSprite(aPair.Item1) { Sprite = (CAvatarSprite)aPair.Item2 }; return aSprite; });

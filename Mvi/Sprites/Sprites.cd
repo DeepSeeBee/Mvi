@@ -1,0 +1,231 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CharlyBeck.Mvi.Cube.Mvi.CQuadrant" Collapsed="true">
+    <Position X="7.5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAgAAAAAAAAAAAAAAAAgAAAgAAAAAQEACAAQAA=</HashCode>
+      <FileName>Sprites\Quadrant\Quadrant.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Cube.Mvi.CSpaceQuadrant" Collapsed="true">
+    <Position X="7.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAAIAAAAAAAAQAAAAAAAAAAAAAAAAAABgAAAAA=</HashCode>
+      <FileName>Sprites\Quadrant\Quadrant.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Cube.Mvi.CSpaceSwitchQuadrant">
+    <Position X="7.5" Y="6.75" Width="2.5" />
+    <AssociationLine Name="AsteroidsQuadrant" Type="CharlyBeck.Mvi.Sprites.Asteroid.CAsteroidsQuadrantContent" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="10" Y="7.085" />
+        <Point X="11.594" Y="7.085" />
+        <Point X="11.594" Y="6.441" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>BACAAAAIAAQAAAAAAAAAAAAAAAAAgAQAAIQAAAAAAAA=</HashCode>
+      <FileName>Sprites\Quadrant\Quadrant.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="AsteroidsQuadrant" />
+      <Field Name="SolarSystemQuadrant" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Cube.Mvi.CQuadrantContent" Collapsed="true">
+    <Position X="12.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAIBAAAwAAAAAAAAAAAAAAgAAAAIAABAAAAAA=</HashCode>
+      <FileName>Sprites\Quadrant\Quadrant.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.SolarSystem.COrb" Collapsed="true">
+    <Position X="11.75" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IwHAQAgAoAgQAgAAARAAAAACAIAAwAREAMAAhgSAgAA=</HashCode>
+      <FileName>Sprites\SolarSystem\SolarSystem.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.SolarSystem.CTrabant" Collapsed="true">
+    <Position X="10.5" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AASACIAAAAAAAAQAIAAAACAAAABggAAIAAAAAEAEAAA=</HashCode>
+      <FileName>Sprites\SolarSystem\SolarSystem.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.SolarSystem.CPlanet" Collapsed="true">
+    <Position X="11.75" Y="13.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgCAAAgAAAAAAAAAARAAAEACAAAAACAEAAAAAkQAgAQ=</HashCode>
+      <FileName>Sprites\SolarSystem\SolarSystem.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.SolarSystem.CMoon" Collapsed="true">
+    <Position X="9.5" Y="13.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAEAAAAAAAAAAAACAAAAAAQIAAIAAEAAAAA=</HashCode>
+      <FileName>Sprites\SolarSystem\SolarSystem.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.SolarSystem.CSun" Collapsed="true">
+    <Position X="14" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AiCAIAgAAAAQCAAAAxAAAAACAAAAgAAAAAAABgQAAAA=</HashCode>
+      <FileName>Sprites\SolarSystem\SolarSystem.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.SolarSystem.CSolarSystemQuadrantContent" Collapsed="true">
+    <Position X="14.75" Y="8.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgCAAAAAAAAAAAAAAQAAAAAAAAAAgAAAAIAAAgAAAAQ=</HashCode>
+      <FileName>Sprites\SolarSystem\SolarSystem.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.SolarSystem.CSolarSystemSpriteManager" Collapsed="true">
+    <Position X="22" Y="16.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAgAAAAAAAAIAAIAAABAAAAAACAAAIQAA=</HashCode>
+      <FileName>Sprites\SolarSystem\SolarSystem.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.CSprite" Collapsed="true">
+    <Position X="29.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>YR2aAEAgCbAwBwCBAUAgACTKgMAggJEJhMwCYACABIQ=</HashCode>
+      <FileName>Sprites\sprites.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.CSpriteManager" Collapsed="true">
+    <Position X="25.5" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAACAAAA=</HashCode>
+      <FileName>Sprites\sprites.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.CRootSpriteManager" Collapsed="true">
+    <Position X="25.5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgQAAAAAAAAAIQACAQAIAEQAAAAIAAAAAAICAgCAQAA=</HashCode>
+      <FileName>Sprites\sprites.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="SpriteNullablesArray" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.CWorldSpriteManagers">
+    <Position X="25.5" Y="11.5" Width="1.5" />
+    <AssociationLine Name="AvatarManager" Type="CharlyBeck.Mvi.Sprites.Avatar.CAvatarManager" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="25.5" Y="11.994" />
+        <Point X="25.125" Y="11.994" />
+        <Point X="25.125" Y="11.688" />
+        <Point X="24.25" Y="11.688" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AgACAAAgAAAIHAAAAQAAAAIAAAAAQAAAAAAAAhAABAE=</HashCode>
+      <FileName>Sprites\sprites.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="AvatarManager" />
+      <Field Name="CrosshairManager" />
+      <Field Name="ExplosionsManager" />
+      <Field Name="ShotManager" />
+      <Field Name="SolarSystemSpriteManagers" />
+      <Field Name="WormholeCubesM" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.Asteroid.CAsteroidsQuadrantContent" Collapsed="true">
+    <Position X="11.25" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAAAAAAAAAAAAAAAAAAAgAABAIACAAAAAAA=</HashCode>
+      <FileName>Sprites\Asteroid\Asteroid.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.World.CWorld" Collapsed="true">
+    <Position X="30.5" Y="10.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CiRAkMTsAFIQ1gAKCaQoCAAfQFwECakEgYoIgoEIQSA=</HashCode>
+      <FileName>World\World.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.Avatar.CAvatarManager" Collapsed="true">
+    <Position X="22" Y="11.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAAAAgAAAAABIAACAAAAAAA=</HashCode>
+      <FileName>Sprites\Avatar\Avatar.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.Crosshair.CCrosshairManager" Collapsed="true">
+    <Position X="22" Y="12.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAIAACAAAAAAg=</HashCode>
+      <FileName>Sprites\Crosshair\Crosshair.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.Explosion.CExplosionsManager" Collapsed="true">
+    <Position X="22" Y="13.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAIAACAAAAAAA=</HashCode>
+      <FileName>Sprites\Explosion\Explosion.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.Shot.CShotManager" Collapsed="true">
+    <Position X="22" Y="14.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAIAAAAARAAAAAABAAAAACAABAAAIAACAAAAAAA=</HashCode>
+      <FileName>Sprites\Shot\Shot.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Cube.CWormholeCubes">
+    <Position X="30.25" Y="12.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIgAAAABAACAAACAAAQAIAAAAJAAAAAQAAACAAABA=</HashCode>
+      <FileName>Cube\Cube.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.GridLines.CCubeSpriteManager" Collapsed="true">
+    <Position X="22" Y="15.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAADAAAAAAA=</HashCode>
+      <FileName>Sprites\GridLines\GridLines.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.CSinglePoolSpriteManager&lt;TSprite&gt;" Collapsed="true">
+    <Position X="20" Y="9.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAAAAAAAAAAAAUAAgAAAAAAAIAACAAAAAAA=</HashCode>
+      <FileName>Sprites\sprites.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.CMultiPoolSpriteManager&lt;TSprite, TClassEnum&gt;" Collapsed="true">
+    <Position X="18" Y="9.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAAAAAAAAAAAAcAAABAAAAAAAAACAAAIAAA=</HashCode>
+      <FileName>Sprites\sprites.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.GridLines.CGridLinesQuadrantContent" Collapsed="true">
+    <Position X="12" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQAAAAAQAAAAEAAAAAAAAAgAAAAIAAAAAAAAA=</HashCode>
+      <FileName>Sprites\GridLines\GridLines.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.CLeafSpriteManager" Collapsed="true">
+    <Position X="22.5" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAIAAAAAEAAAgAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Sprites\sprites.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CharlyBeck.Mvi.Sprites.CLeafSpriteManager&lt;TSprite&gt;" Collapsed="true">
+    <Position X="19.5" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAUCAAQAgBAABAAAAAAACAAAAAAAAAAAAIACAACAYAA=</HashCode>
+      <FileName>Sprites\sprites.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

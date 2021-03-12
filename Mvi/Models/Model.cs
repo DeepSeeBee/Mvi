@@ -2,8 +2,8 @@
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.Sprites.Crosshair;
-using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.Sprites.Explosion;
+using CharlyBeck.Mvi.Sprites.GridLines;
 using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.Exceptions;
@@ -53,14 +53,14 @@ namespace Mvi.Models
         internal CModels(CServiceLocatorNode aParent) :base(aParent)
         {
             this.AsteroidModel = new CBumperModel(this);
-            this.CubeModel = new CCubeModel(this);
+            this.GridLinesModel = new CGridLinesModel(this);
             this.ShotModel = new CShotModel(this);
             this.CrosshairModel = new CCrosshairModel(this);
             this.ExplosionModel = new CExplosionModel(this);
         }
         #endregion
+        public readonly CGridLinesModel GridLinesModel;
         public readonly CBumperModel AsteroidModel;
-        public readonly CCubeModel CubeModel;
         public readonly CShotModel ShotModel;
         public readonly CCrosshairModel CrosshairModel;
         public readonly CExplosionModel ExplosionModel;

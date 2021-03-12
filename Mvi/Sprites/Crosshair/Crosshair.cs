@@ -52,12 +52,25 @@ namespace CharlyBeck.Mvi.Sprites.Crosshair
     {
         internal CCrosshairManager(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.CrosshairSprite = this.AllocateSprite();
-            this.AddSprite(this.CrosshairSprite);
+            this.AddOnAllocate = true;
+            this.Init();
         }
+        protected override void Init()
+        {
+            base.Init();
+
+            var aLock = true;
+            this.Reserve(1, aLock);
+        }
+        internal override void InitialAllocate()
+        {
+            base.InitialAllocate();
+            this.CrosshairSprite = this.AllocateSpriteNullable();
+        }
+
         protected override CCrosshairSprite NewSprite()
             => new CCrosshairSprite(this);
 
-        private readonly CCrosshairSprite CrosshairSprite;
+        private CCrosshairSprite CrosshairSprite;
     }
 }
