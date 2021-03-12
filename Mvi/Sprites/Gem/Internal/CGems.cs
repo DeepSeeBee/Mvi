@@ -1,4 +1,8 @@
-﻿using CharlyBeck.Mvi.Story.Bonus;
+﻿using CharlyBeck.Mvi.Cube;
+using CharlyBeck.Mvi.Facade;
+using CharlyBeck.Mvi.Sprites;
+using CharlyBeck.Mvi.Sprites.Shot;
+using CharlyBeck.Mvi.Story.Bonus;
 using CharlyBeck.Mvi.Story.Propability;
 using CharlyBeck.Mvi.Story.Value;
 using CharlyBeck.Mvi.World;
@@ -42,7 +46,7 @@ using System.Threading.Tasks;
  * 
  * 
  */
-namespace CharlyBeck.Mvi.Story.Bonus.Gems
+namespace CharlyBeck.Mvi.Sprites.Gem.Internal
 {
     enum CHotKeyEnum
     {
@@ -74,10 +78,10 @@ namespace CharlyBeck.Mvi.Story.Bonus.Gems
     /// <summary>
     /// Repairs the shell.
     /// </summary>
-    internal sealed class CShellRepair : CGem
+    internal sealed class CShellRepairGem : CGem
     {
         #region ctor
-        internal CShellRepair(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CShellRepairGem(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
         internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
@@ -182,29 +186,24 @@ namespace CharlyBeck.Mvi.Story.Bonus.Gems
         #region ctor
         internal CGemManager(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
-
-
     }
-    /// <summary>
-    /// Item to collect, grants special abilites.
-    /// Prototype Pattern
-    /// </summary>
-    internal abstract class CGem : CServiceLocatorNode
+
+    internal sealed class CGuidedMissileGem : CGem
     {
-        #region ctor
-        internal CGem(CServiceLocatorNode aParent) : base(aParent) { }
-        #endregion
-        internal virtual CValue TargetValue => throw new NotImplementedException();
-        internal virtual bool ModifyTargetValueIsEnabled => false;
-        internal virtual CValue SourceValue => throw new NotImplementedException();
-        internal abstract CGemClassEnum GemClassEnum { get; }
-        internal void Collect()
+        internal CGuidedMissileGem(CServiceLocatorNode aParent):base(aParent)
         {
-            if (this.ModifyTargetValueIsEnabled)
-            {
-                this.TargetValue.Add(this.SourceValue);
-            }
-        }
 
+        }
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Offense;
     }
+
+    internal sealed class CSpaceGripGem : CGem
+    {
+        internal CSpaceGripGem(CServiceLocatorNode aParent) : base(aParent)
+        {
+        }
+        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
+    }
+
+
 }

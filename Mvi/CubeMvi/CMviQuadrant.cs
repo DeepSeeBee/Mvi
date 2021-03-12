@@ -14,20 +14,30 @@ using System.Threading.Tasks;
 namespace CharlyBeck.Mvi.Cube.Mvi
 {
 
-
-
     internal abstract class CSpaceQuadrant : CQuadrant
     {
         #region ctor
         internal CSpaceQuadrant(CServiceLocatorNode aParent) : base(aParent)
         {
             this.World = this.ServiceContainer.GetService<CWorld>();
-            this.SpritePool = this.ServiceContainer.GetService<CSpritePool>();
+            this.SolarSystemSpriteManager = new CSolarSystemSpriteManager(this);
         }
         #endregion
-        internal readonly CSpritePool SpritePool;
         internal readonly CWorld World;
         public abstract IEnumerable<CSprite> Sprites { get; }
+
+        internal readonly CSolarSystemSpriteManager SolarSystemSpriteManager;
+
+        #region ServiceContainer
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            aServiceContainer.AddService<CSolarSystemSpriteManager>(() => this.SolarSystemSpriteManager);
+            return aServiceContainer;
+        }
+        #endregion
         //internal virtual void Update(CVector3Dbl aAvatarPos)
         //{
         //    foreach (var aSprite in this.Sprites)

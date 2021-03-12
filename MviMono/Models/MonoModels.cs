@@ -1,4 +1,5 @@
 ﻿using CharlyBeck.Mvi.Mono.GameCore;
+using CharlyBeck.Mvi.Mono.Sprites.Avatar;
 using CharlyBeck.Mvi.Mono.Sprites.Crosshair;
 using CharlyBeck.Mvi.Mono.Sprites.Cube;
 using CharlyBeck.Mvi.Mono.Sprites.Explosion;
@@ -37,6 +38,7 @@ namespace MviMono.Models
             this.MonoShotModel = new CMonoShotModel(this);
             this.MonoCrosshairModel = new CMonoCrosshairModel(this);
             this.MonoExplosionModel = new CMonoExplosionModel(this);
+            this.MonoAvatarModel = new CMonoAvatarModel(this);
         }
         #endregion
 
@@ -55,8 +57,11 @@ namespace MviMono.Models
                 yield return this.MonoShotModel;
                 yield return this.MonoCrosshairModel;
                 yield return this.MonoExplosionModel;
+                yield return this.MonoAvatarModel;
             }
         }
+
+        internal readonly CMonoAvatarModel MonoAvatarModel;
         internal readonly CMonoCubeModel MonoCubeModel;
         internal readonly CMonoBumperModel MonoBumperModel;
         internal readonly CMonoShotModel MonoShotModel;

@@ -19,7 +19,7 @@ namespace CharlyBeck.Mvi.Mono
         [STAThread]
         static void Main(string[] args)
         {
-            var aUseDebugWindow = true;
+            var aUseDebugWindow = false;
             if(aUseDebugWindow)
             {
                 CDebugWindow.Show();

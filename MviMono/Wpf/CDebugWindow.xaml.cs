@@ -133,7 +133,7 @@ namespace CharlyBeck.Mvi.Mono.Wpf
             else
             {
                 var aFrameInfo = this.Game.World.FrameInfo;
-                this.NearestAsteroidNullable = aFrameInfo.NearestAsteroidIsDefined ? aFrameInfo.NearestAsteroid : default;
+                this.NearestAsteroidNullable = aFrameInfo.NearestBumperIsDefined ? aFrameInfo.NearestAsteroid : default;
                 this.CubePositions = aFrameInfo.CubePositions;
                // this.Speed = this.Game.World.Speed;
             }

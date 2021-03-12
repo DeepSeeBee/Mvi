@@ -64,16 +64,18 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
         internal CBumperSprite(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.IsHitable = true;
+            this.SetCollisionIsEnabled(CCollisionSourceEnum.Shot, true);
+            this.PersistencyEnabled = true;
+            this.PlattformSpriteEnum = CPlatformSpriteEnum.Bumper;
         }
-        internal abstract CDoubleRange AsteroidRadiusMax { get; }
-        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Bumper;
+        internal CDoubleRange AsteroidRadiusMax;
         internal override void Build(CSpriteBuildArgs a)
         {
             base.Build(a);
             var aRandomGenerator = a.QuadrantBuildArgs.RandomGenerator;
             var aWorld = this.World;
-            this.OriginalWorldPos = this.GenerateOriginalWorldPos(aRandomGenerator);
+            this.OriginalWorldPos = this.GetWorldPos(this.TileCubePos.Value).Add(aRandomGenerator.NextDouble(this.World.EdgeLenAsPos));
+            //this.OriginalWorldPos = this.GenerateOriginalWorldPos(aRandomGenerator);
             this.Radius = this.BuildRadius(aRandomGenerator); 
             this.Color = aRandomGenerator.NextWorldPos();
             this.AccelerateEnums = aRandomGenerator.NextItems<CAccelerateEnum>(AllAccelerateEnums.Fields);
@@ -91,13 +93,12 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         internal virtual double BuildRadius(CRandomGenerator aRandomGenerator)
             => aRandomGenerator.NextFromDoubleRange(this.AsteroidRadiusMax);
 
-        internal abstract CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator);
-        internal CVector3Dbl GenerateDefaultWorldPos(CRandomGenerator aRandomGenerator)
-            => this.GetWorldPos(this.TileCubePos.Value).Add(aRandomGenerator.NextDouble(this.World.EdgeLenAsPos));
+        //internal abstract CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator);
+
         internal override int ChangesCount => (int)CChangeEnum._Count;
 
-        public override CVector3Dbl WorldPos => this.OriginalWorldPos;
-        internal CVector3Dbl OriginalWorldPos { get; private set; }
+        public override CVector3Dbl WorldPos => this.OriginalWorldPos.Value;
+        internal CVector3Dbl? OriginalWorldPos;
         internal bool WarpIsActive { get; set; }
         public CVector3Dbl Color { get; private set; }
         internal CAccelerateEnum[] AccelerateEnums { get; private set; }
@@ -119,7 +120,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             _Count
         }
 
-        public abstract string CategoryName {get;}
+        public string CategoryName;
         public string VmCategoryName => this.CategoryName;
 
         internal enum CAccelerateEnum
@@ -144,22 +145,15 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
         internal override void Update(CFrameInfo aFrameInfo)
         {
             base.Update(aFrameInfo);
-
-            this.IsNearestAsteroidToAvatar = aFrameInfo.NearestAsteroidIsDefined
+            this.IsNearestAsteroidToAvatar = aFrameInfo.NearestBumperIsDefined
                                         && aFrameInfo.NearestAsteroid.RefEquals<CBumperSprite>(this);
-            if (!this.IsHit)
-            {
-                this.WormholeCubes.Swap(this);
-            }
+            this.WormholeCubes.Swap(this);
         }
 
         #region Cube
         private CWormholeCubes WormholeCubesM;
 
         private CWormholeCubes WormholeCubes => CLazyLoad.Get(ref this.WormholeCubesM, () => this.ServiceContainer.GetService<CWormholeCubes>());
-        #endregion
-        #region PersistencyEnabled
-        internal override bool PersistencyEnabled => true;
         #endregion
     }
 

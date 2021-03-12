@@ -130,7 +130,7 @@ namespace Utils3.Asap
         #region Reusable
         public void SetNewFunc(int i, CNewFunc aNewFunc)
             => this.MultiPoolItems[i].NewFunc = aNewFunc;
-        protected CReuseable Allocate(int aPoolIdx)
+        public CReuseable Allocate(int aPoolIdx)
             => this.MultiPoolItems[aPoolIdx].Allocate();
         #endregion
     }

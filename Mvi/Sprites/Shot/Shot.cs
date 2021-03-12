@@ -28,11 +28,15 @@ namespace CharlyBeck.Mvi.Sprites.Shot
 
 
     public sealed class CShotSprite
-    : 
+    :
         CSprite
     {
         internal CShotSprite(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.CollisionSourceEnum = CCollisionSourceEnum.Shot;
+            this.PlattformSpriteEnum = CPlatformSpriteEnum.Shot;
+
+            this.Init();
         }
         protected override void OnEndUse()
         {
@@ -43,9 +47,6 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             this.Speed = default;
             this.DellocateIsQueued = false;
         }
-
-        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Shot;
-
         internal CVector3Dbl? ShotWorldPos;
         internal CVector3Dbl? MoveVector;
         internal double? Speed;
@@ -54,57 +55,65 @@ namespace CharlyBeck.Mvi.Sprites.Shot
 
         public override CVector3Dbl WorldPos => this.ShotWorldPos.Value;
 
-        internal void Animate(CFrameInfo aFrameInfo)
+        internal override void Update(CFrameInfo aFrameInfo)
         {
+            base.Update(aFrameInfo);
+
             this.ShotWorldPos = this.ShotWorldPos + this.MoveVector.Value.MakeLongerDelta(this.Speed.Value * aFrameInfo.GameTimeElapsed.TotalSeconds);
-            this.WorldMatrix =Matrix.CreateScale((float)this.Scale) * Matrix.CreateTranslation(this.ShotWorldPos.Value.ToVector3());
+            this.WorldMatrix = Matrix.CreateScale((float)this.Scale) * Matrix.CreateTranslation(this.ShotWorldPos.Value.ToVector3());
             this.Reposition();
             if (this.DistanceToAvatar > CStaticParameters.Shot_DistanceToAvatarWhenDead)
                 this.DellocateIsQueued = true;
         }
 
-        internal void Collide()
+        protected override void OnCollide(CSprite aCollideWith, double aDistance)
         {
-            var aShot = this;
-            var aShotables = from aTest in this.FrameInfo.Sprites
-                             where aTest.IsHitable
-                             where !aTest.IsHit
-                             select aTest;
-            var aOwnPos = this.WorldPos;
-            foreach(var aShotable in aShotables)
-            {
-                var aOtherPos = aShotable.WorldPos;
-                var aOtherRadius = aShotable.Radius;
-                var aDistance = aOwnPos.GetDistance(aOtherPos);
-                var aIsHit = aDistance < aOtherRadius;
-                if(aIsHit)
-                {
-                    aShotable.HitGameTimeTotal = this.FrameInfo.GameTimeTotal;
-                    aShotable.OnHit(this);
-                    this.DellocateIsQueued = true;
-                }
-            }
+            base.OnCollide(aCollideWith, aDistance);
+            aCollideWith.OnShotHit(this);
+            this.DellocateIsQueued = true;
         }
-        internal override void Draw()
-        {
-            base.Draw();
-        }
+
+        internal override bool CanCollideWithTarget(CSprite aSprite)
+            => base.CanCollideWithTarget(aSprite) 
+            //&& !aSprite.IsHitByShot
+            ;
+
+        
+        // internal void Collide()
+        // {
+        //    var aShot = this;
+        //    var aShotables = from aTest in this.FrameInfo.Sprites
+        //                     where aTest.IsHitable
+        //                     where !aTest.IsHit
+        //                     select aTest;
+        //    var aOwnPos = this.WorldPos;
+        //    foreach(var aShotable in aShotables)
+        //    {
+        //        var aOtherPos = aShotable.WorldPos;
+        //        var aOtherRadius = aShotable.Radius;
+        //        var aDistance = aOwnPos.GetDistance(aOtherPos);
+        //        var aIsHit = aDistance < aOtherRadius;
+        //        if(aIsHit)
+        //        {
+
+        //        }
+        //    }
+        //}
+        //internal override void Draw()
+        //{
+        //    base.Draw();
+        //}
     }
 
 
-    internal sealed class CShotSprites : CServiceLocatorNode
+    internal sealed class CShotManager : CSinglePoolSpriteManager<CShotSprite>
     {
-        internal CShotSprites(CServiceLocatorNode aParent) : base(aParent)
+        internal CShotManager(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.World = this.ServiceContainer.GetService<CWorld>();
-            this.ShotSpritePool = new CObjectPool<CShotSprite>();
-            this.ShotSpritePool.NewFunc = new Func<CShotSprite>(() => new CShotSprite(this));
         }
 
-        internal readonly CWorld World;
-        private CObjectPool<CShotSprite> ShotSpritePool;
-        private List<CShotSprite> ActiveShots = new List<CShotSprite>();
-        internal IEnumerable<CSprite> Sprites => this.ActiveShots;
+        protected override CShotSprite NewSprite()
+            => new CShotSprite(this);
 
         internal event Action ShotFired;
         private void OnShotFired()
@@ -115,45 +124,12 @@ namespace CharlyBeck.Mvi.Sprites.Shot
 
         private void AddShot(CVector3Dbl aShotWorldPos, CVector3Dbl aMoveVector, double aSpeed)
         {
-            var aShot = this.ShotSpritePool.Allocate();
+            var aShot = this.AllocateSprite();
             aShot.ShotWorldPos = aShotWorldPos;
             aShot.MoveVector = aMoveVector;
             aShot.Speed = aSpeed;
-            this.ActiveShots.Add(aShot);
+            this.AddSprite(aShot);
             this.OnShotFired();
-        }
-
-        private void RemoveDeadShots()
-        {
-            var aDeadShots = (from aTest in this.ActiveShots where aTest.DellocateIsQueued select aTest).ToArray();
-            foreach (var aDeadShot in aDeadShots)
-            {
-                aDeadShot.Deallocate();
-                this.ActiveShots.Remove(aDeadShot);
-            }
-        }
-
-        private void AnimateShots(CFrameInfo aFrameInfo)
-        {
-            foreach (var aShot in this.ActiveShots)
-            {
-                aShot.Animate(aFrameInfo);
-            }
-        }
-
-        private void CollideShots()
-        {
-            foreach (var aShot in this.ActiveShots)
-            {
-                aShot.Collide();
-            }
-        }
-
-        internal void Update(CFrameInfo aFrameInfo)
-        {
-            this.AnimateShots(aFrameInfo);
-            this.CollideShots();
-            this.RemoveDeadShots();            
         }
 
         private TimeSpan? LastShot;

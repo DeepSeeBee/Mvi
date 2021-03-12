@@ -29,6 +29,8 @@ using CharlyBeck.Mvi.Sprites.Explosion;
 using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.CubeMvi;
 using Utils3.Asap;
+using CharlyBeck.Mvi.Sprites.Avatar;
+using CharlyBeck.Mvi.Sprites.SolarSystem;
 
 namespace CharlyBeck.Mvi.World
 {
@@ -152,6 +154,81 @@ namespace CharlyBeck.Mvi.World
     //    #endregion
     //}
 
+    internal sealed class CSpriteManagers : CSpriteManager
+    {
+        #region ctor
+        internal CSpriteManagers(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.ShotManager = new CShotManager(this);
+            this.CrosshairManager = new CCrosshairManager(this);
+            this.ExplosionsManager = new CExplosionsManager(this);
+            this.AvatarManager = new CAvatarManager(this);
+
+            this.SolarSystemSpriteManagers = this.Cube.Quadrants.Select(aQ => aQ.ServiceContainer.GetService<CSolarSystemSpriteManager>()).ToArray();
+        }
+        #endregion
+        #region ShotSprites
+        internal readonly CShotManager ShotManager;
+        internal void Shoot()
+            => this.ShotManager.Shoot();
+        #endregion
+        #region Crosshair
+        private readonly CCrosshairManager CrosshairManager;
+        #endregion
+        #region Explosions
+        internal readonly CExplosionsManager ExplosionsManager;
+        #endregion
+        #region Avatar
+        private readonly CAvatarManager AvatarManager;
+        internal CVector3Dbl AvatarPos { get => this.AvatarManager.AvatarPos; set => this.AvatarManager.AvatarPos = value; }
+        #endregion     
+        #region Cubes
+        internal ICube Cube => this.WormholeCubes; 
+        private CWormholeCubes WormholeCubesM;
+        internal CWormholeCubes WormholeCubes => CLazyLoad.Get(ref this.WormholeCubesM, () => new CWormholeCubes(this));
+        #endregion
+        #region SolarSystemSpriteManagers
+        internal readonly CSolarSystemSpriteManager[] SolarSystemSpriteManagers;
+        #endregion
+        #region Composite
+        internal IEnumerable<CSpriteManager> Items
+        {
+            get
+            {
+                yield return this.ShotManager;
+                yield return this.CrosshairManager;
+                yield return this.ExplosionsManager;
+                foreach (var aSpriteManager in this.SolarSystemSpriteManagers)
+                    yield return aSpriteManager;
+            }
+        }
+
+        internal override IEnumerable<CSprite> BaseSprites
+        {
+            get
+            {
+                foreach(var aItem in this.Items)
+                    foreach (var aSprite in aItem.BaseSprites)
+                        yield return aSprite;
+            }
+        }
+
+
+        internal override void Update(CFrameInfo aFrameInfo)
+        {
+            foreach (var aItem in this.Items)
+                aItem.Update(aFrameInfo);
+        }
+
+        internal override void UpdateAvatarPos()
+        {
+            foreach (var aItem in this.Items)
+                aItem.UpdateAvatarPos();
+        }
+        #endregion
+
+    }
+
     public sealed class CWorld : CServiceLocatorNode
     {
         #region ctor
@@ -168,8 +245,6 @@ namespace CharlyBeck.Mvi.World
             this.NearAsteroidSpeedForRadius0 = 0.001;
             this.SphereScaleCount = 25;
 
-            this.ShotSprites = new CShotSprites(this);
-            this.ShotSprites.ShotFired += this.OnShotFired;
             
         }
         public override void Load()
@@ -182,27 +257,24 @@ namespace CharlyBeck.Mvi.World
         public double LookUpDown { get; set; }
         public double LookLeftRight { get; set; }
         #endregion
+        #region SpriteManagers
+        private CSpriteManagers SpriteManagersM;
+        private CSpriteManagers SpriteManagers => CLazyLoad.Get(ref this.SpriteManagersM, this.NewSpriteManagers);
+        private CSpriteManagers NewSpriteManagers()
+        {
+            var aSpriteManagers = new CSpriteManagers(this);
+            aSpriteManagers.ShotManager.ShotFired += this.OnShotFired;
+            return aSpriteManagers;
+        }
+        #endregion
         #region Shot
-        internal readonly CShotSprites ShotSprites;
         public void Shoot()
-            => this.ShotSprites.Shoot();
+            => this.SpriteManagers.Shoot();
         #endregion
         #region SpaceSwitchQuadrantObjectPool
         private CObjectPool<CSpaceSwitchQuadrant> SpaceSwitchQuadrantObjectPool;
-
-
         #endregion
-        #region Cube
 
-
-        private CCube SimpleCubeM;
-        internal CCube SimpleCube => CLazyLoad.Get(ref this.SimpleCubeM, () => CCube.New(this));
-        #endregion
-        #region WormholeCubes
-        internal ICube Cube => this.WormholeCubes; // this.SimpleCube;
-        private CWormholeCubes WormholeCubesM;
-        internal CWormholeCubes WormholeCubes => CLazyLoad.Get(ref this.WormholeCubesM, ()=>new CWormholeCubes(this));
-        #endregion
         private CSpaceSwitchQuadrant NewSpaceSwitchQuadrant(CServiceLocatorNode aParent)
         {
             return this.SpaceSwitchQuadrantObjectPool.Allocate(new Func<CSpaceSwitchQuadrant>(() => new CSpaceSwitchQuadrant(aParent)));
@@ -215,7 +287,7 @@ namespace CharlyBeck.Mvi.World
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CWorld>(() => this);
             aServiceContainer.AddService<CNewBorderFunc>(() => new CNewBorderFunc(()=> this.CubeSize));
-            aServiceContainer.AddService<CWormholeCubes>(() => this.WormholeCubes);
+            aServiceContainer.AddService<CWormholeCubes>(() => this.SpriteManagers.WormholeCubes);
             aServiceContainer.AddService<CNewQuadrantFunc>(() => new CNewQuadrantFunc(this.NewSpaceSwitchQuadrant));
             aServiceContainer.AddService<CCubePersistentData>(() => this.CubePersistentData);
             return aServiceContainer;
@@ -233,10 +305,6 @@ namespace CharlyBeck.Mvi.World
         private CModels ModelsM;
         public CModels Models => CLazyLoad.Get(ref this.ModelsM, () => new CModels(this));
         #endregion
-        #region Crosshair
-        private CCrosshairSprite CrosshairSpriteM;
-        private CCrosshairSprite CrosshairSprite => CLazyLoad.Get(ref this.CrosshairSpriteM, () => new CCrosshairSprite(this));
-        #endregion
         #region Avatar
         public CVector3Dbl AvatarWorldPos { get; set; }
         public CVector3Dbl AvatarShootDirection { get; set; }
@@ -244,13 +312,6 @@ namespace CharlyBeck.Mvi.World
         #endregion
         public readonly double EdgeLen;
         internal readonly CVector3Dbl EdgeLenAsPos;
-
-        //internal CVector3Dbl GetWorldPos(CTile aTile)
-        //   => this.GetWorldPos(aTile.AbsoluteCubeCoordinates);
-
-        internal CVector3Dbl NewCoords(double xyz)
-            => new CVector3Dbl(xyz);
-
         internal readonly double NearAsteroidSpeedForRadius0;
         internal readonly int TileAsteroidCountMin;
         internal readonly int TileAsteroidCountMax;
@@ -297,13 +358,12 @@ namespace CharlyBeck.Mvi.World
             {
                 if (!this.InitFrame)
                 {
+                    foreach (var aSprite in this.SpriteManagers.BaseSprites)
+                        yield return aSprite;
+
                     foreach (var aSprite in from aItem in this.SpaceQuadrants from aSprite in aItem.Sprites select aSprite)
                         yield return aSprite;
-                    foreach (var aSprite in this.ShotSprites.Sprites)
-                        yield return aSprite;
-                    yield return this.CrosshairSprite;
-                    foreach (var aSprite in this.ExplosionSprites.Sprites)
-                        yield return aSprite;
+
                 }
             }
         }
@@ -332,42 +392,40 @@ namespace CharlyBeck.Mvi.World
 
             this.Cube.MoveTo(this.GetCubePos(this.AvatarWorldPos), true);
 
-            var aSprites = this.Sprites;
-            foreach (var aSprite in aSprites)
-            {
-                aSprite.UpdateAvatarPos();
-            }
-            this.ExplosionSprites.UpdateAvatarPos();
+            //var aSprites = this.Sprites;
+            //foreach (var aSprite in aSprites)
+            //{
+            //    aSprite.UpdateAvatarPos();
+            //}
+            this.SpriteManagers.UpdateAvatarPos();
 
             this.RefreshFrameInfo();
 
-            foreach (var aSprite in aSprites)
-            {
-                aSprite.Update(this.FrameInfo);
-            }
+            //foreach (var aSprite in aSprites)
+            //{
+            //    aSprite.Update(this.FrameInfo);
+            //}
 
-            this.ShotSprites.Update(this.FrameInfo);
-            this.ExplosionSprites.Update(this.FrameInfo);
+            this.SpriteManagers.Update(this.FrameInfo);
         }
 
         internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
             => CWorldPosToCubePos.GetCubePos(aWorldPos, this.EdgeLenAsPos);
 
         #region OnHit
-        internal event Action<CSprite, CShotSprite> SpriteDestroyed;
-        internal void OnDestroyed(CSprite aSprite, CShotSprite aShotSprite)
+        internal event Action<CSprite, CShotSprite> SpriteDestroyedByShot;
+        internal void OnDestroyedByShot(CSprite aSprite, CShotSprite aShotSprite)
         {
-            if(this.SpriteDestroyed is object)
+            if(this.SpriteDestroyedByShot is object)
             {
-                this.SpriteDestroyed(aSprite, aShotSprite);
+                this.SpriteDestroyedByShot(aSprite, aShotSprite);
             }
 
-            this.ExplosionSprites.AddExplosion(aSprite.WorldPos, aSprite.Radius.GetValueOrDefault(1.0d));
+            this.SpriteManagers.ExplosionsManager.AddExplosion(aSprite.WorldPos, aSprite.Radius.GetValueOrDefault(1.0d));
         }
         #endregion
         #region Explosion
-        private CExplosionSprites ExplosionSpritesM;
-        internal CExplosionSprites ExplosionSprites => CLazyLoad.Get(ref this.ExplosionSpritesM, () => new CExplosionSprites(this));
+
 
         public event Action<CSprite> WormholeEntered;
         internal void OnWormholeEntered(CSprite aSprite)
@@ -423,6 +481,9 @@ namespace CharlyBeck.Mvi.World
             (CValueEnum.LandingMode, new Guid("065a36b6-cebe-43c4-bffc-c4e9bae64334"), false, false);
         private CBoolValue SlowDownNearObjectValueM;
         public CBoolValue SlowDownNearObjectValue => CLazyLoad.Get(ref this.SlowDownNearObjectValueM, () => CValue.GetStaticValue<CBoolValue>(this, LandingDeclaration));
+        #region Cube
+        internal ICube Cube => this.SpriteManagers.Cube;
+        #endregion
     }
 
     public struct CAvatarInfo
@@ -450,7 +511,7 @@ namespace CharlyBeck.Mvi.World
             this.World = default;
             this.Sprites = default;
             this.SpriteDistances = default;
-            this.NearestBumperSpriteAndDistance = default;
+            this.NearestBumperAndDistance = default;
             this.NearPlanetSpeedM = default;
             this.CubePositionsM = default;
             this.AttractionM = default;
@@ -461,9 +522,8 @@ namespace CharlyBeck.Mvi.World
             {
                 this.Sprites = this.World.Sprites.ToArray();
                 this.SpriteDistances = (from aSprite in this.Sprites 
-                                        where !aSprite.IsHit
                                         select new Tuple<CSprite, double>(aSprite, aSprite.DistanceToAvatar)).ToArray().OrderBy(aDist => aDist.Item2).ToArray();
-                this.NearestBumperSpriteAndDistance = (from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSprite) select new Tuple<CBumperSprite, double>((CBumperSprite)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();
+                this.NearestBumperAndDistance = (from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSprite) select new Tuple<CBumperSprite, double>((CBumperSprite)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();
                 this.CubePositions = this.World.Cube.CubePositions;
             }
         }
@@ -507,22 +567,22 @@ namespace CharlyBeck.Mvi.World
         public CVector3Dbl AvatarWorldPos =>this.World.AvatarWorldPos;
         public readonly CSprite[] Sprites;
         public readonly CSpriteDistance[] SpriteDistances;
-        public IEnumerable<CSprite> SpriteDatasOrderedByDistance => from aItem in this.SpriteDistances select aItem.Item1;
-        public readonly Tuple<CBumperSprite, double> NearestBumperSpriteAndDistance;
-        public CBumperSprite NearestAsteroid => this.NearestBumperSpriteAndDistance.Item1;
+        public IEnumerable<CSprite> SpritesOrderedByDistance => from aItem in this.SpriteDistances select aItem.Item1;
+        public readonly Tuple<CBumperSprite, double> NearestBumperAndDistance;
+        public CBumperSprite NearestAsteroid => this.NearestBumperAndDistance.Item1;
         private IEnumerable<CCubePos> CubePositionsM;
         public IEnumerable<CCubePos> CubePositions { get => this.CubePositionsM is object ? this.CubePositionsM : Array.Empty<CCubePos>(); private set => this.CubePositionsM = value; }
 
         
-        public bool NearestAsteroidIsDefined => this.NearestBumperSpriteAndDistance is object && this.NearestBumperSpriteAndDistance.Item1 is object;
+        public bool NearestBumperIsDefined => this.NearestBumperAndDistance is object && this.NearestBumperAndDistance.Item1 is object;
 
         public double NearPlanetSpeed { get => CLazyLoad.Get(ref this.NearPlanetSpeedM, this.NewNearPlanetSpeed); }
         public double? NearPlanetSpeedM;
         private double NewNearPlanetSpeed()
         {
-            if (!this.NearestAsteroidIsDefined)
+            if (!this.NearestBumperIsDefined)
             {
-                return 1d; // Strange...
+                return 1d;
             }
             else
             {
@@ -534,23 +594,9 @@ namespace CharlyBeck.Mvi.World
                 var s3 = (s1 + s2) / 2d; // s1 + s2;
                 var s = Math.Max(this.World.NearAsteroidSpeedMin, s3);
                 return s;
-                //var aDistance = this.NearestAsteroidDistanceToSurface;
-                //var aMinDistance = this.World.NearAsteroidSpeedMinDistance;
-                //var aMaxDistance = this.World.NearAsteroidSpeedMaxDistance;
-                //var aEffectiveDistance = Math.Min(aMaxDistance, Math.Max(aMinDistance, aDistance));
-                //var aDistanceForFkt = aEffectiveDistance - aMinDistance;
-                //var aDistanceRange1 = aMaxDistance - aMinDistance;
-                //var aDistanceFkt = aDistanceForFkt / aDistanceRange1;
-                //var aMinSpeed = this.World.NearAsteroidSpeedMaxDistance;
-                //var aDistanceRange2 = 1.0d - this.World.NearAsteroidSpeedMin;
-                //var aSpeed1 = aDistanceFkt * aDistanceRange2; // + this.World.NearAsteroidSpeedMin;
-                //var aExp = (1/aDistance);
-                //var aSpeed2 = Exp(aSpeed1, aExp, 0); // Math.Exp(aSpeed1 * aExp) /Math.Pow(Math.E, aExp);
-                //return aSpeed2;
             }
         }
-        private double Exp(double nr, double mul, int rec)
-            => rec < 0 ? nr : Exp(Math.Exp(nr * mul) / Math.Pow(Math.E, mul), mul, rec - 1); 
+
     }
 
 

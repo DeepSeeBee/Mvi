@@ -28,7 +28,9 @@ namespace CharlyBeck.Mvi.Sprites.Explosion
     {
         internal CExplosionSprite(CServiceLocatorNode aParent):base(aParent)
         {
+            this.PlattformSpriteEnum = CPlatformSpriteEnum.Explosion;
 
+            this.Init();
         }
         protected override void OnEndUse()
         {
@@ -45,8 +47,6 @@ namespace CharlyBeck.Mvi.Sprites.Explosion
             this.Reposition();
         }
 
-        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Explosion;
-
         public void VideoStopped()
         {
             this.DeallocateIsQueued = true;
@@ -54,11 +54,11 @@ namespace CharlyBeck.Mvi.Sprites.Explosion
     }
 
 
-    internal sealed class CExplosionSprites :  CSpriteManager<CExplosionSprite>
+    internal sealed class CExplosionsManager :  CSinglePoolSpriteManager<CExplosionSprite>
     {
 
 
-        internal CExplosionSprites(CServiceLocatorNode aParent) : base(aParent)
+        internal CExplosionsManager(CServiceLocatorNode aParent) : base(aParent)
         {
         }
         protected override CExplosionSprite NewSprite()

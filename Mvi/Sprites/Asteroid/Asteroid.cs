@@ -24,14 +24,11 @@ namespace CharlyBeck.Mvi.Sprites.Asteroid
             this.PlaysFlybySound = true;
             this.MassIsDefined = true;
             this.DestroyedSound = Sfx.CSoundDirectoryEnum.Audio_Destroyed_Moon;
+            this.AsteroidRadiusMax = this.World.DefaultAsteroidRadiusMax;
+            this.CategoryName = "Asteroid";
+
+            this.Init();
         }
-
-        internal override CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator)
-            => this.GenerateDefaultWorldPos(aRandomGenerator);
-
-        internal override CDoubleRange AsteroidRadiusMax => this.World.DefaultAsteroidRadiusMax;
-        public override string CategoryName => "Asteroid";
-        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Bumper;
     }
     internal sealed class CAsteroidsQuadrant : CSpaceQuadrant
     {
@@ -55,7 +52,7 @@ namespace CharlyBeck.Mvi.Sprites.Asteroid
             this.Asteroids.DeallocateItems();
             for (var aIdx = 0; aIdx < aAsteroidCount; ++aIdx)
             {
-                var aAsteroid = this.SpritePool.NewAsteroid();
+                var aAsteroid = this.SolarSystemSpriteManager.AllocateAsteroid();
                 aAsteroid.Build(aQuadrantBuildArgs);
                 aAsteroids[aIdx] = aAsteroid;
             }

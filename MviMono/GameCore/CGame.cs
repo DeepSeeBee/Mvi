@@ -44,6 +44,9 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Mono.Sprites.Explosion;
     using CharlyBeck.Mvi.Sprites.Explosion;
     using CharlyBeck.Mvi.Extensions;
+    using CharlyBeck.Mvi.Mono.Sprites.Avatar;
+    using CharlyBeck.Mvi.Sprites.Avatar;
+
     internal abstract class CBase : CServiceLocatorNode
     {
         internal CBase(CServiceLocatorNode aParent) : base(aParent)
@@ -91,6 +94,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             aPlatformSpriteFactory[CPlatformSpriteEnum.Cube] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoCubeSprite(aPair.Item1) { Sprite = (CCubeSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Shot] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoShotSprite(aPair.Item1) { Sprite = (CShotSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Explosion] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoExplosionSprite(aPair.Item1) { Sprite = (CExplosionSprite)aPair.Item2 }; return aSprite; });
+            aPlatformSpriteFactory[CPlatformSpriteEnum.Avatar] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoAvatarSprite(aPair.Item1) { Sprite = (CAvatarSprite)aPair.Item2 }; return aSprite; });
         }
         #endregion
         #region ServiceLocator

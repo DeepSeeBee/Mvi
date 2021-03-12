@@ -9,7 +9,7 @@ using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.Sprites.Cube;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Mvi.XnaExtensions;
-using CharlyBeck.Utils3.Exceptions;
+using CharlyBeck.Utils3.Reflection;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.ServiceLocator;
 using Microsoft.Xna.Framework;
@@ -34,8 +34,18 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         {
             this.PlaysFlybySound = true;
             this.MassIsDefined = true;
+            this.AsteroidRadiusMax = this.World.PlanetRadiusMax;
         }
-        internal override bool PersistencyEnabled => true;
+
+        private CSolarSystemSpriteManager SolarSystemSpriteManagerM;
+        internal CSolarSystemSpriteManager SolarSystemSpriteManager => CLazyLoad.Get(ref this.SolarSystemSpriteManagerM, () => this.ServiceContainer.GetService<CSolarSystemSpriteManager>());
+
+        protected override void OnBeginUse()
+        {
+            base.OnBeginUse();
+            this.ParentOrb = default;
+        }
+
         internal override void Build(CSpriteBuildArgs a)
         {
             base.Build(a);
@@ -43,7 +53,9 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             var aWorld = this.World;
             var aRandomGenerator = a.QuadrantBuildArgs.RandomGenerator;
             this.OrbitPlaneSlopeMaxM = a.QuadrantBuildArgs.RandomGenerator.NextDouble();
-            this.GeneratedOrbitPlaneSlope = aRandomGenerator.NextVector3Dbl(Math.PI * 2) *  new CVector3Dbl(this.OrbitPlaneSlopeMax);
+            this.OrbitPlaneSlopeMax = this.ParentOrbIsDefined ? this.ParentOrb.OrbitPlaneSlopeMax : this.OrbitPlaneSlopeMaxM.Value;
+            this.GeneratedOrbitPlaneSlope = aRandomGenerator.NextVector3Dbl(Math.PI * 2) * new CVector3Dbl(this.OrbitPlaneSlopeMax);
+            this.OrbitPlaneSlopeCur = this.OrbitPlaneSlopeValue.Value ? this.GeneratedOrbitPlaneSlope : new CVector3Dbl(0d);            
             this.DayDuration = TimeSpan.FromSeconds(aRandomGenerator.NextDouble(aWorld.OrbDayDurationMin, aWorld.OrbDayDurationMax));
             if(!this.ParentOrbIsDefined)
             {
@@ -61,18 +73,15 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             this.Trabants = default;
             this.OwnInheritOrbPlaneSlope = default;
             this.OrbitPlaneSlopeMaxM = default;
+            this.OrbitPlaneSlopeCur = default;
+            this.OrbitPlaneSlopeMax = default;
         }
         internal double? OrbitPlaneSlopeMaxM;
         #endregion
         internal bool? OwnInheritOrbPlaneSlope;
-        //internal virtual bool InheritOrbitPlaneSlope => this.ParentOrbIsDefined
-        //                                              ? this.ParentOrb.InheritOrbitPlaneSlope 
-        //                                              : this.OwnInheritOrbPlaneSlope.Value;
-        internal abstract COrb ParentOrb { get; }
-        internal abstract bool ParentOrbIsDefined { get; }
-        internal COrb RootOrb => this.ParentOrbIsDefined ? this.ParentOrb.RootOrb : this;
-
-        internal double OrbitPlaneSlopeMax => this.ParentOrbIsDefined ? this.ParentOrb.OrbitPlaneSlopeMax : this.OrbitPlaneSlopeMaxM.Value;
+        internal COrb ParentOrb;
+        internal bool ParentOrbIsDefined => this.ParentOrb is object;
+        internal double OrbitPlaneSlopeMax;
         internal IEnumerable<CSprite> Sprites
         {
             get
@@ -83,14 +92,15 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             }
         }
 
-        internal override CDoubleRange AsteroidRadiusMax => this.World.PlanetRadiusMax;
+        internal CVector3Dbl? GeneratedOrbitPlaneSlope;
+        internal CVector3Dbl? OrbitPlaneSlopeCur;
 
-        internal virtual CVector3Dbl GeneratedOrbitPlaneSlope { get; set; }
-        internal CVector3Dbl OrbitPlaneSlopeCur => 
-            !this.OrbitPlaneSlopeValue.Value
-            ? new CVector3Dbl(0d)
-            : this.GeneratedOrbitPlaneSlope 
-            ;
+        internal override void UpdateAvatarPos()
+        {
+            base.UpdateAvatarPos();
+
+
+        }
 
         #region Trabants
         internal virtual double TrabantPropability => 1d;
@@ -186,7 +196,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
     public abstract class CTrabant : COrb
     {
         internal CTrabant(CServiceLocatorNode aParent) : base(aParent)
-        {
+        {            
         }
         internal override void Build(CSpriteBuildArgs a)
         {
@@ -194,6 +204,8 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             var aRandomGenerator = a.QuadrantBuildArgs.RandomGenerator;
             this.YearDuration = TimeSpan.FromSeconds(aRandomGenerator.NextFromDoubleRange(this.TrabantYearDurationRange));
             this.OrbitStartRadians = (aRandomGenerator.NextDouble() * Math.PI * 2d);
+            this.OriginalWorldPos = this.GetWorldPosByOrbitRadians(0d);
+
         }
 
         protected override void OnEndUse()
@@ -207,16 +219,14 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
 
         internal double? OrbitRadius;
         public override bool OrbitIsDefined => true;
-        internal override bool ParentOrbIsDefined => true;
-        public override COrbit Orbit => new COrbit(this.OrbitPlaneSlopeCur, this.ParentOrb.WorldPos, this.OrbitRadius.Value, this.OrbitCurrentRadians);
+        public override COrbit Orbit => new COrbit(this.OrbitPlaneSlopeCur.Value, this.ParentOrb.WorldPos, this.OrbitRadius.Value, this.OrbitCurrentRadians);
 
         internal TimeSpan YearDuration { get; private set; }
         internal double OrbitCurrentRadians => this.AnimateSolarSystemValue.Value
                                           ? ((this.World.GameTimeTotal.TotalSeconds * Math.PI * 2d / this.YearDuration.TotalSeconds).ToRadians() + this.OrbitStartRadians).AvoidNan()
                                           : 0.0d;
         private double OrbitStartRadians { get; set; }
-        internal override CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator)
-            => this.GetWorldPosByOrbitRadians(0d);
+
         public override CVector3Dbl WorldPos
             => this.GetWorldPosByOrbitRadians(this.OrbitCurrentRadians);
 
@@ -228,7 +238,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             var aRotateMatrix = Matrix.CreateRotationY((float)aOrbitRadians);   // yz   xz  xy
             //var aRotateMatrix = aOrbitAnglesCur.ToVector3().ToRotateMatrix();
             var aOrbPos2 = aRotateMatrix.Rotate(aOrbPos1);                      // ..   ..  .
-            var aOrbPos3 = aOrbPos2.RotateZyx(aOrbitAnglesCur.Invert().ToVector3());
+            var aOrbPos3 = aOrbPos2.RotateZyx(aOrbitAnglesCur.Value.Invert().ToVector3());
             var aParentOrbPos = this.ParentOrb.WorldPos;
             var aOrbPos4 = aOrbPos3 + aParentOrbPos.ToVector3();
             return aOrbPos4.ToVector3Dbl();
@@ -245,19 +255,27 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         internal CPlanet(CServiceLocatorNode aParent) : base(aParent)
         {
             this.DestroyedSound = CSoundDirectoryEnum.Audio_Destroyed_Planet;
+            this.CategoryName = "Planet";
+            
+            this.Init();
+        }
+        protected override void OnEndUse()
+        {
+            base.OnEndUse();
+            this.Sun = default;
         }
         #endregion
         #region Sun
         internal CSun Sun;
-        internal override COrb ParentOrb => this.Sun;
         #endregion
         #region Trabants
         internal override bool HasTrabants => true;
         internal override CIntegerRange TrabantCountRange => this.World.PlanetMoonCountRange;
         internal override CTrabant NewTrabant()
         {
-            var aMoon = this.SpritePool.NewMoon();
+            var aMoon = this.SolarSystemSpriteManager.AllocateMoon();
             aMoon.Planet = this;
+            aMoon.ParentOrb = this;
             return aMoon;
         }
         internal override double TrabantPropability =>this.World.PlanetHasMoonsProbability;
@@ -282,10 +300,6 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         private CBoolValue PlanetsVisibleValue => CLazyLoad.Get(ref this.PlanetsVisibleValueM, () => CValue.GetStaticValue<CBoolValue>(this, PlanetsVisibleValueDeclaration));
         internal override CBoolValue OrbVisibleValue => this.PlanetsVisibleValue;
         #endregion
-        #region CategorName
-        public override string CategoryName => "Planet";
-        #endregion
-        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Bumper;
     }
 
     public sealed class CMoon : CTrabant
@@ -293,6 +307,10 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         internal CMoon(CServiceLocatorNode aParent) : base(aParent)
         {
             this.DestroyedSound = CSoundDirectoryEnum.Audio_Destroyed_Moon;
+            this.AsteroidRadiusMax = this.World.MoonRadiusMax;
+            this.CategoryName = "Moon";
+
+            this.Init();
         }
         protected override void OnEndUse()
         {
@@ -301,9 +319,6 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             this.OrbitRadius = default;
         }
         internal CPlanet Planet;
-        internal override COrb ParentOrb => this.Planet;
-
-        internal override CDoubleRange AsteroidRadiusMax => this.World.MoonRadiusMax;
         internal override CDoubleRange TrabantYearDurationRange => this.World.MoonYearDurationRange;
         internal override bool Visible => base.Visible && this.MoonsVisibleValue.Value;
 
@@ -315,7 +330,6 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         private CBoolValue MoonsVisibleValue => CLazyLoad.Get(ref this.MoonsVisibleValueM, () => CValue.GetStaticValue<CBoolValue>(this, MoonsVisibleValueDeclaration));
         internal override CBoolValue OrbVisibleValue => this.MoonsVisibleValue;
         #endregion
-        public override string CategoryName => "Moon";
     }
 
     internal sealed class CSun : COrb
@@ -324,6 +338,10 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         internal CSun(CServiceLocatorNode aParent) : base(aParent)
         {
             this.DestroyedSound = CSoundDirectoryEnum.Audio_Destroyed_Sun;
+            this.AsteroidRadiusMax = this.World.SunRadiusMax;
+            this.CategoryName = "Sun";
+
+            this.Init();
         }
         internal override void Build(CSpriteBuildArgs a)
         {
@@ -337,24 +355,16 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
 
         }
         #endregion
-        internal override CVector3Dbl GenerateOriginalWorldPos(CRandomGenerator aRandomGenerator)
-            => this.GenerateDefaultWorldPos(aRandomGenerator); // this.QuadrantTileDescriptor.QuadrantSpriteData.Center; // TODO
         internal Vector3 OrbitAxis => new Vector3(1, 1, 1);
-        internal override CDoubleRange AsteroidRadiusMax => this.World.SunRadiusMax;
 
-        internal override COrb ParentOrb => throw new InvalidOperationException();
-        internal override bool ParentOrbIsDefined => false;
-        //protected override void OnBuild()
-        //{
-        //    base.OnBuild();
-        //}
         #region Trabants
         internal override CIntegerRange TrabantCountRange => new CIntegerRange(CStaticParameters.SunTrabantCountMin, CStaticParameters.SunTrabantCountMax);
         internal override bool HasTrabants => true;
         internal override CTrabant NewTrabant()
         {
-            var aPlanet = this.SpritePool.NewPlanet();
+            var aPlanet = this.SolarSystemSpriteManager.AllocatePlanet();
             aPlanet.Sun = this;
+            aPlanet.ParentOrb = this;
             return aPlanet;
         }
         internal override CDoubleRange TrabantOrbitRange => this.World.PlanetOrbitRange;
@@ -377,7 +387,6 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         private CBoolValue SunsVisibleValue => CLazyLoad.Get(ref this.SunsVisibleValueM, () => CBoolValue.GetStaticValue<CBoolValue>(this, SunsVisibleValueDeclaration));
         internal override CBoolValue OrbVisibleValue => this.SunsVisibleValue;
         #endregion
-        public override string CategoryName => "Sun";
         #region Chaos
         [CMemberDeclaration]
         internal static CDoubleDeclaration ChaosDecl = new CDoubleDeclaration
@@ -393,15 +402,18 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #region ctor
         public CSolarSystemQuadrant(CServiceLocatorNode aParent) : base(aParent)
         { 
-            this.Sun = new CSun(this);
         }
         protected override void OnEndUse()
         {
             base.OnEndUse();
+
+            this.Sun.Deallocate();
+            this.Sun = default;
         }
         internal override void Build(CQuadrantBuildArgs a)
         {
             base.Build(a);
+            this.Sun = this.SolarSystemSpriteManager.AllocateSun();
             this.Sun.Build(a);
         }
         #endregion
@@ -431,5 +443,45 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         }
         #endregion
         
+    }
+
+    internal enum CBumperClassEnum
+    {
+        Asteroid,
+        Sun,
+        Planet,
+        Moon,
+    }
+
+
+    internal sealed class CSolarSystemSpriteManager : CMultiPoolSpriteManager<CBumperSprite, CBumperClassEnum>
+    {
+        internal CSolarSystemSpriteManager(CServiceLocatorNode aParent): base(aParent)
+        {
+            this.Init();
+        }
+
+        internal override int SpriteClassCount => typeof(CBumperClassEnum).GetEnumMaxValue() + 1;
+        internal override CNewFunc GetNewFunc(CBumperClassEnum aClassEnum)
+        {
+            switch(aClassEnum)
+            {
+                case CBumperClassEnum.Asteroid: return new CNewFunc(() => new CAsteroid(this));
+                case CBumperClassEnum.Sun: return new CNewFunc(() => new CSun(this));
+                case CBumperClassEnum.Planet: return new CNewFunc(() => new CPlanet(this));
+                case CBumperClassEnum.Moon: return new CNewFunc(() => new CMoon(this));
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        internal CAsteroid AllocateAsteroid()
+            => (CAsteroid)this.AllocateSprite(CBumperClassEnum.Asteroid);
+        internal CSun AllocateSun()
+            => (CSun)this.AllocateSprite(CBumperClassEnum.Sun);
+        internal CPlanet AllocatePlanet()
+            => (CPlanet)this.AllocateSprite(CBumperClassEnum.Planet);
+        internal CMoon AllocateMoon()
+            => (CMoon)this.AllocateSprite(CBumperClassEnum.Moon);
     }
 }

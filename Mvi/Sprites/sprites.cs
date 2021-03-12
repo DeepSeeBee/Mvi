@@ -13,6 +13,7 @@ using CharlyBeck.Mvi.World;
 using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
+using CharlyBeck.Utils3.Reflection;
 using CharlyBeck.Utils3.ServiceLocator;
 using Microsoft.Xna.Framework;
 using Mvi.Models;
@@ -40,21 +41,33 @@ namespace CharlyBeck.Mvi.Sprites
 
     }
 
+    internal enum CCollisionSourceEnum
+    {
+        Shot,
+        Avatar,
+        Gem
+    }
+
     public abstract class CSprite : CReuseable
     {
         internal CSprite(CServiceLocatorNode aParent) : base(aParent)
         {
             this.Facade = this.ServiceContainer.GetService<CFacade>();
-            this.PlatformSprite = this.NewPlatformSprite();
-            this.TileCubePos = new CCubePos(0);            
+            this.TileCubePos = new CCubePos(0);
+            this.CollisionSourceIsEnabledArray = new bool[CollisionSourceCount];
         }
 
-        private CSpritePool SpritePoolM;
-        internal CSpritePool SpritePool => CLazyLoad.Get(ref this.SpritePoolM, () => this.ServiceContainer.GetService<CSpritePool>());
+        protected override void Init()
+        {
+            base.Init();
+            this.PlatformSprite = this.NewPlatformSprite();
+        }
+
 
         internal CModels Models => this.World.Models;
         internal CSoundDirectoryEnum? DestroyedSound;
         internal bool DeallocateIsQueued;
+
 
         protected override void OnBeginUse()
         {
@@ -96,7 +109,6 @@ namespace CharlyBeck.Mvi.Sprites
             this.IsNearestM = default;
             this.TileCubePos = default;
             this.TileWorldPos = default;
-            this.HitGameTimeTotal = default;
             this.Radius = default;
             this.ObjectIdM = default;
             this.AttractionToAvatarM = default;
@@ -109,21 +121,16 @@ namespace CharlyBeck.Mvi.Sprites
         internal bool PlaysFlybySound;
         internal virtual void Draw()
         {
-            //if (this.TileCubePos.HasValue
-            //&& this.TileCubePos.Value.x == 31971)
-            //{
-            //    System.Diagnostics.Debug.Assert(true);
-            //}
             if (this.Visible)
                 this.PlatformSprite.Draw();
 
         }
         internal CCubePos? TileCubePos { get; private set; }
 
-        internal void OnHit(CShotSprite aShotSprite)
+        internal void OnShotHit(CShotSprite aShotSprite)
         {
             this.Destroyed = true;
-            this.World.OnDestroyed(this, aShotSprite);
+            this.World.OnDestroyedByShot(this, aShotSprite);
         }
 
         public CVector3Dbl? TileWorldPos { get; private set; }
@@ -140,17 +147,20 @@ namespace CharlyBeck.Mvi.Sprites
         internal readonly CFacade Facade;
         internal CWorld World => this.Facade.World;
         #region PlatformSpriteEnum
-        internal abstract CPlatformSpriteEnum PlattformSpriteEnum { get; }
+        internal CPlatformSpriteEnum? PlattformSpriteEnum;
         internal CPlatformSprite NewPlatformSprite() => this.Facade.PlatformSpriteFactory.NewPlatformSprite(this);
-        internal CPlatformSprite PlatformSprite { get; private set; }
+        internal CPlatformSprite PlatformSprite; 
         #endregion
         internal void Reposition()
             => this.PlatformSprite.Reposition();
         internal virtual int ChangesCount => 0;
-        internal virtual bool Visible => !this.IsHit && !this.Destroyed;
+        internal virtual bool Visible => true             
+            //&& !this.IsHitByShot 
+            && !this.Destroyed
+            ;
 
         private bool? IsNearestM;
-        public bool IsNearest => CLazyLoad.Get(ref this.IsNearestM, () =>this.World.FrameInfo.SpriteDatasOrderedByDistance.OfType<CSprite>().First().RefEquals<CSprite>(this));
+        public bool IsNearest => CLazyLoad.Get(ref this.IsNearestM, () =>this.World.FrameInfo.SpritesOrderedByDistance.OfType<CSprite>().First().RefEquals<CSprite>(this));
         internal virtual void Update(CFrameInfo aFrameInfo) { }
         public double GetAlpha(CVector3Dbl aCameraPos)
         {
@@ -172,10 +182,10 @@ namespace CharlyBeck.Mvi.Sprites
             this.AttractionToAvatarM = default;
         }
 
-        internal CVector3Dbl? AvatarPos { get; private set; }
+        internal CVector3Dbl AvatarPos { get; set; }
 
         private double? DistanceToAvatarM;
-        public double DistanceToAvatar { get=>CLazyLoad.Get(ref this.DistanceToAvatarM, () => this.AvatarPos.Value.GetDistance(this.WorldPos)); }
+        public double DistanceToAvatar { get=>CLazyLoad.Get(ref this.DistanceToAvatarM, () => this.AvatarPos.GetDistance(this.WorldPos)); }
         private bool? AvatarIsInCubeM;
         public bool AvatarIsInQuadrant => CLazyLoad.Get(ref this.AvatarIsInCubeM, () => this.Cube.CubePos == this.TileCubePos.Value);
         internal CFrameInfo FrameInfo => this.World.FrameInfo;
@@ -192,11 +202,6 @@ namespace CharlyBeck.Mvi.Sprites
               => this.ServiceContainer.GetService<CGetWorldPosByCubePosFunc>());
         internal CVector3Dbl GetWorldPos(CCubePos aCubePos)
             => this.GetWorldPosByCubePosFunc(aCubePos);
-        #endregion
-        #region Hitable
-        internal bool IsHitable;
-        internal TimeSpan? HitGameTimeTotal;
-        internal bool IsHit => this.HitGameTimeTotal.HasValue;
         #endregion
         #region Mass
         public bool MassIsDefined;
@@ -229,7 +234,7 @@ namespace CharlyBeck.Mvi.Sprites
                                   ;
             var aAttraction2 = aAttraction1 * aAttractionImpact;
             var aAttraction = aAttraction2;
-            var aDistanceVec = this.WorldPos - this.AvatarPos.Value;
+            var aDistanceVec = this.WorldPos - this.AvatarPos;
             var aAttractionVec = aDistanceVec * new CVector3Dbl(aAttraction);
             return aAttractionVec;
         }
@@ -246,10 +251,52 @@ namespace CharlyBeck.Mvi.Sprites
 
         #endregion
         #region Persistency
-        internal virtual bool PersistencyEnabled => false;
+        internal bool PersistencyEnabled;
 
         private CSpritePersistentData SpritePersistentData;
         internal int? PersistentId;
+        #endregion
+        #region Collision
+        public bool CollisionIsEnabled => this.CollisionSourceEnum.HasValue;
+        internal CCollisionSourceEnum? CollisionSourceEnum = default(CCollisionSourceEnum?);
+        internal virtual void Collide()
+        {
+            if(this.CollisionIsEnabled)
+            {
+                this.Collide(this.CanCollideWithTarget);
+            }
+        }
+        internal virtual bool CanCollideWithTarget(CSprite aSprite)
+            => this.CollisionSourceEnum.HasValue && aSprite.GetCanCollideWithSource(this.CollisionSourceEnum.Value);
+        private void Collide(Func<CSprite, bool> aCanCollideWith)
+            => this.Collide(this.FrameInfo.Sprites.Where(aCanCollideWith));
+        private void Collide(IEnumerable<CSprite> aSprites)
+        {
+            var aSprite = this;
+            var aOwnPos = this.WorldPos;
+            foreach (var aCollideWith in aSprites)
+            {
+                var aOtherPos = aCollideWith.WorldPos;
+                var aOtherRadius = aCollideWith.Radius;
+                var aDistance = aOwnPos.GetDistance(aOtherPos);
+                var aIsHit = aDistance < aOtherRadius;
+                if (aIsHit)
+                {
+                    this.OnCollide(aCollideWith, aDistance);
+                }
+            }
+        }
+        protected virtual void OnCollide(CSprite aCollideWith, double aDistance)
+        {
+
+        }
+        private static readonly int CollisionSourceCount = typeof(CCollisionSourceEnum).GetEnumMaxValue() + 1;
+        private bool[] CollisionSourceIsEnabledArray;
+        internal bool GetCanCollideWithSource(CCollisionSourceEnum aCollisionSource)
+            => this.CollisionSourceIsEnabledArray[(int)aCollisionSource];
+        internal bool SetCollisionIsEnabled(CCollisionSourceEnum aCollisionSource, bool aCollisionIsEnabled)
+            => this.CollisionSourceIsEnabledArray[(int)aCollisionSource] = aCollisionIsEnabled;
+
         #endregion
     }
 
@@ -271,98 +318,101 @@ namespace CharlyBeck.Mvi.Sprites
         }
     }
 
-    internal sealed class CSpritePool : CMultiObjectPool
+    //internal sealed class CSpritePool : CServiceLocatorNode
+    //{
+    //    internal CSpritePool(CServiceLocatorNode aParent) : base(aParent)
+    //    {
+    //        this.SunPool.NewFunc = new Func<CSun>(() => new CSun(this));
+    //        this.PlanetPool.NewFunc = new Func<CPlanet>(() => new CPlanet(this));
+    //        this.MoonPool.NewFunc = new Func<CMoon>(() => new CMoon(this));
+    //        this.AsteroidPool.NewFunc = new Func<CAsteroid>(() => new CAsteroid(this));
+    //    }
+
+    //    private bool ReserveIsDone;
+    //    internal void Reserve()
+    //    {
+    //        bool aEnableReserve = false;
+    //        if(!this.ReserveIsDone
+    //        && aEnableReserve)
+    //        {
+    //            System.Diagnostics.Debugger.Break();
+    //            this.AsteroidPool.Reserve(600);
+    //            this.AsteroidPool.Locked = true;
+    //            this.SunPool.Reserve(600);
+    //            this.SunPool.Locked = true;
+    //            this.PlanetPool.Reserve(600);
+    //            this.PlanetPool.Locked = true;
+    //            this.MoonPool.Reserve(600);
+    //            this.MoonPool.Locked = true;
+    //            this.ReserveIsDone = true;
+    //        }
+    //    }
+
+
+    //    #region Sun
+    //    private readonly CObjectPool<CSun> SunPool = new CObjectPool<CSun>();
+    //    internal CSun AllocateSun()
+    //    {
+    //        this.Reserve();
+    //        return this.SunPool.Allocate();
+    //    }
+    //    #endregion
+    //    #region Planet
+    //    private readonly CObjectPool<CPlanet> PlanetPool = new CObjectPool<CPlanet>();
+    //    internal CPlanet NewPlanet()
+    //    {
+    //        this.Reserve();
+    //        return this.PlanetPool.Allocate();
+    //    }
+    //    #endregion
+    //    #region Moon
+    //    private readonly CObjectPool<CMoon> MoonPool = new CObjectPool<CMoon>();
+    //    internal CMoon NewMoon()
+    //    {
+    //        this.Reserve();
+    //        return this.MoonPool.Allocate(); 
+    //    }
+    //    #endregion
+    //    #region Asteroid
+    //    private readonly CObjectPool<CAsteroid> AsteroidPool = new CObjectPool<CAsteroid>();
+    //    internal CAsteroid NewAsteroid()
+    //    {
+    //        this.Reserve();
+    //        return this.AsteroidPool.Allocate();
+    //    }
+    //    #endregion
+    //}
+
+    internal abstract class CSpriteManager : CServiceLocatorNode
     {
-        internal CSpritePool(CServiceLocatorNode aParent)
+        internal CSpriteManager(CServiceLocatorNode aParent):base(aParent)
         {
-            this.ServiceLocatorNode = aParent;
-            this.SunPool.NewFunc = new Func<CSun>(() => new CSun(this.ServiceLocatorNode));
-            this.PlanetPool.NewFunc = new Func<CPlanet>(() => new CPlanet(this.ServiceLocatorNode));
-            this.MoonPool.NewFunc = new Func<CMoon>(() => new CMoon(this.ServiceLocatorNode));
-            this.AsteroidPool.NewFunc = new Func<CAsteroid>(() => new CAsteroid(this.ServiceLocatorNode));
         }
 
-        private bool ReserveIsDone;
-        internal void Reserve()
-        {
-            bool aEnableReserve = false;
-            if(!this.ReserveIsDone
-            && aEnableReserve)
-            {
-                System.Diagnostics.Debugger.Break();
-                this.AsteroidPool.Reserve(600);
-                this.AsteroidPool.Locked = true;
-                this.SunPool.Reserve(600);
-                this.SunPool.Locked = true;
-                this.PlanetPool.Reserve(600);
-                this.PlanetPool.Locked = true;
-                this.MoonPool.Reserve(600);
-                this.MoonPool.Locked = true;
-                this.ReserveIsDone = true;
-            }
-        }
+        internal abstract void UpdateAvatarPos();
+        internal abstract void Update(CFrameInfo aFrameInfo);
 
-        private readonly CServiceLocatorNode ServiceLocatorNode;
-
-        #region Sun
-        private readonly CObjectPool<CSun> SunPool = new CObjectPool<CSun>();
-        internal CSun AllocateSun()
-        {
-            this.Reserve();
-            return this.SunPool.Allocate();
-        }
-        #endregion
-        #region Planet
-        private readonly CObjectPool<CPlanet> PlanetPool = new CObjectPool<CPlanet>();
-        internal CPlanet NewPlanet()
-        {
-            this.Reserve();
-            return this.PlanetPool.Allocate();
-        }
-        #endregion
-        #region Moon
-        private readonly CObjectPool<CMoon> MoonPool = new CObjectPool<CMoon>();
-        internal CMoon NewMoon()
-        {
-            this.Reserve();
-            return this.MoonPool.Allocate(); 
-        }
-        #endregion
-        #region Asteroid
-        private readonly CObjectPool<CAsteroid> AsteroidPool = new CObjectPool<CAsteroid>();
-        internal CAsteroid NewAsteroid()
-        {
-            this.Reserve();
-            return this.AsteroidPool.Allocate();
-        }
-        #endregion
+        internal abstract IEnumerable<CSprite> BaseSprites { get; }
     }
 
-    internal abstract class CSpriteManager<TSprite> : CServiceLocatorNode where TSprite : CSprite
+    internal abstract class CSpriteManager<TSprite> : CSpriteManager where TSprite : CSprite
     {
-        internal CSpriteManager(CServiceLocatorNode aParent) : base(aParent)
+        internal CSpriteManager(CServiceLocatorNode aParent): base(aParent)
         {
             this.World = this.ServiceContainer.GetService<CWorld>();
-            this.SpritePool = new CObjectPool<TSprite>();
-            this.SpritePool.NewFunc = new Func<TSprite>(() => this.NewSprite());
         }
 
-        protected abstract TSprite NewSprite();
-
         internal readonly CWorld World;
-        private CObjectPool<TSprite> SpritePool;
-        private readonly List<TSprite> ActiveSprites = new List<TSprite>();
 
+        private readonly List<TSprite> ActiveSprites = new List<TSprite>();
         internal IEnumerable<TSprite> Sprites => this.ActiveSprites;
+        internal override IEnumerable<CSprite> BaseSprites => this.Sprites;
 
         protected void AddSprite(TSprite aSprite)
         {
             this.ActiveSprites.Add(aSprite);
 
         }
-        protected TSprite AllocateSprite()
-            => this.SpritePool.Allocate();
-
         private void RemoveDeadSprites()
         {
             var aDeadShots = (from aTest in this.ActiveSprites where aTest.DeallocateIsQueued select aTest).ToArray();
@@ -373,21 +423,77 @@ namespace CharlyBeck.Mvi.Sprites
             }
         }
 
-        internal void UpdateAvatarPos()
+        internal override void UpdateAvatarPos()
         {
-            this.RemoveDeadSprites();
-
+            //this.RemoveDeadSprites();
             foreach (var aSprite in this.ActiveSprites)
-                aSprite.UpdateAvatarPos();;
+                aSprite.UpdateAvatarPos(); ;
         }
 
-        internal void Update(CFrameInfo aFrameInfo)
+        internal override void Update(CFrameInfo aFrameInfo)
         {
-
             foreach (var aSprite in this.ActiveSprites)
                 aSprite.Update(aFrameInfo);
 
+            foreach (var aSprite in this.ActiveSprites)
+                aSprite.Collide();
+
+            this.RemoveDeadSprites();
         }
+    }
+
+    internal abstract class CMultiPoolSpriteManager<TSprite, TClassEnum> : CSpriteManager<TSprite> where TSprite : CSprite where TClassEnum : Enum
+    {
+        internal CMultiPoolSpriteManager(CServiceLocatorNode aParent): base(aParent)
+        {
+            this.MultiSpritePool = new CMultiSpritePool(this);
+        }
+        protected override void Init()
+        {
+            base.Init();
+            this.MultiSpritePool.Init();
+        }
+        internal sealed class CMultiSpritePool : CMultiObjectPool
+        {
+            internal CMultiSpritePool(CMultiPoolSpriteManager<TSprite, TClassEnum> aMultiPoolSpriteManager)
+            {
+                this.MultiPoolSpriteManager = aMultiPoolSpriteManager;
+            }
+            internal void Init()
+            {
+                var aClassCount = this.MultiPoolSpriteManager.SpriteClassCount;
+                this.AllocateObjectPool(aClassCount);
+                for (var i = 0; i < aClassCount; ++i)
+                {
+                    this.SetNewFunc(i, this.MultiPoolSpriteManager.GetNewFunc((TClassEnum)(object)i));
+                }
+            }
+            private readonly CMultiPoolSpriteManager<TSprite, TClassEnum> MultiPoolSpriteManager;
+        }
+        internal abstract CNewFunc GetNewFunc(TClassEnum aClassEnum);
+        internal abstract int SpriteClassCount { get; }
+        private readonly CMultiSpritePool MultiSpritePool;
+        protected TSprite AllocateSprite(TClassEnum aClassEnum)
+            => (TSprite)this.MultiSpritePool.Allocate((int)(object)aClassEnum); 
+
+    }
+
+    internal abstract class CSinglePoolSpriteManager<TSprite> : CSpriteManager<TSprite> where TSprite : CSprite
+    {
+        internal CSinglePoolSpriteManager(CServiceLocatorNode aParent) : base(aParent)
+        {
+            
+            this.SpritePool = new CObjectPool<TSprite>();
+            this.SpritePool.NewFunc = new Func<TSprite>(() => this.NewSprite());
+        }
+
+        protected abstract TSprite NewSprite();
+
+        private CObjectPool<TSprite> SpritePool;
+        protected TSprite AllocateSprite()
+            => this.SpritePool.Allocate();
+
+
     }
 
 }

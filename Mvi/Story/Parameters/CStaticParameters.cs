@@ -23,18 +23,18 @@ namespace CharlyBeck.Mvi
         public const bool Value_QuadrantGridLines = false;
         public const bool Value_AccumulativeViewMatrix = true;
 
-        public const int Cube_Size = 1;
+        public const int Cube_Size = 2;
         public const Int64 Cube_Pos_Max = 100000;
 
         public const int TileAsteroidCountMin = 3;
-        public const int TileAsteroidCountMax = 8;
+        public const int TileAsteroidCountMax = 7;
         public const int SunTrabantCountMin = 3;// 3;
-        public const int SunTrabantCountMax = 8;//10;
+        public const int SunTrabantCountMax = 7;//10;
 
         public static readonly CDoubleRange DefaultAsteroidRadiusMax = new CDoubleRange(0.0001d, 0.01d);
-        public static readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.05d);
-        public static readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.5d, 0.8d);
-        public static readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.5d, 0.7d);
+        public static readonly CDoubleRange SunRadiusMax = new CDoubleRange(0.025d, 0.04d);
+        public static readonly CDoubleRange PlanetRadiusMax = new CDoubleRange(0.5d, 0.7d);
+        public static readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.5d, 0.6d);
         public static readonly double SolarSystem_InheritOrbPlaneSlopePropabiltiy = 0.7d;
 
         public const  double Shot_MinSpeed = 1.4;

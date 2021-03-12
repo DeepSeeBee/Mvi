@@ -1,4 +1,4 @@
-﻿using CharlyBeck.Mvi.Story.Bonus.Gems;
+﻿using CharlyBeck.Mvi.Sprites.Gem;
 using System;
 using System.Collections.Generic;
 using System.Linq;

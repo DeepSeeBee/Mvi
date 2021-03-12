@@ -94,13 +94,15 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CParameters.cs" />
+    <Compile Include="Sprites\Avatar\Avatar.cs" />
+    <Compile Include="Sprites\Gem\Gem.cs" />
+    <Compile Include="Story\Parameters\CStaticParameters.cs" />
     <Compile Include="CubeMvi\CMviQuadrant.cs" />
     <Compile Include="Cube\Cube.cs" />
     <Compile Include="Extensions\ext.cs" />
     <Compile Include="Extensions\Faktor01.cs" />
     <Compile Include="Facade\CFacade.cs" />
-    <Compile Include="Feature\Feature.cs" />
+    <Compile Include="Story\Parameters\Value.cs" />
     <Compile Include="Internal\Internal.cs" />
     <Compile Include="Models\CCircles.cs" />
     <Compile Include="Models\CSphere.cs" />
@@ -108,23 +110,21 @@
     <Compile Include="Models\Model.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <None Include="Sprites\spritesex.cs" />
+    <None Include="[Obsolete]\spritesex.cs" />
     <Compile Include="Sfx\sfx.cs" />
     <Compile Include="Sprites\Asteroid\Asteroid.cs" />
     <Compile Include="Sprites\Crosshair\Crosshair.cs" />
     <Compile Include="CubeMvi\CCubePersistentData.cs" />
     <Compile Include="Sprites\Explosion\Explosion.cs" />
     <Compile Include="Sprites\Shot\Shot.cs" />
-    <Compile Include="Story\Bonus\Bonus.cs" />
-    <Compile Include="Story\Bonus\Gems\CGems.cs" />
+    <Compile Include="Sprites\Gem\Internal\CGems.cs" />
     <None Include="Story\Parameters\CParameters.cs" />
     <None Include="Story\Quest\CQuest.cs" />
     <Compile Include="Sprites\Bumper\Bumper.cs" />
     <Compile Include="Sprites\Cube\CubeSprite.cs" />
     <Compile Include="Sprites\SolarSystem\SolarSystem.cs" />
     <Compile Include="Sprites\sprites.cs" />
-    <Compile Include="Story\Bonus\Slot\CGemManager.cs" />
-    <Compile Include="Story\Bonus\World\GemWorld.cs" />
+    <Compile Include="Sprites\GemSlot\GemSlot.cs" />
     <Compile Include="Story\Propability\Propability.cs" />
     <Compile Include="Story\Story.cs" />
     <Compile Include="Story\Value\CValue.cs" />
@@ -146,6 +146,7 @@
     <Content Include="Bugs.txt" />
     <Content Include="Models\COctaeder.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\MonoGame.Framework.WindowsDX.3.8.0.1641\build\MonoGame.Framework.WindowsDX.targets" Condition="Exists('..\packages\MonoGame.Framework.WindowsDX.3.8.0.1641\build\MonoGame.Framework.WindowsDX.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

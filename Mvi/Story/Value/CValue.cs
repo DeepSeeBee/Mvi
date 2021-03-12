@@ -7,20 +7,7 @@ using System.Threading.Tasks;
 
 namespace CharlyBeck.Mvi.Story.Value
 {
-    enum CAvatarValueEnum
-    {
-        Lifes,
-        Shell,
-        Shield,
-        AutoPilot,
-        LaserEnergy,
-        NuclearMisileCount,
-        ThermalShield,
-        KruskalScanner,
-        Fuel,
-        DrillEnergy,
-        GemDetetorPower,
-    }
+
 
     internal abstract class CValue:CServiceLocatorNode
     {

@@ -1,4 +1,7 @@
-﻿using System;
+﻿using CharlyBeck.Mvi.Cube;
+using CharlyBeck.Utils3.Reflection;
+using CharlyBeck.Utils3.ServiceLocator;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,11 +10,35 @@ using System.Threading.Tasks;
 namespace CharlyBeck.Mvi.Story.Propability
 {
     using CDoubleRange = Tuple<double, double>;
-    internal class CPropability<T>
+
+
+  //  [AttributeUsage(AttributeTargets.Enum)]
+    internal sealed class CPropabilityAttribute : Attribute
     {
-        internal CPropability(Tuple<double, T> [] aFaktors)
+        internal CPropabilityAttribute(double aWeight)
         {
-            this.Weights = aFaktors;
+            this.Weight = aWeight;
+        }
+        public readonly double Weight;
+    }
+
+
+    internal class CPropability<T> : CServiceLocatorNode
+    {
+        internal CPropability(CServiceLocatorNode aParent, Tuple<double, T> [] aWeights) :base(aParent)
+        {
+            this.Weights = aWeights;
+            this.RandomGenerator = this.ServiceContainer.GetService<CRandomGenerator>();
+        }
+
+        private CRandomGenerator RandomGenerator;
+
+        internal static CPropability<T> NewFromEnum(CServiceLocatorNode aParent)
+        {
+            var aAttributes = typeof(T).GetEnumAttributes<T, CPropabilityAttribute>();
+            var aWeights = (from aAttribute in aAttributes select new Tuple<double, T>(aAttribute.Item2.Weight, aAttribute.Item1)).ToArray();
+            var aPropability = new CPropability<T>(aParent, aWeights);
+            return aPropability;
         }
         private Tuple<double, T>[] Map;
         private void UpdateMap()
@@ -42,7 +69,10 @@ namespace CharlyBeck.Mvi.Story.Propability
             }
         }
 
-        public T this[double p]
+        public T Next()
+            => this[this.RandomGenerator.NextDouble()];
+
+        public T this[double aRandomBool]
         {
             get
             {
@@ -50,7 +80,7 @@ namespace CharlyBeck.Mvi.Story.Propability
                 var c = m.Length;
                 for (var i = 0; i < c; ++i)
                 {
-                    if (m[i].Item1 >= p)
+                    if (m[i].Item1 >= aRandomBool)
                         return m[i].Item2;
                 }
                 System.Diagnostics.Debug.Assert(false);

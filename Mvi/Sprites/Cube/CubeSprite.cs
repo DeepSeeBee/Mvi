@@ -76,13 +76,15 @@ namespace CharlyBeck.Mvi.Sprites.Cube
         internal CCubeSprite(CServiceLocatorNode aParent) : base(aParent)
         {
             this.QuadrantValue = CValue.GetStaticValue<CBoolValue>(this.World, QuadrantValueDeclaration);
+            this.PlattformSpriteEnum = CPlatformSpriteEnum.Cube;
+
+            this.Init();
         }
 
         internal override void Build(CSpriteBuildArgs a)
         {
             base.Build(a);
         }
-        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Cube;
         public CCubeModel CubeModel => this.World.Models.CubeModel;
 
         #region Values

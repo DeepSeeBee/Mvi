@@ -35,11 +35,13 @@ namespace CharlyBeck.Mvi.Sprites.Crosshair
     {
         internal CCrosshairSprite(CServiceLocatorNode aParent): base(aParent)
         {
+            this.PlattformSpriteEnum = CPlatformSpriteEnum.Crosshair;
+
+            this.Init();
         }
 
-        public override CVector3Dbl WorldPos => new CVector3Dbl(this.AvatarPos.Value.x, this.AvatarPos.Value.y, this.AvatarPos.Value.z + 0.1);
+        public override CVector3Dbl WorldPos => new CVector3Dbl(this.AvatarPos.x, this.AvatarPos.y, this.AvatarPos.z + 0.1);
 
-        internal override CPlatformSpriteEnum PlattformSpriteEnum => CPlatformSpriteEnum.Crosshair;
         internal override void UpdateAvatarPos()
         {
             base.UpdateAvatarPos();
@@ -47,5 +49,16 @@ namespace CharlyBeck.Mvi.Sprites.Crosshair
             this.Reposition();
         }
     }
+    internal sealed class CCrosshairManager : CSinglePoolSpriteManager<CCrosshairSprite>
+    {
+        internal CCrosshairManager(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.CrosshairSprite = this.AllocateSprite();
+            this.AddSprite(this.CrosshairSprite);
+        }
+        protected override CCrosshairSprite NewSprite()
+            => new CCrosshairSprite(this);
 
+        private readonly CCrosshairSprite CrosshairSprite;
+    }
 }

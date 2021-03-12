@@ -766,13 +766,13 @@ namespace CharlyBeck.Mvi.Cube
         #region ctor
         private CCube(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.SpritePool = new CSpritePool(this);
+            //this.SpritePool = new CSpritePool(this);
             this.RandomGenerator = new CRandomGenerator(this);
             this.DimensionCoordinates = new CDimPos();
             this.CubePos = this.NewCubeCoordinates();
             this.Init();
         }
-        private readonly CSpritePool SpritePool;
+        //private readonly CSpritePool SpritePool;
 
         private CCubePos NewCubeCoordinates()
             => new CCubePos(0);
@@ -808,8 +808,7 @@ namespace CharlyBeck.Mvi.Cube
         private CServiceContainer NewServiceContainer()
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
-            aServiceContainer.AddService<CCube>(() => this);
-            aServiceContainer.AddService<CSpritePool>(() => this.SpritePool);
+            aServiceContainer.AddService<CCube>(() => this);           
             return aServiceContainer;
         }
         #endregion

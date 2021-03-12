@@ -351,7 +351,7 @@ namespace CharlyBeck.Mvi.Sfx
         {
             this.CreateDirectoryDic = true;
             this.AddDirectories();
-            this.World.SpriteDestroyed += delegate (CSprite aSprite, CShotSprite aShot)
+            this.World.SpriteDestroyedByShot += delegate (CSprite aSprite, CShotSprite aShot)
             {
                 var e = aSprite.DestroyedSound;
                 if(e.HasValue)
@@ -579,7 +579,7 @@ namespace CharlyBeck.Mvi.Sfx
         internal void Update()
         {
             var aWorld = this.World;
-            var aNearest = aWorld.FrameInfo.NearestAsteroidIsDefined
+            var aNearest = aWorld.FrameInfo.NearestBumperIsDefined
                          ? new CNearestObject(aWorld.FrameInfo.NearestAsteroid.DistanceToAvatar, aWorld.FrameInfo.NearestAsteroid.ObjectId, aWorld.GameTimeTotal)
                          : default(CNearestObject)
                          ;

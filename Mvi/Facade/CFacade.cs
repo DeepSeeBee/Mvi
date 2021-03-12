@@ -39,11 +39,13 @@ namespace CharlyBeck.Mvi.Facade
     public delegate void CAddInGameThreadAction(Action aAction);
     public enum CPlatformSpriteEnum
     {
+        Avatar,
         Bumper,
         Cube,
         Shot,
         Crosshair,
         Explosion,
+        Gem,
         _Count
     }
     public delegate CPlatformSprite CNewPlatformSpriteFunc(Tuple<CServiceLocatorNode, CSprite> aParentAndSprite);
