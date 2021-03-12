@@ -106,13 +106,11 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
         internal virtual void BuildGem(CSprite aDestroyed, CShotSprite aDestroying, CRandomGenerator aRandomGenerator)
         {
-            this.GemWorldPos = aDestroyed.WorldPos;
+            this.WorldPos = aDestroyed.WorldPos.Value;
             //this.MoveVector = aRandomGenerator.NextVector3Dbl(1d);
             //this.Speed = aRandomGenerator.NextDouble()
         }
 
-        internal CVector3Dbl GemWorldPos;
-        public override CVector3Dbl WorldPos => this.GemWorldPos;
 
     }
     internal sealed class CGemManager : CMultiPoolSpriteManager<CGem, CGemEnum>

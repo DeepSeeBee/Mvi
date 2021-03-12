@@ -367,7 +367,28 @@ namespace CharlyBeck.Mvi.Cube
         internal readonly Func<CSprite, CSpritePersistentData> GetSpritePersistentDataFunc;
     }
 
-    internal abstract class CQuadrant  : CReuseable
+    internal abstract class CQuadrantContent : CReuseable
+    {
+        internal CQuadrantContent(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.World = this.ServiceContainer.GetService<CWorld>();
+        }
+
+        internal readonly CWorld World;
+        public abstract IEnumerable<CSprite> Sprites { get; }
+
+        internal abstract void Build(CQuadrantBuildArgs aQuadrantBuildArgs);
+
+        private CSolarSystemSpriteManager SolarSystemSpriteManagerM;
+        internal virtual CSolarSystemSpriteManager SolarSystemSpriteManager => CLazyLoad.Get(ref this.SolarSystemSpriteManagerM, () => this.ServiceContainer.GetService<CSolarSystemSpriteManager>());
+
+        internal virtual void DeallocateContent()
+        {
+        }
+    }
+
+
+    internal abstract class CQuadrant  : CQuadrantContent
     {
         internal CQuadrant(CServiceLocatorNode aParent) : base(aParent)
         {
@@ -385,20 +406,12 @@ namespace CharlyBeck.Mvi.Cube
             this.LastSpritePersistentDataId = default;
         }
 
-        internal virtual void Build(CQuadrantBuildArgs a)
+        internal override void Build(CQuadrantBuildArgs a)
         {
             this.ResetLAstSpritePersistentData();
             this.TileCubePos = a.TileCubePos;
         }
 
-        private CServiceContainer ServiceContainerM;
-        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
-        private CServiceContainer NewServiceContainer()
-        {
-            var aServiceContainer = base.ServiceContainer.Inherit(this);
-            //aServiceContainer.AddService<CGetSpritePersistentDataFunc>(() => new CGetSpritePersistentDataFunc(aSprite => this.QuadrantPersistentData.GetSpritePersistentData(aSprite)));
-            return aServiceContainer;
-        }
         #region Persistency
         private CQuadrantPersistentData QuadrantPersistentDataM;
         internal CQuadrantPersistentData QuadrantPersistentData => CLazyLoad.Get(ref this.QuadrantPersistentDataM, () => this.Cube.CubePersistentData.GetQuadrantPersistentData(this.TileCubePos.Value.GetKey(this.Cube.Depth)));
@@ -411,8 +424,11 @@ namespace CharlyBeck.Mvi.Cube
         internal void ResetLAstSpritePersistentData()
         {
             this.LastSpritePersistentDataId = 0;
-        } 
+        }
         #endregion
+
+
+
     }
     internal abstract class CDimension : CBase//, IDrawable
     {
@@ -678,11 +694,6 @@ namespace CharlyBeck.Mvi.Cube
         internal CQuadrant Quadrant 
         {
             get => CLazyLoad.Get(ref this.QuadrantM, () => this.QuadrantM = this.NewQuadrantFunc(this.Cube));
-            //set
-            //{
-            //    this.QuadrantM = value;
-            //    this.BuildIsDone = false;
-            //}
         }
         internal void SetQuadrant(CQuadrant aQuadrant, bool aDeallocateOld, bool aBuildIsDone)
         {
@@ -1132,7 +1143,7 @@ namespace CharlyBeck.Mvi.Cube
         #endregion
         #region ICube
 
-        IEnumerable<CQuadrant> ICube.Quadrants => from aItem in this.ActiveItems from aQuadrant in aItem.Quadrants select aQuadrant;
+        IEnumerable<CQuadrant> ICube.Quadrants => from aItem in this.Items from aQuadrant in aItem.Quadrants select aQuadrant;
 
         IEnumerable < CCubePos > ICube.CubePositions => (from aItem in this.ActiveItems select aItem.CubePositions).Flatten();
         void ICube.MoveTo(CCubePos aCubePos, bool aTranslateToCenter) => this.MoveTo(aCubePos, aTranslateToCenter);

@@ -69,25 +69,26 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             this.PlattformSpriteEnum = CPlatformSpriteEnum.Bumper;
         }
         internal CDoubleRange AsteroidRadiusMax;
+
+        protected override void OnEndUse()
+        {
+            base.OnEndUse();
+
+            this.Orbit = default;
+            this.WorldPos = default;
+            this.Radius = default;
+            this.Color = default;
+        }
+
         internal override void Build(CSpriteBuildArgs a)
         {
             base.Build(a);
             var aRandomGenerator = a.QuadrantBuildArgs.RandomGenerator;
             var aWorld = this.World;
-            this.OriginalWorldPos = this.GetWorldPos(this.TileCubePos.Value).Add(aRandomGenerator.NextDouble(this.World.EdgeLenAsPos));
+            this.WorldPos = this.GetRandomWorldPos(aRandomGenerator);
             //this.OriginalWorldPos = this.GenerateOriginalWorldPos(aRandomGenerator);
             this.Radius = this.BuildRadius(aRandomGenerator); 
             this.Color = aRandomGenerator.NextWorldPos();
-            this.AccelerateEnums = aRandomGenerator.NextItems<CAccelerateEnum>(AllAccelerateEnums.Fields);
-            this.GravityIsEnabled = this.AccelerateEnums.Contains(CAccelerateEnum.Gravity);
-            this.GravityRadius = aRandomGenerator.NextDouble(aWorld.AsteroidGravityRadiusMax);
-            this.GravityStrength = aRandomGenerator.NextDouble(aWorld.AsteroidGravityStrengthMax);
-            this.GravityRepulsive = aRandomGenerator.NextBoolean();
-            this.AccelerateIsEnabled = this.AccelerateEnums.Contains(CAccelerateEnum.Accelerate);
-            this.AccelerateHasVector = aRandomGenerator.NextBoolean();
-            this.AccelerateVector = aRandomGenerator.NextWorldPos();
-            this.AccelerateStrength = aRandomGenerator.NextDouble(1.0d);
-            this.AccelerateIsRepulsive = aRandomGenerator.NextBoolean();
             this.TargetCubePos = aRandomGenerator.NextCubePos();
         }
         internal virtual double BuildRadius(CRandomGenerator aRandomGenerator)
@@ -97,24 +98,12 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
 
         internal override int ChangesCount => (int)CChangeEnum._Count;
 
-        public override CVector3Dbl WorldPos => this.OriginalWorldPos.Value;
-        internal CVector3Dbl? OriginalWorldPos;
         internal bool WarpIsActive { get; set; }
         public CVector3Dbl Color { get; private set; }
-        internal CAccelerateEnum[] AccelerateEnums { get; private set; }
-        public bool GravityIsEnabled { get; private set; }
-        public double GravityRadius { get; private set; }
-        public double GravityStrength { get; private set; }
-        public bool GravityRepulsive { get; private set; }
-        public bool AccelerateIsEnabled { get; private set; }
-        public bool AccelerateHasVector { get; private set; }
-        public CVector3Dbl AccelerateVector { get; private set; }
-        public double AccelerateStrength { get; private set; }
-        public bool AccelerateIsRepulsive { get; private set; }
         internal CCubePos TargetCubePos { get; private set; }
         public CBumperModel AsteroidModel => this.World.Models.AsteroidModel;
         public virtual bool OrbitIsDefined => false;
-        public virtual COrbit Orbit => this.Throw<COrbit>(new InvalidOperationException());
+        public  COrbit Orbit;
         internal enum CChangeEnum
         {
             _Count

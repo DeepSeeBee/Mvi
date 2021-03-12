@@ -119,7 +119,7 @@ namespace MviMono.Sprites.Asteroid
             var aOldAlpha = aBasicEffect.Alpha;
             var aOldWorldMatrix = this.Game.WorldMatrix;
             var aScaleMatrix = Matrix.CreateScale((float)aAsteroidSprite.Sprite.Radius);
-            var aTranslateMatrix = Matrix.CreateTranslation(aBumperSprite.WorldPos.ToVector3());
+            var aTranslateMatrix = Matrix.CreateTranslation(aBumperSprite.WorldPos.Value.ToVector3());
             var aWorldMatrix = aOldWorldMatrix * aScaleMatrix * aTranslateMatrix;
             aBasicEffect.Alpha = (float)aAlpha;
             aBasicEffect.World = aWorldMatrix;

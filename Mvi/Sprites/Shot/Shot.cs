@@ -42,25 +42,21 @@ namespace CharlyBeck.Mvi.Sprites.Shot
         {
             base.OnEndUse();
 
-            this.ShotWorldPos = default;
             this.MoveVector = default;
             this.Speed = default;
             this.DellocateIsQueued = false;
         }
-        internal CVector3Dbl? ShotWorldPos;
         internal CVector3Dbl? MoveVector;
         internal double? Speed;
         internal bool DellocateIsQueued;
         internal double Scale = 0.01d;
 
-        public override CVector3Dbl WorldPos => this.ShotWorldPos.Value;
-
         internal override void Update(CFrameInfo aFrameInfo)
         {
             base.Update(aFrameInfo);
 
-            this.ShotWorldPos = this.ShotWorldPos + this.MoveVector.Value.MakeLongerDelta(this.Speed.Value * aFrameInfo.GameTimeElapsed.TotalSeconds);
-            this.WorldMatrix = Matrix.CreateScale((float)this.Scale) * Matrix.CreateTranslation(this.ShotWorldPos.Value.ToVector3());
+            this.WorldPos = this.WorldPos + this.MoveVector.Value.MakeLongerDelta(this.Speed.Value * aFrameInfo.GameTimeElapsed.TotalSeconds);
+            this.WorldMatrix = Matrix.CreateScale((float)this.Scale) * Matrix.CreateTranslation(this.WorldPos.Value.ToVector3());
             this.Reposition();
             if (this.DistanceToAvatar > CStaticParameters.Shot_DistanceToAvatarWhenDead)
                 this.DellocateIsQueued = true;
@@ -125,7 +121,7 @@ namespace CharlyBeck.Mvi.Sprites.Shot
         private void AddShot(CVector3Dbl aShotWorldPos, CVector3Dbl aMoveVector, double aSpeed)
         {
             var aShot = this.AllocateSprite();
-            aShot.ShotWorldPos = aShotWorldPos;
+            aShot.WorldPos = aShotWorldPos;
             aShot.MoveVector = aMoveVector;
             aShot.Speed = aSpeed;
             this.AddSprite(aShot);

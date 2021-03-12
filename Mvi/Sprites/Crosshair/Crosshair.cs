@@ -40,12 +40,11 @@ namespace CharlyBeck.Mvi.Sprites.Crosshair
             this.Init();
         }
 
-        public override CVector3Dbl WorldPos => new CVector3Dbl(this.AvatarPos.x, this.AvatarPos.y, this.AvatarPos.z + 0.1);
-
         internal override void UpdateAvatarPos()
         {
             base.UpdateAvatarPos();
-            this.WorldMatrix = Matrix.CreateTranslation(this.WorldPos.ToVector3());
+            this.WorldPos = new CVector3Dbl(this.AvatarPos.x, this.AvatarPos.y, this.AvatarPos.z + 0.1);
+            this.WorldMatrix = Matrix.CreateTranslation(this.WorldPos.Value.ToVector3());
             this.Reposition();
         }
     }

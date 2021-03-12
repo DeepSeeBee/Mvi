@@ -15,9 +15,6 @@ namespace Utils3.Asap
         {
         }
         #region Factory
-        public CNewFunc NewFunc { get; set; }
-        protected virtual CReuseable New()
-            => this.NewFunc();
         #endregion
     }
 
@@ -29,6 +26,8 @@ namespace Utils3.Asap
         }
         #endregion
         #region Reusable
+        public CNewFunc NewFunc { get; set; }
+
         public bool Locked;
         private readonly List<CReuseable> Free = new List<CReuseable>();
         public CReuseable Allocate()
@@ -63,12 +62,40 @@ namespace Utils3.Asap
             return aNew;
         }
         internal void Deallocate(CReuseable aReusable)
-        {
-            var aList = this.Free;
-            lock (aList)
+        { 
+            if(!aReusable.IsInUse)
             {
-                aList.Add(aReusable);
+                throw new InvalidOperationException();
             }
+            else if(aReusable.DeallocateIsPending)
+            {
+                throw new InvalidOperationException();
+            }
+            else
+            {
+                aReusable.IsInUse = false;
+                aReusable.DeallocateIsPending = true;
+                try
+                {
+                    this.OnDeallocating(aReusable);
+                }
+                finally
+                {
+                    aReusable.DeallocateIsPending = false;
+                }
+                var aList = this.Free;
+                lock (aList)
+                {
+                    aList.Add(aReusable);
+                }
+
+            }
+        }
+        internal Action<CReuseable> Deallocating;
+        internal virtual void OnDeallocating(CReuseable aReuseable)
+        {
+            if (this.Deallocating is object)
+                this.Deallocating(aReuseable);
         }
 
         internal void Reserve(int aCount)
@@ -86,22 +113,9 @@ namespace Utils3.Asap
         #endregion
     }
 
-    public abstract class CMultiPoolItem : CSimpleObjectPool
-    {
-        protected CMultiPoolItem()
-        {
-        }
 
-        public CMultiObjectPool MultiObjectPool { get; internal set; }
 
-    }
 
-    internal sealed class CDefaultMultiPoolItem : CMultiPoolItem
-    {
-        public CDefaultMultiPoolItem()
-        {
-        }
-    }
 
     public abstract class CMultiObjectPool : CObjectPool
     {
@@ -110,14 +124,31 @@ namespace Utils3.Asap
         {
 
         }
+
+        public sealed class CMultiPoolItem : CSimpleObjectPool
+        {
+            internal CMultiPoolItem()
+            {
+            }
+
+            public CMultiObjectPool MultiObjectPool { get; internal set; }
+
+            internal override void OnDeallocating(CReuseable aReuseable)
+            {
+                base.OnDeallocating(aReuseable);
+                this.MultiObjectPool.OnDeallocating(aReuseable);
+            }
+
+        }
         protected void AllocateObjectPool(int c)
-            => this.AllocateObjectPool(c, i => new CDefaultMultiPoolItem());
+            => this.AllocateObjectPool(c, i => new CMultiPoolItem());
         protected void AllocateObjectPool(int c, Func<int, CMultiPoolItem> aNewFunc)
         {
             var aMultiPoolItems = new CMultiPoolItem[c];
             for (var i = 0; i < c; ++i)
             {
                 var aMultiPoolItem = aNewFunc(i);
+                aMultiPoolItem.Deallocating += this.OnDeallocating;
                 aMultiPoolItem.MultiObjectPool = this;
                 aMultiPoolItems[i] = aMultiPoolItem;
             }
@@ -132,6 +163,15 @@ namespace Utils3.Asap
             => this.MultiPoolItems[i].NewFunc = aNewFunc;
         public CReuseable Allocate(int aPoolIdx)
             => this.MultiPoolItems[aPoolIdx].Allocate();
+
+        public event Action<CReuseable> Deallocating;
+        protected virtual void OnDeallocating(CReuseable aReusable)
+        {
+            if(this.Deallocating is object)
+            {
+                this.Deallocating(aReusable);
+            }
+        }
         #endregion
     }
 
@@ -142,7 +182,9 @@ namespace Utils3.Asap
         {
         }
         internal CSimpleObjectPool SimpleObjectPool { set; get; }
-        public bool IsInUse { get; private set; }
+        public bool IsInUse { get; internal set; }
+        internal bool DeallocateIsPending;
+
         protected virtual void OnBeginUse()
         {
         }
@@ -166,11 +208,11 @@ namespace Utils3.Asap
             if (this.IsInUse)
             {
                 this.OnEndUse();
-                this.IsInUse = false;
             }
             else
             {
-                // TODO: throw new InvalidOperationException();
+                // TODO: 
+                throw new InvalidOperationException();
             }
         }
         public void Deallocate()
@@ -192,7 +234,14 @@ namespace Utils3.Asap
         public CObjectPool()
         {
             this.SimpleObjectPool = new CSimpleObjectPool();
+            this.SimpleObjectPool.Deallocating += this.OnDeallocating;
             this.SimpleObjectPool.NewFunc = new CNewFunc(this.New);
+        }
+        public event Action<T> Deallocating;
+        private void OnDeallocating(CReuseable aReusable)
+        {
+            if (this.Deallocating is object)
+                this.Deallocating((T)aReusable);
         }
         private readonly CSimpleObjectPool SimpleObjectPool;
         public void Reserve(int aCount)
@@ -205,6 +254,7 @@ namespace Utils3.Asap
 
         public Func<T> NewFunc { get; set; }
         private CReuseable New() => this.NewFunc();
+
     }
     public static class CEntensions
     {

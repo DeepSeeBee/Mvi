@@ -29,16 +29,40 @@ namespace CharlyBeck.Mvi.Sprites.Asteroid
 
             this.Init();
         }
+
+        protected override void OnBeginUse()
+        {
+            base.OnBeginUse();
+        }
+
+        protected override void OnEndUse()
+        {
+            base.OnEndUse();
+
+            this.WorldPos = default;
+        }
+
+
+        internal override void Build(CSpriteBuildArgs a)
+        {
+            base.Build(a);
+            this.WorldPos = this.GetRandomWorldPos(a.QuadrantBuildArgs.RandomGenerator);
+        }
     }
-    internal sealed class CAsteroidsQuadrant : CSpaceQuadrant
+    internal sealed class CAsteroids : CQuadrantContent
     {
         #region ctor
-        public CAsteroidsQuadrant(CServiceLocatorNode aParent) : base(aParent)
+        public CAsteroids(CServiceLocatorNode aParent) : base(aParent)
         {
         }
         protected override void OnEndUse()
         {
             base.OnEndUse();
+            this.Asteroids.DeallocateItems();
+        }
+        internal override void DeallocateContent()
+        {
+            base.DeallocateContent();
             this.Asteroids.DeallocateItems();
         }
         #endregion

@@ -36,9 +36,6 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             this.Init();
         }
 
-        internal CVector3Dbl AvatarWorldPos;
-        public override CVector3Dbl WorldPos => this.AvatarWorldPos;
-
     }
 
 

@@ -106,6 +106,7 @@ namespace CharlyBeck.Mvi.Sprites
         {
             base.OnEndUse();
 
+            this.WorldPos = default;
             this.IsNearestM = default;
             this.TileCubePos = default;
             this.TileWorldPos = default;
@@ -138,10 +139,15 @@ namespace CharlyBeck.Mvi.Sprites
         {
             get
             {
-                yield return new CTranslateAndRotate(this.WorldPos, new CVector3Dbl(0));
+                yield return new CTranslateAndRotate(this.WorldPos.Value, new CVector3Dbl(0));
             }
         }
-        public abstract CVector3Dbl WorldPos { get; }
+        #region WorldPos
+        public CVector3Dbl? WorldPos;
+        internal CVector3Dbl GetRandomWorldPos(CRandomGenerator aRandomGenerator)
+            => this.GetWorldPos(this.TileCubePos.Value).Add(aRandomGenerator.NextDouble(this.World.EdgeLenAsPos));
+
+        #endregion
         public double? Radius { get; set; }
 
         internal readonly CFacade Facade;
@@ -164,7 +170,7 @@ namespace CharlyBeck.Mvi.Sprites
         internal virtual void Update(CFrameInfo aFrameInfo) { }
         public double GetAlpha(CVector3Dbl aCameraPos)
         {
-            var d = this.WorldPos.GetDistance(aCameraPos);
+            var d = this.WorldPos.Value.GetDistance(aCameraPos);
             var dmax = (this.Cube.Depth -1) / 2; // ; ; // * ((this.World.Cube.EdgeLength - 1) / 2);
             var df = Math.Min(1d, Math.Max(0d, d / dmax));
             //var em = 1.0d;
@@ -185,7 +191,7 @@ namespace CharlyBeck.Mvi.Sprites
         internal CVector3Dbl AvatarPos { get; set; }
 
         private double? DistanceToAvatarM;
-        public double DistanceToAvatar { get=>CLazyLoad.Get(ref this.DistanceToAvatarM, () => this.AvatarPos.GetDistance(this.WorldPos)); }
+        public double DistanceToAvatar { get=>CLazyLoad.Get(ref this.DistanceToAvatarM, () => this.AvatarPos.GetDistance(this.WorldPos.Value)); }
         private bool? AvatarIsInCubeM;
         public bool AvatarIsInQuadrant => CLazyLoad.Get(ref this.AvatarIsInCubeM, () => this.Cube.CubePos == this.TileCubePos.Value);
         internal CFrameInfo FrameInfo => this.World.FrameInfo;
@@ -234,7 +240,7 @@ namespace CharlyBeck.Mvi.Sprites
                                   ;
             var aAttraction2 = aAttraction1 * aAttractionImpact;
             var aAttraction = aAttraction2;
-            var aDistanceVec = this.WorldPos - this.AvatarPos;
+            var aDistanceVec = this.WorldPos.Value - this.AvatarPos;
             var aAttractionVec = aDistanceVec * new CVector3Dbl(aAttraction);
             return aAttractionVec;
         }
@@ -273,10 +279,10 @@ namespace CharlyBeck.Mvi.Sprites
         private void Collide(IEnumerable<CSprite> aSprites)
         {
             var aSprite = this;
-            var aOwnPos = this.WorldPos;
+            var aOwnPos = this.WorldPos.Value;
             foreach (var aCollideWith in aSprites)
             {
-                var aOtherPos = aCollideWith.WorldPos;
+                var aOtherPos = aCollideWith.WorldPos.Value;
                 var aOtherRadius = aCollideWith.Radius;
                 var aDistance = aOwnPos.GetDistance(aOtherPos);
                 var aIsHit = aDistance < aOtherRadius;
@@ -402,9 +408,13 @@ namespace CharlyBeck.Mvi.Sprites
             this.World = this.ServiceContainer.GetService<CWorld>();
         }
 
+
+        protected bool AddOnAllocate;
+
         internal readonly CWorld World;
 
-        private readonly List<TSprite> ActiveSprites = new List<TSprite>();
+        protected readonly List<TSprite> ActiveSprites = new List<TSprite>();
+
         internal IEnumerable<TSprite> Sprites => this.ActiveSprites;
         internal override IEnumerable<CSprite> BaseSprites => this.Sprites;
 
@@ -413,13 +423,21 @@ namespace CharlyBeck.Mvi.Sprites
             this.ActiveSprites.Add(aSprite);
 
         }
+
+        internal void OnAllocate(TSprite aSprite)
+        {
+            if (this.AddOnAllocate)
+            {
+                this.AddSprite(aSprite);
+            }
+        }
         private void RemoveDeadSprites()
         {
-            var aDeadShots = (from aTest in this.ActiveSprites where aTest.DeallocateIsQueued select aTest).ToArray();
+            var aDeadShots = (from aTest in this.ActiveSprites where aTest.DeallocateIsQueued  select aTest).ToArray();
             foreach (var aDeadShot in aDeadShots)
             {
                 aDeadShot.DeallocateIsQueued = false;
-                this.ActiveSprites.Remove(aDeadShot);
+                aDeadShot.Deallocate();
             }
         }
 
@@ -427,17 +445,21 @@ namespace CharlyBeck.Mvi.Sprites
         {
             //this.RemoveDeadSprites();
             foreach (var aSprite in this.ActiveSprites)
-                aSprite.UpdateAvatarPos(); ;
+            {
+                if (aSprite.IsInUse)
+                {
+                    aSprite.UpdateAvatarPos();
+                }
+            }
         }
 
         internal override void Update(CFrameInfo aFrameInfo)
         {
             foreach (var aSprite in this.ActiveSprites)
+            {
                 aSprite.Update(aFrameInfo);
-
-            foreach (var aSprite in this.ActiveSprites)
                 aSprite.Collide();
-
+            }
             this.RemoveDeadSprites();
         }
     }
@@ -469,13 +491,29 @@ namespace CharlyBeck.Mvi.Sprites
                 }
             }
             private readonly CMultiPoolSpriteManager<TSprite, TClassEnum> MultiPoolSpriteManager;
+            protected override void OnDeallocating(CReuseable aReusable)
+            {
+                base.OnDeallocating(aReusable);
+                this.MultiPoolSpriteManager.OnDeallocating((TSprite)aReusable);
+            }
         }
+
+        private void OnDeallocating(TSprite aSprite)
+        {
+            this.ActiveSprites.Remove(aSprite);
+        }
+
         internal abstract CNewFunc GetNewFunc(TClassEnum aClassEnum);
+
         internal abstract int SpriteClassCount { get; }
         private readonly CMultiSpritePool MultiSpritePool;
         protected TSprite AllocateSprite(TClassEnum aClassEnum)
-            => (TSprite)this.MultiSpritePool.Allocate((int)(object)aClassEnum); 
-
+        {
+            var aSprite = (TSprite)this.MultiSpritePool.Allocate((int)(object)aClassEnum);
+            this.OnAllocate(aSprite);
+            return aSprite;
+        }
+        
     }
 
     internal abstract class CSinglePoolSpriteManager<TSprite> : CSpriteManager<TSprite> where TSprite : CSprite
@@ -485,15 +523,23 @@ namespace CharlyBeck.Mvi.Sprites
             
             this.SpritePool = new CObjectPool<TSprite>();
             this.SpritePool.NewFunc = new Func<TSprite>(() => this.NewSprite());
+            this.SpritePool.Deallocating += this.OnDeallocating;
         }
 
+        protected void OnDeallocating(TSprite aSprite)
+        {
+            this.ActiveSprites.Remove(aSprite);
+        }
         protected abstract TSprite NewSprite();
 
-        private CObjectPool<TSprite> SpritePool;
+        private readonly CObjectPool<TSprite> SpritePool;
         protected TSprite AllocateSprite()
-            => this.SpritePool.Allocate();
-
-
+        {
+            var aSprite = this.SpritePool.Allocate();
+            if (this.AddOnAllocate)
+                this.AddSprite(aSprite);
+            return aSprite;
+        }
     }
 
 }

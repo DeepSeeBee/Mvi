@@ -35,15 +35,12 @@ namespace CharlyBeck.Mvi.Sprites.Explosion
         protected override void OnEndUse()
         {
             base.OnEndUse();
-            this.ExplosionWorldPos = default;
         }
-        internal CVector3Dbl? ExplosionWorldPos;
-        public override CVector3Dbl WorldPos => this.ExplosionWorldPos.Value;
         internal double Scale => this.Radius.Value;
 
         internal void Place()
         {
-            this.WorldMatrix = Matrix.CreateScale((float)this.Scale) * Matrix.CreateTranslation(this.ExplosionWorldPos.Value.ToVector3());
+            this.WorldMatrix = Matrix.CreateScale((float)this.Scale) * Matrix.CreateTranslation(this.WorldPos.Value.ToVector3());
             this.Reposition();
         }
 
@@ -68,7 +65,7 @@ namespace CharlyBeck.Mvi.Sprites.Explosion
         public void AddExplosion(CVector3Dbl aPos, double aRadius)
         {
             var aExplosionSprite = this.AllocateSprite();
-            aExplosionSprite.ExplosionWorldPos = aPos;
+            aExplosionSprite.WorldPos = aPos;
             aExplosionSprite.Radius = aRadius;
             this.AddSprite(aExplosionSprite);
         }

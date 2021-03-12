@@ -24,8 +24,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
 {
     using CDoubleRange = Tuple<double, double>;
     using CIntegerRange = Tuple<int, int>;
-    using COrbit = Tuple<CVector3Dbl, CVector3Dbl, double, double>; // OrbitAngles, OrbitCenter, OrbitRadius, OrbitCurrentRadians
-
+    using COrbit = Tuple<CVector3Dbl, CVector3Dbl, double, double>; // OrbitAngles, OrbitCenter, OrbitRadius, OrbitCurrentRadians // TODO_OPT
 
     public abstract class COrb : CBumperSprite
     {
@@ -204,8 +203,9 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             var aRandomGenerator = a.QuadrantBuildArgs.RandomGenerator;
             this.YearDuration = TimeSpan.FromSeconds(aRandomGenerator.NextFromDoubleRange(this.TrabantYearDurationRange));
             this.OrbitStartRadians = (aRandomGenerator.NextDouble() * Math.PI * 2d);
-            this.OriginalWorldPos = this.GetWorldPosByOrbitRadians(0d);
-
+            this.UpdateCurrentRadians();
+            this.WorldPos = this.GetWorldPosByOrbitRadians(0d);
+            this.UpdateOrbit();
         }
 
         protected override void OnEndUse()
@@ -213,22 +213,39 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             base.OnEndUse();
             this.YearDuration = default;
             this.OrbitStartRadians = default;
+            this.OrbitCurrentRadians = default;
+            this.Orbit = default;
         }
 
         internal override double BuildRadius(CRandomGenerator aRandomGenerator) => base.BuildRadius(aRandomGenerator) * this.ParentOrb.Radius.Value;
 
         internal double? OrbitRadius;
         public override bool OrbitIsDefined => true;
-        public override COrbit Orbit => new COrbit(this.OrbitPlaneSlopeCur.Value, this.ParentOrb.WorldPos, this.OrbitRadius.Value, this.OrbitCurrentRadians);
 
-        internal TimeSpan YearDuration { get; private set; }
-        internal double OrbitCurrentRadians => this.AnimateSolarSystemValue.Value
-                                          ? ((this.World.GameTimeTotal.TotalSeconds * Math.PI * 2d / this.YearDuration.TotalSeconds).ToRadians() + this.OrbitStartRadians).AvoidNan()
-                                          : 0.0d;
+            internal TimeSpan YearDuration { get; private set; }
+        internal double? OrbitCurrentRadians;
         private double OrbitStartRadians { get; set; }
 
-        public override CVector3Dbl WorldPos
-            => this.GetWorldPosByOrbitRadians(this.OrbitCurrentRadians);
+        internal override void Update(CFrameInfo aFrameInfo)
+        {
+            base.Update(aFrameInfo);
+            this.Orbit = default;
+
+            this.UpdateCurrentRadians();
+            this.WorldPos = this.GetWorldPosByOrbitRadians(this.OrbitCurrentRadians.Value);
+            this.UpdateOrbit();
+        }
+
+        private void UpdateCurrentRadians()
+        {
+            this.OrbitCurrentRadians = this.AnimateSolarSystemValue.Value
+                                          ? ((this.World.GameTimeTotal.TotalSeconds * Math.PI * 2d / this.YearDuration.TotalSeconds).ToRadians() + this.OrbitStartRadians).AvoidNan()
+                                          : 0.0d;
+        }
+        private void UpdateOrbit()
+        {
+            this.Orbit = new COrbit(this.OrbitPlaneSlopeCur.Value, this.ParentOrb.WorldPos.Value, this.OrbitRadius.Value, this.OrbitCurrentRadians.Value);
+        }
 
         private CVector3Dbl GetWorldPosByOrbitRadians(double aOrbitRadians)
         {
@@ -239,7 +256,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             //var aRotateMatrix = aOrbitAnglesCur.ToVector3().ToRotateMatrix();
             var aOrbPos2 = aRotateMatrix.Rotate(aOrbPos1);                      // ..   ..  .
             var aOrbPos3 = aOrbPos2.RotateZyx(aOrbitAnglesCur.Value.Invert().ToVector3());
-            var aParentOrbPos = this.ParentOrb.WorldPos;
+            var aParentOrbPos = this.ParentOrb.WorldPos.Value;
             var aOrbPos4 = aOrbPos3 + aParentOrbPos.ToVector3();
             return aOrbPos4.ToVector3Dbl();
         }
@@ -397,11 +414,22 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #endregion
     }
 
-    internal sealed class CSolarSystemQuadrant : CSpaceQuadrant
+    internal sealed class CSolarSystems : CQuadrantContent
     {
         #region ctor
-        public CSolarSystemQuadrant(CServiceLocatorNode aParent) : base(aParent)
+        public CSolarSystems(CServiceLocatorNode aParent) : base(aParent)
         { 
+        }
+
+        internal override void DeallocateContent()
+        {
+            base.DeallocateContent();
+
+            if (this.Sun is object)
+            {
+                this.Sun.Deallocate();
+                this.Sun = default;
+            }
         }
         protected override void OnEndUse()
         {
@@ -412,7 +440,6 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         }
         internal override void Build(CQuadrantBuildArgs a)
         {
-            base.Build(a);
             this.Sun = this.SolarSystemSpriteManager.AllocateSun();
             this.Sun.Build(a);
         }
@@ -438,7 +465,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         private CServiceContainer NewServiceContainer()
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
-            aServiceContainer.AddService<CSolarSystemQuadrant>(() => this);
+            aServiceContainer.AddService<CSolarSystems>(() => this);
             return aServiceContainer;
         }
         #endregion
@@ -456,8 +483,11 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
 
     internal sealed class CSolarSystemSpriteManager : CMultiPoolSpriteManager<CBumperSprite, CBumperClassEnum>
     {
+        public static int InstanceCount;
         internal CSolarSystemSpriteManager(CServiceLocatorNode aParent): base(aParent)
         {
+            ++InstanceCount;
+            this.AddOnAllocate = true;
             this.Init();
         }
 

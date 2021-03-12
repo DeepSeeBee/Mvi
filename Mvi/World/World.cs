@@ -213,9 +213,12 @@ namespace CharlyBeck.Mvi.World
             }
         }
 
-
         internal override void Update(CFrameInfo aFrameInfo)
         {
+            var a = from aItem in this.Items.OfType<CSolarSystemSpriteManager>()
+                    where !aItem.Sprites.IsEmpty()
+                    select aItem;
+
             foreach (var aItem in this.Items)
                 aItem.Update(aFrameInfo);
         }
@@ -223,7 +226,9 @@ namespace CharlyBeck.Mvi.World
         internal override void UpdateAvatarPos()
         {
             foreach (var aItem in this.Items)
+            {
                 aItem.UpdateAvatarPos();
+            }
         }
         #endregion
 
@@ -421,7 +426,7 @@ namespace CharlyBeck.Mvi.World
                 this.SpriteDestroyedByShot(aSprite, aShotSprite);
             }
 
-            this.SpriteManagers.ExplosionsManager.AddExplosion(aSprite.WorldPos, aSprite.Radius.GetValueOrDefault(1.0d));
+            this.SpriteManagers.ExplosionsManager.AddExplosion(aSprite.WorldPos.Value, aSprite.Radius.GetValueOrDefault(1.0d));
         }
         #endregion
         #region Explosion

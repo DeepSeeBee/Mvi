@@ -19,14 +19,12 @@ namespace CharlyBeck.Mvi.Cube.Mvi
         #region ctor
         internal CSpaceQuadrant(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.World = this.ServiceContainer.GetService<CWorld>();
-            this.SolarSystemSpriteManager = new CSolarSystemSpriteManager(this);
+            this.SolarSystemSpriteManagerM = new CSolarSystemSpriteManager(this);
         }
         #endregion
-        internal readonly CWorld World;
-        public abstract IEnumerable<CSprite> Sprites { get; }
 
-        internal readonly CSolarSystemSpriteManager SolarSystemSpriteManager;
+        internal readonly CSolarSystemSpriteManager SolarSystemSpriteManagerM;
+        internal override CSolarSystemSpriteManager SolarSystemSpriteManager => this.SolarSystemSpriteManagerM;
 
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
@@ -56,36 +54,47 @@ namespace CharlyBeck.Mvi.Cube.Mvi
         internal CSpaceSwitchQuadrant(CServiceLocatorNode aParent):base(aParent)
         {
             this.CubeQuadrant = new CCubeQuadrant(this);
-            this.AsteroidsQuadrant = new CAsteroidsQuadrant(this);
-            this.SolarSystemQuadrant = new CSolarSystemQuadrant(this);
-            var aItems = new List<CSpaceQuadrant>();
+            this.AsteroidsQuadrant = new CAsteroids(this);
+            this.SolarSystemQuadrant = new CSolarSystems(this);
+            var aItems = new List<CQuadrantContent>();
             if (CStaticParameters.Quadrant_Asteroids)
                 aItems.Add(this.AsteroidsQuadrant);
             if (CStaticParameters.Quadrant_SolarSystem)
                 aItems.Add(this.SolarSystemQuadrant);
 
             var aQuadrants = aItems.ToArray();
-            this.RandomSpaceQuadrants = aQuadrants;
+            this.QuadrantContents = aQuadrants;
+        }
+        protected override void OnEndUse()
+        {
+            base.OnEndUse();
+
+            this.CubeQuadrant.DeallocateContent();
+            this.AsteroidsQuadrant.DeallocateContent();
+            this.SolarSystemQuadrant.DeallocateContent();
         }
         #endregion
         internal readonly CCubeQuadrant CubeQuadrant;
-        internal readonly CAsteroidsQuadrant AsteroidsQuadrant;
-        internal readonly CSolarSystemQuadrant SolarSystemQuadrant;
+        internal readonly CAsteroids AsteroidsQuadrant;
+        internal readonly CSolarSystems SolarSystemQuadrant;
 
-        private CSpaceQuadrant[] RandomSpaceQuadrants;
-        private CSpaceQuadrant RandomSpaceQuadrant;
+        private CQuadrantContent[] QuadrantContents;
+        private CQuadrantContent QuadrantContent;
 
         internal override void Build(CQuadrantBuildArgs a)
         {
             base.Build(a);
 
             var aRandomGenerator = a.RandomGenerator;
-            this.RandomSpaceQuadrant = aRandomGenerator.NextItem(this.RandomSpaceQuadrants);
-            this.RandomSpaceQuadrant.Build(a);
+            this.QuadrantContent = aRandomGenerator.NextItem(this.QuadrantContents);
+            this.QuadrantContent.Build(a);
             this.CubeQuadrant.Build(a);
         }
         public override IEnumerable<CSprite> Sprites 
-            => this.RandomSpaceQuadrant.Sprites.Concat(this.CubeQuadrant.Sprites);
+            => this.QuadrantContent is object
+            ? this.QuadrantContent.Sprites.Concat(this.CubeQuadrant.Sprites)
+            : Array.Empty<CSprite>()
+            ;
 
     }
 }

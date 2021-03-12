@@ -84,6 +84,8 @@ namespace CharlyBeck.Mvi.Sprites.Cube
         internal override void Build(CSpriteBuildArgs a)
         {
             base.Build(a);
+
+            this.WorldPos = this.GetWorldPos(this.TileCubePos.Value);
         }
         public CCubeModel CubeModel => this.World.Models.CubeModel;
 
@@ -93,9 +95,7 @@ namespace CharlyBeck.Mvi.Sprites.Cube
             ( CValueEnum.GridLines, new Guid("4af89c99-2734-4c25-a8d5-9417a2d17b77"), true, CStaticParameters.Value_QuadrantGridLines);
         public readonly CBoolValue QuadrantValue;
         internal override bool Visible => base.Visible && this.QuadrantValue.Value;
-        #endregion
-        public override CVector3Dbl WorldPos => this.GetWorldPos(this.TileCubePos.Value);
-    
+        #endregion    
     }
 
     internal sealed class CCubeQuadrant : CSpaceQuadrant
