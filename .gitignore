@@ -760,3 +760,5 @@ healthchecksdb
 /MviMono/Content/Audio/[Later]/BonusEnd/PM_GC_SPARKLY_SHORT_GLITCH_34.wav
 /MviMono/Content/Audio/[Later]/AutoPilot/PM_DSSP_Engine_Regular_Airy_Synth_Prelayered_Constant_Designed_Futuristic_Scifi_2.wav
 *.wav
+*.mp3
+*.asd

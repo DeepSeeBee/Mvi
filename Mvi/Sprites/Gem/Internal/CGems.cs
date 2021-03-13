@@ -67,7 +67,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Gives an extra live to the player
     /// </summary>
-    internal sealed class CExtraLifeGem : CGem
+    internal sealed class CExtraLifeGem : CGemSprite
     {
         #region ctor
         internal CExtraLifeGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -78,7 +78,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Repairs the shell.
     /// </summary>
-    internal sealed class CShellRepairGem : CGem
+    internal sealed class CShellRepairGem : CGemSprite
     {
         #region ctor
         internal CShellRepairGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -89,7 +89,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Add shield energy
     /// </summary>
-    internal sealed class CShieldGem : CGem
+    internal sealed class CShieldGem : CGemSprite
     {
         #region ctor
         internal CShieldGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -97,7 +97,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
-    internal sealed class CLaserEnergyGem  : CGem
+    internal sealed class CLaserEnergyGem  : CGemSprite
     {
         #region ctor
         internal CLaserEnergyGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -108,7 +108,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Required for destroing suns
     /// </summary>
-    internal sealed class CNuclearMissileGem : CGem
+    internal sealed class CNuclearMissileGem : CGemSprite
     {
         #region ctor
         internal CNuclearMissileGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -119,7 +119,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Required for landing on a planet.
     /// </summary>
-    internal sealed class CThermalShieldGem : CGem
+    internal sealed class CThermalShieldGem : CGemSprite
     {
         #region ctor
         internal CThermalShieldGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -130,7 +130,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Required for finding wormholes.Primarly retrieved by destroying suns.
     /// </summary>
-    internal sealed class CKruskalScannerGem : CGem
+    internal sealed class CKruskalScannerGem : CGemSprite
     {
         #region ctor
         internal CKruskalScannerGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -142,7 +142,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Zum Bohren in planeten benötigt.
     /// </summary>
-    internal sealed class CDrillEnergyGem : CGem
+    internal sealed class CDrillEnergyGem : CGemSprite
     {
         #region ctor
         internal CDrillEnergyGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -150,14 +150,14 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
-    internal sealed class CAmmoSpeedGem : CGem
+    internal sealed class CAmmoSpeedGem : CGemSprite
     {
         #region ctor
         internal CAmmoSpeedGem(CServiceLocatorNode aParent) : base(aParent) { }
         #endregion
         internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
-    internal sealed class CFireRateGem : CGem
+    internal sealed class CFireRateGem : CGemSprite
     {
         #region ctor
         internal CFireRateGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -165,7 +165,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
-    internal sealed class CSlowMotionGem :CGem
+    internal sealed class CSlowMotionGem :CGemSprite
     {
         #region ctor
         internal CSlowMotionGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -173,7 +173,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
     }
 
-    internal sealed class CAntigravityGem : CGem
+    internal sealed class CAntigravityGem : CGemSprite
     {
         #region ctor
         internal CAntigravityGem(CServiceLocatorNode aParent) : base(aParent) { }
@@ -188,7 +188,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #endregion
     }
 
-    internal sealed class CGuidedMissileGem : CGem
+    internal sealed class CGuidedMissileGem : CGemSprite
     {
         internal CGuidedMissileGem(CServiceLocatorNode aParent):base(aParent)
         {
@@ -197,7 +197,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         internal override CGemClassEnum GemClassEnum => CGemClassEnum.Offense;
     }
 
-    internal sealed class CSpaceGripGem : CGem
+    internal sealed class CSpaceGripGem : CGemSprite
     {
         internal CSpaceGripGem(CServiceLocatorNode aParent) : base(aParent)
         {

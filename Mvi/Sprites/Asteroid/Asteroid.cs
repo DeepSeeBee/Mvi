@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utils3.Asap;
+using CharlyBeck.Utils3.Asap;
 
 namespace CharlyBeck.Mvi.Sprites.Asteroid
 {

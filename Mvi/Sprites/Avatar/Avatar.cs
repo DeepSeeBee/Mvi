@@ -32,7 +32,9 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
         internal CAvatarSprite(CServiceLocatorNode aParent):base(aParent)
         {
             this.PlattformSpriteEnum = CPlatformSpriteEnum.Avatar;
-
+            this.SetCollisionIsEnabled(CCollisionSourceEnum.Gem, true);
+            this.BuildIsDone = true;
+            this.Radius = 0.01;
             this.Init();
         }
 
@@ -44,7 +46,6 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
         internal CAvatarManager(CServiceLocatorNode aParent) :base(aParent)
         {
             this.AddOnAllocate = true;
-
             this.Init();
         }
 
@@ -66,6 +67,6 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
 
         private CAvatarSprite AvatarSprite;
 
-        internal CVector3Dbl AvatarPos { get => this.AvatarSprite.AvatarPos; set => this.AvatarSprite.AvatarPos = value; }
+        internal CVector3Dbl AvatarPos { get => this.AvatarSprite.WorldPos.Value; set => this.AvatarSprite.WorldPos = value; }
     }
 }

@@ -19,7 +19,7 @@ using CIntegerRange = System.Tuple<int, int>;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Value;
-using Utils3.Asap;
+using CharlyBeck.Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.Bumper;
 using CharlyBeck.Mvi.Cube.Mvi;
 

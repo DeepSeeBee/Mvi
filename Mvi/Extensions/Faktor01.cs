@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CharlyBeck.Mvi.Extensions
 {
-    internal static class CFaktor01
+    public static class CFaktor01
     {
         public static double F01_GetFactor(this double d, double aMin, double aMax)
         {
@@ -23,5 +23,6 @@ namespace CharlyBeck.Mvi.Extensions
             var r = aTargetMin + f * (aTargetMax - aTargetMin);
             return r;
         }
+
     }
 }

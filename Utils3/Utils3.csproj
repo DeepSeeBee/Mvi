@@ -7,8 +7,8 @@
     <ProjectGuid>{23F3ABDD-69FE-4012-B392-38BBCE1EB29E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Utils3</RootNamespace>
-    <AssemblyName>Utils3</AssemblyName>
+    <RootNamespace>CharlyBeck.Utils3</RootNamespace>
+    <AssemblyName>CharlyBeck.Utils3</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

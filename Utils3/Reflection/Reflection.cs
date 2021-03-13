@@ -17,12 +17,13 @@ namespace CharlyBeck.Utils3.Reflection
             => Enum.GetValues(aEnumType).Cast<Enum>().Select(aEn=>(int)(object)aEn).OrderBy(e=>e).Last();
         public static Tuple<TEnum, TAttribute>[] GetEnumAttributes<TEnum, TAttribute>(this Type aEnumType) where TAttribute : Attribute
         {
-            var aCount = aEnumType.GetEnumMaxValue() + 1;
+            var aEnumValues = aEnumType.GetEnumValues().Cast<TEnum>().ToArray();
+            var aCount = aEnumValues.Length;
             var aItems = new Tuple<TEnum, TAttribute>[aCount];
             for(var i = 0; i< aCount; ++i)
             {
-                var aEnum = (Enum)(object)i;
-                aItems[i] = new Tuple<TEnum, TAttribute>((TEnum)(object)aEnum, aEnum.GetCustomAttribute<TAttribute>());
+                var aEnum = aEnumValues[i];
+                aItems[i] = new Tuple<TEnum, TAttribute>((TEnum)(object)aEnum, ((Enum)(object)aEnum).GetCustomAttribute<TAttribute>());
             }
             return aItems;
         }

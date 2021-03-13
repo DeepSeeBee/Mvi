@@ -46,6 +46,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Mono.Sprites.Avatar;
     using CharlyBeck.Mvi.Sprites.Avatar;
     using CharlyBeck.Mvi.Sprites.GridLines;
+    using CharlyBeck.Mvi.Mono.Sprites.Gem;
+    using CharlyBeck.Mvi.Sprites.Gem;
 
     internal abstract class CBase : CServiceLocatorNode
     {
@@ -89,12 +91,13 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         #region PlatformSpriteFactory
         protected override void BuildPlatformSpriteFactory(CPlatformSpriteFactory aPlatformSpriteFactory)
         {
+            aPlatformSpriteFactory[CPlatformSpriteEnum.Avatar] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoAvatarSprite(aPair.Item1) { Sprite = (CAvatarSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Bumper] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoBumperSprite(aPair.Item1) { Sprite = (CBumperSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Crosshair] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoCrosshairSprite(aPair.Item1) { Sprite = (CCrosshairSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.GridLines] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoGridLinesSprite(aPair.Item1) { Sprite = (CGridLinesSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Shot] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoShotSprite(aPair.Item1) { Sprite = (CShotSprite)aPair.Item2 }; return aSprite; });
             aPlatformSpriteFactory[CPlatformSpriteEnum.Explosion] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoExplosionSprite(aPair.Item1) { Sprite = (CExplosionSprite)aPair.Item2 }; return aSprite; });
-            aPlatformSpriteFactory[CPlatformSpriteEnum.Avatar] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoAvatarSprite(aPair.Item1) { Sprite = (CAvatarSprite)aPair.Item2 }; return aSprite; });
+            aPlatformSpriteFactory[CPlatformSpriteEnum.Gem] = new CNewPlatformSpriteFunc(aPair => { var aSprite = new CMonoGemSprite(aPair.Item1) { Sprite = (CGemSprite)aPair.Item2 }; return aSprite; });
         }
         #endregion
         #region ServiceLocator
@@ -623,8 +626,9 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                     aRotX += 1.0f;
                 if (aKeyboardState.IsKeyDown(Keys.Left))
                     aRotX -= 1.0f;
-                aRotX  = aRotX +(float)this.World.LookLeftRight.ToDegrees();
+                aRotX = aRotX +(float)this.World.LookLeftRight.ToDegrees();
                 this.World.LookLeftRight = 0d;
+               // aRotX = aRotX + (float)aJoystick.GetAxis(CJoystick1.CAxisEnum.X);
 
                 var aRadians1 = MathHelper.ToRadians((float)(aRotX * this.CamSpeedRy * aGameTime.ElapsedGameTime.TotalSeconds));
                 var aRadians2 = this.DebugWindowUpdate.LookLeftRight.Retrieve();
@@ -639,7 +643,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
             {
 
-                var aRotZ = -(float)aJoystick.GetAxis(CJoystick1.CAxisEnum.Z);
+                var aRotZ = 0d;
+                aRotZ = aRotZ -(float)aJoystick.GetAxis(CJoystick1.CAxisEnum.Z);
                 if(aRotZ != 0.0f)
                 {
                     var aRadians = MathHelper.ToRadians((float)(aRotZ * this.CamSpeedRz * aGameTime.ElapsedGameTime.TotalSeconds));
@@ -656,7 +661,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                     aRotY -= 1.0f;
                 aRotY = aRotY + (float)this.World.LookUpDown.ToDegrees();
                 this.World.LookUpDown = 0d;
-                //aRotY += (float)aJoystick.GetAxis(CJoystick1.CAxisEnum.Y);
+               // aRotY += (float)aJoystick.GetAxis(CJoystick1.CAxisEnum.Y);
 
                 var aRadians1 = MathHelper.ToRadians((float)(aRotY * this.CamSpeedRx * aGameTime.ElapsedGameTime.TotalSeconds));
                 var aRadians2 = this.DebugWindowUpdate.LookUpDown.Retrieve();

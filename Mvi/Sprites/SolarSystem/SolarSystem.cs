@@ -17,7 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utils3.Asap;
+using CharlyBeck.Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.GridLines;
 
 namespace CharlyBeck.Mvi.Sprites.SolarSystem
@@ -36,8 +36,8 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
             this.AsteroidRadiusMax = this.World.PlanetRadiusMax;
         }
 
-        private CSolarSystemSpriteManager SolarSystemSpriteManagerM;
-        internal CSolarSystemSpriteManager SolarSystemSpriteManager => CLazyLoad.Get(ref this.SolarSystemSpriteManagerM, () => this.ServiceContainer.GetService<CSolarSystemSpriteManager>());
+        private CQuadrantSpriteManager SolarSystemSpriteManagerM;
+        internal CQuadrantSpriteManager SolarSystemSpriteManager => CLazyLoad.Get(ref this.SolarSystemSpriteManagerM, () => this.ServiceContainer.GetService<CQuadrantSpriteManager>());
 
         protected override void OnBeginUse()
         {
@@ -491,50 +491,5 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
     }
 
 
-    internal sealed class CSolarSystemSpriteManager : CMultiPoolSpriteManager<CSprite, CSolarSystemSpriteEnum>
-    {
-        internal CSolarSystemSpriteManager(CServiceLocatorNode aParent): base(aParent)
-        {
-            this.NoOutOfMemoryException = true;
-            this.AddOnAllocate = true;
-            this.Init();
-        }
-
-        protected override void Init()
-        {
-            base.Init();
-            var aLock = true;
-            this.Reserve(CSolarSystemSpriteEnum.GridLines, 1, aLock);
-            this.Reserve(CSolarSystemSpriteEnum.Asteroid, this.World.TileAsteroidCountMax, aLock);
-            this.Reserve(CSolarSystemSpriteEnum.Sun, 1, aLock);
-            this.Reserve(CSolarSystemSpriteEnum.Planet, CStaticParameters.SunTrabantCountMax, aLock);
-            this.Reserve(CSolarSystemSpriteEnum.Moon, CStaticParameters.SunTrabantCountMax * this.World.PlanetMoonCountRange.Item2, aLock);
-        }
-        
-        internal override int SpriteClassCount => typeof(CSolarSystemSpriteEnum).GetEnumMaxValue() + 1;
-        internal override CNewFunc GetNewFunc(CSolarSystemSpriteEnum aClassEnum)
-        {
-            switch(aClassEnum)
-            {
-                case CSolarSystemSpriteEnum.GridLines: return new CNewFunc(() => new CGridLinesSprite(this));
-                case CSolarSystemSpriteEnum.Asteroid: return new CNewFunc(() => new CAsteroid(this));
-                case CSolarSystemSpriteEnum.Sun: return new CNewFunc(() => new CSun(this));
-                case CSolarSystemSpriteEnum.Planet: return new CNewFunc(() => new CPlanet(this));
-                case CSolarSystemSpriteEnum.Moon: return new CNewFunc(() => new CMoon(this));
-                default:
-                    throw new InvalidOperationException();
-            }
-        }
-
-        internal CAsteroid AllocateAsteroidNullable()
-            => (CAsteroid)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Asteroid);
-        internal CSun AllocateSun()
-            => (CSun)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Sun);
-        internal CPlanet AllocatePlanetNullable()
-            => (CPlanet)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Planet);
-        internal CMoon AllocateMoonNullable()
-            => (CMoon)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Moon);
-        internal CGridLinesSprite AllocateGridLinesSpriteNullable()
-            => (CGridLinesSprite)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.GridLines);
-    }
+ 
 }

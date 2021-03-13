@@ -13,9 +13,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Utils3.Asap;
+using CharlyBeck.Utils3.Asap;
 using Microsoft.Xna.Framework;
 using System.Threading;
+using CharlyBeck.Mvi.ContentManager;
 
 namespace CharlyBeck.Mvi.Facade
 {
@@ -191,6 +192,7 @@ namespace CharlyBeck.Mvi.Facade
             aServiceContainer.AddService<CValues>(() => this.Values);
             aServiceContainer.AddService<CAddInGameThreadAction>(() => new CAddInGameThreadAction(this.AddInGameThreadAction));
             aServiceContainer.AddService<CWorld>(() => this.World);
+            aServiceContainer.AddService<CContentManager>(() => this.ContentManager);
             return aServiceContainer;
         }
         #endregion   
@@ -261,7 +263,10 @@ namespace CharlyBeck.Mvi.Facade
             return aCmd;
         }
         #endregion
-
+        #region ContentManager
+        private CContentManager ContentManagerM;
+        private CContentManager ContentManager => CLazyLoad.Get(ref this.ContentManagerM, () => new CContentManager(this));
+        #endregion
     }
 
 }

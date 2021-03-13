@@ -40,6 +40,23 @@ namespace CharlyBeck.Mvi.Models
                                       3, 5, 4 ,
                                       4,5,1
                                         };
+            var aLineListIndexes = new int[]
+            {
+                0,1,
+                0,2,
+                0,3,
+                0,4,
+                1,2,
+                2,3,
+                3,4,
+                4,1,
+                5,1,
+                5,2,
+                5,3,
+                5,4
+            };
+
+            this.LineList = (from aIdx in aLineListIndexes select Ps[aIdx]).ToArray(); 
             this.ColoredTriangleList = (from aIdx in Enumerable.Range(0, TCount * 3) select Ps[Tis[aIdx]].ToColoredVertex(this.Colors[Tis[aIdx]])).ToArray();
             this.ColoredLineList = this.ColoredTriangleList.TriangleListToLineList().ToArray();
         }
@@ -72,7 +89,9 @@ namespace CharlyBeck.Mvi.Models
         public int[] Tis; // TriangleIndexes
         public const int PCount = 6;
         public const int TCount = 8;
-        public CColoredVertex[] ColoredTriangleList;
-        public CColoredVertex[] ColoredLineList;
+        public readonly CColoredVertex[] ColoredTriangleList;
+        public readonly CColoredVertex[] ColoredLineList;
+        public readonly CVector3Dbl[] LineList;
+
     }
 }

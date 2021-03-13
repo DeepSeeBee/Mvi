@@ -75,7 +75,7 @@ namespace CharlyBeck.Mvi.Story.Bonus.Slot
     }
     internal sealed class CGemSlotManager
     {
-        internal void AddGem(CGem aGem) => throw new NotImplementedException();
+        internal void AddGem(CGemSprite aGem) => throw new NotImplementedException();
 
         private IEnumerable<CGemSlot> GemSlots => throw new NotImplementedException();
 

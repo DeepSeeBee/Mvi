@@ -8,6 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Mvi.Mono.Wpf;
+using CharlyBeck.Utils3.Strings;
+using System.IO;
+using CharlyBeck.Utils3.SystemIo;
+using CharlyBeck.Mvi.ContentManager;
 
 namespace CharlyBeck.Mvi.Mono
 {
@@ -19,6 +23,11 @@ namespace CharlyBeck.Mvi.Mono
         [STAThread]
         static void Main(string[] args)
         {
+            if (Environment.CommandLine.Contains("/BuildContentList"))
+            {
+                CContentManager.BuildContentList();
+            }
+
             var aUseDebugWindow = true;
             if(aUseDebugWindow)
             {

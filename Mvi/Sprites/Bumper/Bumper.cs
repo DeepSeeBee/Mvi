@@ -13,7 +13,7 @@ using CharlyBeck.Utils3.LazyLoad;
 
 using CDoubleRange = System.Tuple<double, double>;
 using CharlyBeck.Mvi.Cube.Mvi;
-using Utils3.Asap;
+using CharlyBeck.Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.Asteroid;
 using CharlyBeck.Mvi.Sfx;
 
@@ -90,6 +90,7 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             this.Radius = this.BuildRadius(aRandomGenerator); 
             this.Color = aRandomGenerator.NextWorldPos();
             this.TargetCubePos = aRandomGenerator.NextCubePos();
+            this.WormholeIsEnabled = true;
         }
         internal virtual double BuildRadius(CRandomGenerator aRandomGenerator)
             => aRandomGenerator.NextFromDoubleRange(this.AsteroidRadiusMax);
@@ -118,6 +119,8 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             Accelerate
         }
 
+        internal bool WormholeIsEnabled;
+
         public double AvatarDistanceToSurface { get; private set; }
         public bool IsBelowSurface { get; private set; }
         internal bool IsBelowSurfaceInWarpArea { get; private set; }
@@ -136,7 +139,11 @@ namespace CharlyBeck.Mvi.Sprites.Bumper
             base.Update(aFrameInfo);
             this.IsNearestAsteroidToAvatar = aFrameInfo.NearestBumperIsDefined
                                         && aFrameInfo.NearestAsteroid.RefEquals<CBumperSprite>(this);
-            this.WormholeCubes.Swap(this);
+            if(this.WormholeIsEnabled
+            && !this.Destroyed)
+            {
+                this.WormholeCubes.Swap(this);
+            }
         }
 
         #region Cube

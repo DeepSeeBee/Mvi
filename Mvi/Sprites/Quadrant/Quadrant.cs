@@ -4,13 +4,14 @@ using CharlyBeck.Mvi.Sprites.GridLines;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.LazyLoad;
+using CharlyBeck.Utils3.Reflection;
 using CharlyBeck.Utils3.ServiceLocator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utils3.Asap;
+using CharlyBeck.Utils3.Asap;
 
 namespace CharlyBeck.Mvi.Cube.Mvi
 {
@@ -60,12 +61,12 @@ namespace CharlyBeck.Mvi.Cube.Mvi
         #region ctor
         internal CSpaceQuadrant(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.SolarSystemSpriteManagerM = new CSolarSystemSpriteManager(this);
+            this.SolarSystemSpriteManagerM = new CQuadrantSpriteManager(this);
         }
         #endregion
 
-        internal readonly CSolarSystemSpriteManager SolarSystemSpriteManagerM;
-        internal override CSolarSystemSpriteManager SolarSystemSpriteManager => this.SolarSystemSpriteManagerM;
+        internal readonly CQuadrantSpriteManager SolarSystemSpriteManagerM;
+        internal override CQuadrantSpriteManager SolarSystemSpriteManager => this.SolarSystemSpriteManagerM;
 
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
@@ -73,7 +74,7 @@ namespace CharlyBeck.Mvi.Cube.Mvi
         private CServiceContainer NewServiceContainer()
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
-            aServiceContainer.AddService<CSolarSystemSpriteManager>(() => this.SolarSystemSpriteManager);
+            aServiceContainer.AddService<CQuadrantSpriteManager>(() => this.SolarSystemSpriteManager);
             return aServiceContainer;
         }
         #endregion
@@ -143,8 +144,8 @@ namespace CharlyBeck.Mvi.Cube.Mvi
 
         internal abstract void Build(CQuadrantBuildArgs aQuadrantBuildArgs);
 
-        private CSolarSystemSpriteManager SolarSystemSpriteManagerM;
-        internal virtual CSolarSystemSpriteManager SolarSystemSpriteManager => CLazyLoad.Get(ref this.SolarSystemSpriteManagerM, () => this.ServiceContainer.GetService<CSolarSystemSpriteManager>());
+        private CQuadrantSpriteManager SolarSystemSpriteManagerM;
+        internal virtual CQuadrantSpriteManager SolarSystemSpriteManager => CLazyLoad.Get(ref this.SolarSystemSpriteManagerM, () => this.ServiceContainer.GetService<CQuadrantSpriteManager>());
 
         private CWorldSpriteManagers WorldSpriteManagersM;
         internal CWorldSpriteManagers WorldSpriteManagers => CLazyLoad.Get(ref this.WorldSpriteManagersM, () => this.ServiceContainer.GetService<CWorldSpriteManagers>());
@@ -156,5 +157,61 @@ namespace CharlyBeck.Mvi.Cube.Mvi
 
         }
     }
+    internal sealed class CQuadrantSpriteManager : CMultiPoolSpriteManager<CSprite, CSolarSystemSpriteEnum>
+    {
+        internal CQuadrantSpriteManager(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.NoOutOfMemoryException = true;
+            this.AddOnAllocate = true;
+            this.Init();
+        }
 
+        protected override void Init()
+        {
+            base.Init();
+            var aLock = true;
+            this.Reserve(CSolarSystemSpriteEnum.GridLines, 1, aLock);
+            this.Reserve(CSolarSystemSpriteEnum.Asteroid, this.World.TileAsteroidCountMax, aLock);
+            this.Reserve(CSolarSystemSpriteEnum.Sun, 1, aLock);
+            this.Reserve(CSolarSystemSpriteEnum.Planet, CStaticParameters.SunTrabantCountMax, aLock);
+            this.Reserve(CSolarSystemSpriteEnum.Moon, CStaticParameters.SunTrabantCountMax * this.World.PlanetMoonCountRange.Item2, aLock);
+        }
+
+        internal override int SpriteClassCount => typeof(CSolarSystemSpriteEnum).GetEnumMaxValue() + 1;
+        internal override CNewFunc GetNewFunc(CSolarSystemSpriteEnum aClassEnum)
+        {
+            switch (aClassEnum)
+            {
+                case CSolarSystemSpriteEnum.GridLines: return new CNewFunc(() => new CGridLinesSprite(this));
+                case CSolarSystemSpriteEnum.Asteroid: return new CNewFunc(() => new CAsteroid(this));
+                case CSolarSystemSpriteEnum.Sun: return new CNewFunc(() => new CSun(this));
+                case CSolarSystemSpriteEnum.Planet: return new CNewFunc(() => new CPlanet(this));
+                case CSolarSystemSpriteEnum.Moon: return new CNewFunc(() => new CMoon(this));
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        internal CAsteroid AllocateAsteroidNullable()
+            => (CAsteroid)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Asteroid);
+        internal CSun AllocateSun()
+            => (CSun)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Sun);
+        internal CPlanet AllocatePlanetNullable()
+            => (CPlanet)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Planet);
+        internal CMoon AllocateMoonNullable()
+            => (CMoon)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.Moon);
+        internal CGridLinesSprite AllocateGridLinesSpriteNullable()
+            => (CGridLinesSprite)this.AllocateSpriteNullable(CSolarSystemSpriteEnum.GridLines);
+    }
+
+    //internal sealed class CQuadrantSpriteManagers : CServiceLocatorNode
+    //{
+    //    internal CQuadrantSpriteManagers(CServiceLocatorNode aParent) : base(aParent)
+    //    {
+    //        this.QuadrantSpriteManager = new CQuadrantSpriteManager(this);
+    //    }
+
+    //    internal readonly CQuadrantSpriteManager QuadrantSpriteManager;
+
+    //}
 }

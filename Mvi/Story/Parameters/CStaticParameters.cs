@@ -53,5 +53,7 @@ namespace CharlyBeck.Mvi
         public const int Shot_Count_Max = 20;
 
         public static readonly TimeSpan Shot_TimeToLive = new TimeSpan(0, 0, 0, 0, 1333);
+
+        public const int Gem_Class_InstanceCount = 10;
     }
 }

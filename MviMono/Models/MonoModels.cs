@@ -3,6 +3,7 @@ using CharlyBeck.Mvi.Mono.Sprites.Avatar;
 using CharlyBeck.Mvi.Mono.Sprites.Crosshair;
 using CharlyBeck.Mvi.Mono.Sprites.Cube;
 using CharlyBeck.Mvi.Mono.Sprites.Explosion;
+using CharlyBeck.Mvi.Mono.Sprites.Gem;
 using CharlyBeck.Mvi.Mono.Sprites.Shot;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.Exceptions;
@@ -33,12 +34,13 @@ namespace MviMono.Models
         #region ctor
         internal CMonoModels(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.MonoAvatarModel = new CMonoAvatarModel(this);
             this.MonoCubeModel = new CMonoCubeModel(this);
             this.MonoBumperModel = new CMonoBumperModel(this);
             this.MonoShotModel = new CMonoShotModel(this);
             this.MonoCrosshairModel = new CMonoCrosshairModel(this);
             this.MonoExplosionModel = new CMonoExplosionModel(this);
-            this.MonoAvatarModel = new CMonoAvatarModel(this);
+            this.MonoGemModel = new CMonoGemModel(this);
         }
         #endregion
 
@@ -52,22 +54,25 @@ namespace MviMono.Models
         {
             get
             {
+                yield return this.MonoAvatarModel;
                 yield return this.MonoCubeModel;
                 yield return this.MonoBumperModel;
                 yield return this.MonoShotModel;
                 yield return this.MonoCrosshairModel;
                 yield return this.MonoExplosionModel;
-                yield return this.MonoAvatarModel;
+                yield return this.MonoGemModel;
             }
         }
+
 
         internal readonly CMonoAvatarModel MonoAvatarModel;
         internal readonly CMonoCubeModel MonoCubeModel;
         internal readonly CMonoBumperModel MonoBumperModel;
         internal readonly CMonoShotModel MonoShotModel;
         internal readonly CMonoCrosshairModel MonoCrosshairModel;
-
         internal readonly CMonoExplosionModel MonoExplosionModel;
+        internal readonly CMonoGemModel MonoGemModel;
+
     }
 
     internal abstract class CMonoModel : CServiceLocatorNode

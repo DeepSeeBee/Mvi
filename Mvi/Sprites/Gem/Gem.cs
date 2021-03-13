@@ -1,5 +1,6 @@
 ﻿using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Facade;
+using CharlyBeck.Mvi.Models;
 using CharlyBeck.Mvi.Sprites.Gem.Internal;
 using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Story.Propability;
@@ -8,12 +9,13 @@ using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.Reflection;
 using CharlyBeck.Utils3.ServiceLocator;
+using Mvi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utils3.Asap;
+using CharlyBeck.Utils3.Asap;
 
 namespace CharlyBeck.Mvi.Sprites.Gem
 {
@@ -65,8 +67,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CPropability(0.2d)]
         Antigravity,         // Navigation    <AGRA> // Gravitation von planeten hat keinen/weniger einfluss.     Turn off or lower gravity.
 
-        [CPropability(0.2d)]
-        AutoPilot,           // Navigation    <AUTP> // Zum automatischen folgen von umlaufbahnen.                Follow path of orb. Press when orb is focused.
+       // [CPropability(0.2d)]
+       // AutoPilot,           // Navigation    <AUTP> // Zum automatischen folgen von umlaufbahnen.                Follow path of orb. Press when orb is focused.
 
         [CPropability(0.5d)]
         SpaceGrip, // Trägheit auf minimum.
@@ -77,16 +79,29 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         //QuestGem,
     }
 
+
+    public sealed class CGemModel: CModel
+    {
+        internal CGemModel(CServiceLocatorNode aParent):base(aParent)
+        {
+            this.Octaeder = new COctaeder();
+        }
+
+        public readonly COctaeder Octaeder;
+        
+    }
+
     /// <summary>
     /// Item to collect, grants special abilites.
-    /// Prototype Pattern
     /// </summary>
-    internal abstract class CGem : CSprite
+    public abstract class CGemSprite : CSprite
     {
         #region ctor
-        internal CGem(CServiceLocatorNode aParent) : base(aParent)
+        internal CGemSprite(CServiceLocatorNode aParent) : base(aParent)
         {
             this.PlattformSpriteEnum = CPlatformSpriteEnum.Gem;
+            this.CollisionSourceEnum = CCollisionSourceEnum.Gem;
+
 
             this.Init();
         }
@@ -99,29 +114,68 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         {
             if (this.ModifyTargetValueIsEnabled)
             {
-                throw new NotImplementedException();
+                //throw new NotImplementedException();
                 //this.TargetValue.Add(this.SourceValue);
             }
-        }
 
+            this.DeallocateIsQueued = true;
+            this.World.OnGemCollected(this);
+        }
+        protected override void OnCollide(CSprite aCollideWith, double aDistance)
+        {
+            base.OnCollide(aCollideWith, aDistance);
+
+            this.Collect();
+        }
+        internal override void Collide()
+        {
+            base.Collide();
+        }
         internal virtual void BuildGem(CSprite aDestroyed, CShotSprite aDestroying, CRandomGenerator aRandomGenerator)
         {
             this.WorldPos = aDestroyed.WorldPos.Value;
-            //this.MoveVector = aRandomGenerator.NextVector3Dbl(1d);
-            //this.Speed = aRandomGenerator.NextDouble()
+            this.TimeToLive = new TimeSpan(0, 0, 10);
+            this.Scale = 0.05d;
+            this.Radius = 0.05d;
+        }
+
+        internal override void Update(CFrameInfo aFrameInfo)
+        {
+            base.Update(aFrameInfo);
+
+            this.WorldMatrix = this.NewWorldMatrix();
+
+            this.Reposition();
         }
 
 
     }
-    internal sealed class CGemManager : CMultiPoolSpriteManager<CGem, CGemEnum>
+    internal sealed class CGemSpriteManager : CMultiPoolSpriteManager<CGemSprite, CGemEnum>
     {
 
-        internal CGemManager(CServiceLocatorNode aParent) : base(aParent)
+        internal CGemSpriteManager(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.World.SpriteDestroyedByShot += this.OnSpriteDestroyedByShot;
-            this.GemPropability = CGemPropability.NewFromEnum(this);
+            this.AddOnAllocate = true;
+
             this.RandomGenerator = new CRandomGenerator(this);
             this.RandomGenerator.Begin();
+            this.GemPropability = CGemPropability.NewFromEnum(this);
+            this.World.SpriteDestroyedByShot += this.OnSpriteDestroyedByShot;
+
+            this.Init();
+        }
+
+        protected override void Init()
+        {
+            base.Init();
+
+            { // Reserve
+                var aLock = true;
+                foreach (var aGemClass in typeof(CGemEnum).GetEnumValues().Cast<CGemEnum>())
+                {
+                    this.Reserve(aGemClass, CStaticParameters.Gem_Class_InstanceCount, aLock);
+                }
+            }
         }
 
         private readonly CGemPropability GemPropability;
@@ -156,6 +210,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
             if(aGem is object)
             {
                 aGem.BuildGem(aDestroyed, aDestroying, this.RandomGenerator);
+                aGem.Update(this.World.FrameInfo);
             }
         }
 

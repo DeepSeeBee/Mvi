@@ -94,6 +94,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ContentManager\ContentManager.cs" />
     <Compile Include="Sprites\Avatar\Avatar.cs" />
     <Compile Include="Sprites\Gem\Gem.cs" />
     <Compile Include="Story\Parameters\CStaticParameters.cs" />
@@ -145,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Bugs.txt" />
+    <EmbeddedResource Include="Content\Content.txt" />
     <Content Include="Models\COctaeder.png" />
   </ItemGroup>
   <ItemGroup />

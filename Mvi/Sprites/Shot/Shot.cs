@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Utils3.Asap;
+using CharlyBeck.Utils3.Asap;
 
 namespace CharlyBeck.Mvi.Sprites.Shot
 {
@@ -36,6 +36,7 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             this.CollisionSourceEnum = CCollisionSourceEnum.Shot;
             this.PlattformSpriteEnum = CPlatformSpriteEnum.Shot;
 
+
             this.Init();
         }
         protected override void OnBeginUse()
@@ -56,18 +57,15 @@ namespace CharlyBeck.Mvi.Sprites.Shot
         internal CVector3Dbl? MoveVector;
         internal double? Speed;
         internal bool DellocateIsQueued;
-        internal double Scale = 0.01d;
 
 
         internal override void Update(CFrameInfo aFrameInfo)
         {
             base.Update(aFrameInfo);
 
-            
-
-
             this.WorldPos = this.WorldPos + this.MoveVector.Value.MakeLongerDelta(this.Speed.Value * aFrameInfo.GameTimeElapsed.TotalSeconds);
-            this.WorldMatrix = Matrix.CreateScale((float)this.Scale) * Matrix.CreateTranslation(this.WorldPos.Value.ToVector3());
+            //this.WorldMatrix = Matrix.CreateScale((float)this.Scale) * Matrix.CreateTranslation(this.WorldPos.Value.ToVector3());
+            this.WorldMatrix = this.NewWorldMatrix(CMatrixModifierBitEnum.Scale | CMatrixModifierBitEnum.Position);
             this.Reposition();
             if (this.DistanceToAvatar > CStaticParameters.Shot_DistanceToAvatarWhenDead)
                 this.DellocateIsQueued = true;
@@ -78,6 +76,12 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             base.OnCollide(aCollideWith, aDistance);
             aCollideWith.OnShotHit(this);
             //this.DellocateIsQueued = true;
+        }
+
+        internal void Build()
+        {
+            this.Scale = 0.01d;
+            this.Radius = 0.01d;
         }
 
         internal override bool CanCollideWithTarget(CSprite aSprite)
@@ -145,6 +149,7 @@ namespace CharlyBeck.Mvi.Sprites.Shot
                 aShot.WorldPos = aShotWorldPos;
                 aShot.MoveVector = aMoveVector;
                 aShot.Speed = aSpeed;
+                aShot.Build();
                 this.OnShotFired();
             }
             else

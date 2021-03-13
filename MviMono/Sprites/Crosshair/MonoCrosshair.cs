@@ -50,9 +50,5 @@ namespace CharlyBeck.Mvi.Mono.Sprites.Crosshair
                 this.MonoModel.Draw();
             }
         }
-        public override void Reposition()
-        {
-            base.Reposition();
-        }
     }
 }

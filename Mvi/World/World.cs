@@ -26,9 +26,10 @@ using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Sprites.Crosshair;
 using CharlyBeck.Mvi.Sprites.Explosion;
 using CharlyBeck.Mvi.Value;
-using Utils3.Asap;
+using CharlyBeck.Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.Avatar;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
+using CharlyBeck.Mvi.Sprites.Gem;
 
 namespace CharlyBeck.Mvi.World
 {
@@ -152,6 +153,83 @@ namespace CharlyBeck.Mvi.World
     //    #endregion
     //}
 
+    internal sealed class CWorldSpriteManagers : CRootSpriteManager
+    {
+        #region ctor
+        internal CWorldSpriteManagers(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.AvatarManager = new CAvatarManager(this);
+            this.ShotManager = new CShotManager(this);
+            this.CrosshairManager = new CCrosshairManager(this);
+            this.ExplosionsManager = new CExplosionsManager(this);
+            this.SolarSystemSpriteManagers = this.Cube.Quadrants.Select(aQ => aQ.ServiceContainer.GetService<CQuadrantSpriteManager>()).ToArray();
+            this.GemSpriteManager = new CGemSpriteManager(this);
+            this.Init();
+        }
+        #endregion
+        #region ShotSprites
+        internal readonly CShotManager ShotManager;
+        internal void Shoot()
+            => this.ShotManager.Shoot();
+        #endregion
+        #region Crosshair
+        private readonly CCrosshairManager CrosshairManager;
+        #endregion
+        #region Explosions
+        internal readonly CExplosionsManager ExplosionsManager;
+        #endregion
+        #region Avatar
+        private readonly CAvatarManager AvatarManager;
+        internal CVector3Dbl AvatarPos { get => this.AvatarManager.AvatarPos; set => this.AvatarManager.AvatarPos = value; }
+        #endregion
+        #region Gems
+        private readonly CGemSpriteManager GemSpriteManager;
+        #endregion
+        #region Cubes
+        internal ICube Cube => this.WormholeCubes;
+        private CWormholeCubes WormholeCubesM;
+        internal CWormholeCubes WormholeCubes => CLazyLoad.Get(ref this.WormholeCubesM, () => new CWormholeCubes(this));
+        #endregion
+        #region ServiceContainer
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            aServiceContainer.AddService<CWorldSpriteManagers>(() => this);
+            return aServiceContainer;
+        }
+
+        #endregion
+        #region SolarSystemSpriteManagers
+        internal readonly CQuadrantSpriteManager[] SolarSystemSpriteManagers;
+        #endregion
+        #region Composite
+        internal IEnumerable<CSpriteManager> Items
+        {
+            get
+            {
+                yield return this.AvatarManager;
+                yield return this.ShotManager;
+                yield return this.CrosshairManager;
+                yield return this.ExplosionsManager;
+                foreach (var aSpriteManager in this.SolarSystemSpriteManagers)
+                    yield return aSpriteManager;
+                yield return this.GemSpriteManager;
+            }
+        }
+
+        internal override IEnumerable<CSprite> BaseSprites
+        {
+            get
+            {
+                foreach (var aItem in this.Items)
+                    foreach (var aSprite in aItem.BaseSprites)
+                        yield return aSprite;
+            }
+        }
+        #endregion
+    }
 
     public sealed class CWorld : CServiceLocatorNode
     {
@@ -230,7 +308,7 @@ namespace CharlyBeck.Mvi.World
         public CModels Models => CLazyLoad.Get(ref this.ModelsM, () => new CModels(this));
         #endregion
         #region Avatar
-        public CVector3Dbl AvatarWorldPos { get; set; }
+        public CVector3Dbl AvatarWorldPos { get => this.SpriteManagers.AvatarPos; set => this.SpriteManagers.AvatarPos = value; }
         public CVector3Dbl AvatarShootDirection { get; set; }
         public double AvatarSpeed { get; set; }
         #endregion
@@ -291,7 +369,7 @@ namespace CharlyBeck.Mvi.World
                 }
             }
         }
-
+        #region Events
         internal event Action ShootFired;
         internal void OnShotFired()
         {
@@ -300,7 +378,15 @@ namespace CharlyBeck.Mvi.World
                 this.ShootFired();
             }    
         }
-
+        internal event Action<CGemSprite> GemCollected;
+        internal void OnGemCollected(CGemSprite aGemSprite)
+        {
+            if(this.GemCollected is object)
+            {
+                this.GemCollected(aGemSprite);
+            }    
+        }
+        #endregion
         internal bool InitFrame = true;
         #region Values
         [CMemberDeclaration]

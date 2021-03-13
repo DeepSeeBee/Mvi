@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utils3.Asap
+namespace CharlyBeck.Utils3.Asap
 {
     public delegate CReuseable CNewFunc();
 

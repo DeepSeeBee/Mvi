@@ -126,6 +126,7 @@
     <Compile Include="Sprites\Crosshair\MonoCrosshair.cs" />
     <Compile Include="Sprites\Cube\MonoCube.cs" />
     <Compile Include="Sprites\Explosion\MonoExplosion.cs" />
+    <Compile Include="Sprites\Gem\MonoGem.cs" />
     <Compile Include="Sprites\Shot\MonoShot.cs" />
     <Compile Include="Sprites\sprites.cs" />
     <Compile Include="Wpf\CDebugWindow.xaml.cs">
@@ -149,248 +150,112 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\PM_FN_Impacts_2.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\PM_FN_Impacts_Heartbeat_11.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\PM_INT_HnT_08.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Collision\PM_INT_HnT_26.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_Darkscapes_1.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_Darkscapes_27.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_FN_Drones_Soundscapes_SeamlessLoop_1.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_FN_Events_LvlUps_PowerUps_53.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_FN_Events_LvlUps_PowerUps_64.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_FSSF2_DRONES_6_LOOP.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_FSSF2_EXTRATERRESTRIAL_BIG_CREATURE_GURGLE_5.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_FSSF2_TRANSMISSION_RADIO_GLITCH_LOOP_5.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_FSSF2_XTRAS_TENSION_BUILDERS_1.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_GC_GLITCHY_DRONES_7.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_Ghostly_Air_1.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_Ghostly_Air_15.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_Ghostly_Air_29.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_INT_01.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_INT_37.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_INT_52.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_INT_66.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_INT_EXC_37.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_INT_TX_Soundscape_01.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_INT_TX_Soundscape_19.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Content\Audio\Ambient\PM_INT_TX_Whoosh_23.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Collision\PM_FN_Impacts_2.xml" />
+    <None Include="Content\Audio\Collision\PM_FN_Impacts_Heartbeat_11.xml" />
+    <None Include="Content\Audio\Collision\PM_INT_HnT_08.xml" />
+    <None Include="Content\Audio\Collision\PM_INT_HnT_26.xml" />
+    <None Include="Content\Audio\Ambient\PM_Darkscapes_1.mp3" />
+    <None Include="Content\Audio\Ambient\PM_Darkscapes_27.mp3" />
+    <None Include="Content\Audio\Ambient\PM_FN_Drones_Soundscapes_SeamlessLoop_1.mp3" />
+    <None Include="Content\Audio\Ambient\PM_FN_Events_LvlUps_PowerUps_53.mp3" />
+    <None Include="Content\Audio\Ambient\PM_FN_Events_LvlUps_PowerUps_64.mp3" />
+    <None Include="Content\Audio\Ambient\PM_FSSF2_DRONES_6_LOOP.mp3" />
+    <None Include="Content\Audio\Ambient\PM_FSSF2_EXTRATERRESTRIAL_BIG_CREATURE_GURGLE_5.mp3" />
+    <None Include="Content\Audio\Ambient\PM_FSSF2_TRANSMISSION_RADIO_GLITCH_LOOP_5.mp3" />
+    <None Include="Content\Audio\Ambient\PM_FSSF2_XTRAS_TENSION_BUILDERS_1.mp3" />
+    <None Include="Content\Audio\Ambient\PM_GC_GLITCHY_DRONES_7.mp3" />
+    <None Include="Content\Audio\Ambient\PM_Ghostly_Air_1.mp3" />
+    <None Include="Content\Audio\Ambient\PM_Ghostly_Air_15.mp3" />
+    <None Include="Content\Audio\Ambient\PM_Ghostly_Air_29.mp3" />
+    <None Include="Content\Audio\Ambient\PM_INT_01.mp3" />
+    <None Include="Content\Audio\Ambient\PM_INT_37.mp3" />
+    <None Include="Content\Audio\Ambient\PM_INT_52.mp3" />
+    <None Include="Content\Audio\Ambient\PM_INT_66.mp3" />
+    <None Include="Content\Audio\Ambient\PM_INT_EXC_37.mp3" />
+    <None Include="Content\Audio\Ambient\PM_INT_TX_Soundscape_01.mp3" />
+    <None Include="Content\Audio\Ambient\PM_INT_TX_Soundscape_19.mp3" />
+    <None Include="Content\Audio\Ambient\PM_INT_TX_Whoosh_23.mp3" />
     <Content Include="AlphaTest\Getting Started.jpg" />
-    <Content Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__23.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__24.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__25.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__26.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Destroyed\Planet\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Destroyed\Sun\PM_SFM_IMPACT_4.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Laser\PM_AG_10_1_ABSTRACT_GUNS.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Laser\PM_AG_12_2_ABSTRACT_GUNS.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Laser\PM_AG_16_3_ABSTRACT_GUNS.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Laser\PM_AG_1_1_ABSTRACT_GUNS.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Laser\PM_AG_27_5_ABSTRACT_GUNS.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Laser\PM_AG_5_1_ABSTRACT_GUNS.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Enter\DSGNMisc_Warped Synthetic Whoosh Transition 1_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Enter\DSGNMisc_Warped Synthetic Whoosh Transition 21_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Enter\PM_FSSF2_SPACE_RACER_GLIDER_PASSBY_20_LEFT2RIGHT.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Enter\PM_FSSF2_SPACE_RACER_GLIDER_PASSBY_5_RIGHT2LEFT.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Enter\PM_FSSF2_TONAL_ACHIEVEMENT_POWERUP_EVENT_19.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Enter\PM_FSSF2_TONAL_ENERGY_RISERS_4.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Enter\PM_FSSF2_XTRAS_RISERS_1.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\PM_FN_Impacts_2.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_08.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_101.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_129.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_26.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_45.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\Exit\PM_INT_TX_Hits_01.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\NewWorld\PM_BB_DI_1_105BPM_Dmin_A_CB.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\NewWorld\PM_BB_DI_3_85BPM_Cmin_D_CB.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\NewWorld\PM_FN_Music_SeamlessLoop_1B_85bpm_CB.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\NewWorld\PM_INFECTED_03_85bpm_CB.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Audio\Wormhole\NewWorld\PM_SRUN_LOOP_1_85bpm_CB.mp3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\ball.png" />
+    <None Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__23.mp3" />
+    <None Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__24.mp3" />
+    <None Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__25.mp3" />
+    <None Include="Content\Audio\Destroyed\Moon\PM_GL_IMAPACT_LFE_TOOLKIT__26.mp3" />
+    <None Include="Content\Audio\Destroyed\Planet\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Destroyed\Sun\PM_SFM_IMPACT_4.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Fast_1.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Fast_18.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Fast_27.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Medium_21.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Medium_41.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Medium_51.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Slow_1.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Slow_117.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Slow_132.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Slow_32.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Slow_33.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship_Slow_81.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Overdrive_Distorted_Saturated_1.mp3" />
+    <None Include="Content\Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Overdrive_Distorted_Saturated_27.mp3" />
+    <None Include="Content\Audio\Flyby\PM_FN_Whooshes_2.mp3" />
+    <None Include="Content\Audio\Laser\PM_AG_10_1_ABSTRACT_GUNS.mp3" />
+    <None Include="Content\Audio\Laser\PM_AG_12_2_ABSTRACT_GUNS.mp3" />
+    <None Include="Content\Audio\Laser\PM_AG_16_3_ABSTRACT_GUNS.mp3" />
+    <None Include="Content\Audio\Laser\PM_AG_1_1_ABSTRACT_GUNS.mp3" />
+    <None Include="Content\Audio\Laser\PM_AG_27_5_ABSTRACT_GUNS.mp3" />
+    <None Include="Content\Audio\Laser\PM_AG_5_1_ABSTRACT_GUNS.mp3" />
+    <None Include="Content\Audio\Wormhole\Enter\DSGNMisc_Warped Synthetic Whoosh Transition 1_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Wormhole\Enter\DSGNMisc_Warped Synthetic Whoosh Transition 21_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Wormhole\Enter\PM_FSSF2_SPACE_RACER_GLIDER_PASSBY_20_LEFT2RIGHT.mp3" />
+    <None Include="Content\Audio\Wormhole\Enter\PM_FSSF2_SPACE_RACER_GLIDER_PASSBY_5_RIGHT2LEFT.mp3" />
+    <None Include="Content\Audio\Wormhole\Enter\PM_FSSF2_TONAL_ACHIEVEMENT_POWERUP_EVENT_19.mp3" />
+    <None Include="Content\Audio\Wormhole\Enter\PM_FSSF2_TONAL_ENERGY_RISERS_4.mp3" />
+    <None Include="Content\Audio\Wormhole\Enter\PM_FSSF2_XTRAS_RISERS_1.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 105_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 191_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 230_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 260_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 300_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 40_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\DSGNBoom_Impact Epic Boom Trailer 85_PMSFX_DF.xml" />
+    <None Include="Content\Audio\Wormhole\Exit\PM_FN_Impacts_2.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_08.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_101.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_129.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_26.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\PM_INT_HnT_45.mp3" />
+    <None Include="Content\Audio\Wormhole\Exit\PM_INT_TX_Hits_01.mp3" />
+    <None Include="Content\Audio\Wormhole\NewWorld\PM_BB_DI_1_105BPM_Dmin_A_CB.mp3" />
+    <None Include="Content\Audio\Wormhole\NewWorld\PM_BB_DI_3_85BPM_Cmin_D_CB.mp3" />
+    <None Include="Content\Audio\Wormhole\NewWorld\PM_FN_Music_SeamlessLoop_1B_85bpm_CB.mp3" />
+    <None Include="Content\Audio\Wormhole\NewWorld\PM_INFECTED_03_85bpm_CB.mp3" />
+    <None Include="Content\Audio\Wormhole\NewWorld\PM_SRUN_LOOP_1_85bpm_CB.mp3" />
+    <Content Include="Content\Audio.txt" />
+    <None Include="Content\ball.png" />
+    <None Include="Content\Audio\GemCollected\PM_CSPH_Alarms_2_Cb.mp3" />
+    <None Include="Content\Audio\GemCollected\PM_CSPH_Beeps_67.mp3" />
+    <None Include="Content\Audio\GemCollected\PM_CSPH_Beeps_83.mp3" />
+    <None Include="Content\Audio\GemCollected\PM_CSPH_Calculations_20_Cb.mp3" />
+    <None Include="Content\Audio\GemCollected\PM_CSPH_Calculations_7_Cb.mp3" />
+    <None Include="Content\Audio\GemCollected\PM_CSPH_Clicks_9.mp3" />
+    <None Include="Content\Audio\GemCollected\PM_CSPH_Open_3_Cb.mp3" />
+    <None Include="Content\Audio\GemCollected\PM_CSPH_Open_47_Cb.mp3" />
     <Content Include="Content\Video\Explosion1\Explosion Large Topview.mp4" />
     <Content Include="Content\Video\Explosion1\lic\lic.PNG" />
     <Content Include="Docu\Docu.txt" />
@@ -419,9 +284,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Content\Audio\Flyby\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
       <Visible>False</Visible>
@@ -442,4 +305,12 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\MonoGame.Framework.WindowsDX.3.8.0.1641\build\MonoGame.Framework.WindowsDX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MonoGame.Framework.WindowsDX.3.8.0.1641\build\MonoGame.Framework.WindowsDX.targets'))" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
 </Project>

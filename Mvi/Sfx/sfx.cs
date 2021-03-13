@@ -14,10 +14,12 @@ using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Sprites;
-using Utils3.SystemIo;
 using CharlyBeck.Utils3.Enumerables;
 using System.Reflection;
 using CharlyBeck.Utils3.Reflection;
+using CharlyBeck.Utils3.SystemIo;
+using CharlyBeck.Mvi.ContentManager;
+using CharlyBeck.Mvi.Sprites.Gem;
 
 namespace CharlyBeck.Mvi.Sfx
 {
@@ -51,14 +53,17 @@ namespace CharlyBeck.Mvi.Sfx
         [CSoundDirectoryPath(@"Audio\Flyby", true)]
         Audio_Flyby,
         [CSoundDirectoryPath(@"Audio\Wormhole", false)]
-        Wormhole,
+        Audio_Wormhole,
         [CSoundDirectoryPath(@"Audio\Wormhole\Enter", true)]
-        Wormhole_Enter,
+        Audio_Wormhole_Enter,
         [CSoundDirectoryPath(@"Audio\Wormhole\Exit", true)]
-        Wormhole_Exit,
+        Audio_Wormhole_Exit,
         [CSoundDirectoryPath(@"Audio\Wormhole\NewWorld", true)]
-        Wormhole_NewWorld
-
+        Audio_Wormhole_NewWorld,
+        [CSoundDirectoryPath(@"Audio\GemCollected", true)]
+        Audio_GemCollected,
+        [CSoundDirectoryPath(@"Audio\Laser", true)]
+        Audio_Laser,
     }
 
     internal enum CSoundFxClassEnum
@@ -231,13 +236,10 @@ namespace CharlyBeck.Mvi.Sfx
             foreach (var sf in aFileInfos)
                 this.AddFile(sf);
         }
-        protected void AddDirectory(CSoundDirectoryEnum aSoundDirectoryEnum, bool aRecursive)
+        protected void AddDirectory(CSoundDirectoryEnum aSoundDirectoryEnum)
         {
             var aDirectory = GetDirectoryInfo(aSoundDirectoryEnum.GetCustomAttribute<CSoundDirectoryPathAttribute>().Path);
-            var aFiles = aRecursive
-                       ? aDirectory.GetFilesRecursive().ToArray()
-                       : aDirectory.GetFiles().ToArray()
-                       ;
+            var aFiles = this.ContentManager.GetDirectoryContent(aDirectory);
             foreach (var f in aFiles)
                 this.AddFile(f);
         }
@@ -247,10 +249,12 @@ namespace CharlyBeck.Mvi.Sfx
                select new CHitpoint(aSoundFile.HitPoint.Value, aSoundFile)
                ;
 
+
         protected static DirectoryInfo GetBaseDirectoryInfo()
-            => new DirectoryInfo(Path.Combine( new FileInfo(typeof(CSoundDirectory).Assembly.Location).Directory.FullName, "Content"));
+            => CContentManager.GetBaseDirectoryInfo();
+        //=> new DirectoryInfo(Path.Combine(new FileInfo(typeof(CSoundDirectory).Assembly.Location).Directory.FullName, "Content"));
         public static string TrimBaseDirectory(FileInfo aFileInfo)
-            => aFileInfo.FullName.TrimStart(Path.Combine(GetBaseDirectoryInfo().FullName, "dummy").TrimEnd("dummy"));
+            => CContentManager.TrimBaseDirectory(aFileInfo);
         protected static DirectoryInfo GetDirectoryInfo(params string[] aSubDir)
             => new DirectoryInfo(Path.Combine(new string[] { GetBaseDirectoryInfo().FullName }.Concat(aSubDir).ToArray()));
 
@@ -332,6 +336,11 @@ namespace CharlyBeck.Mvi.Sfx
         #endregion
         internal void PlayRandomSound()
             => this.GetRandomSoundBuffer().Play();
+
+        #region ContentManager
+        private CContentManager ContentManagerM;
+        private CContentManager ContentManager => CLazyLoad.Get(ref this.ContentManagerM, () => this.ServiceContainer.GetService<CContentManager>());
+        #endregion
     }
 
     internal sealed class CAmbientSoundDirectory : CSoundDirectory
@@ -360,14 +369,14 @@ namespace CharlyBeck.Mvi.Sfx
         }
 
         private void AddDirectories()
-            => this.AddDirectory(CSoundDirectoryEnum.Audio_Destroyed, true);
+            => this.AddDirectory(CSoundDirectoryEnum.Audio_Destroyed);
     }
 
     internal sealed class CFlybySoundDirectory : CSoundDirectory
     {
         internal CFlybySoundDirectory(CServiceLocatorNode aParent) :base(aParent)
         {
-            this.AddDirectory(CSoundDirectoryEnum.Audio_Flyby, true);
+            this.AddDirectory(CSoundDirectoryEnum.Audio_Flyby);
             this.WaitTimeMax = new CTimeSpanRange(TimeSpan.FromMilliseconds(1000), TimeSpan.FromMilliseconds(5000)); // TODO_PARAMETERS
         }
         internal override void Update()
@@ -408,15 +417,13 @@ namespace CharlyBeck.Mvi.Sfx
         internal CShotsSoundDirectory(CServiceLocatorNode aParent) : base(aParent)
         {
             this.OpenDirectory();
-            this.World = this.ServiceContainer.GetService<CWorld>();
             this.World.ShootFired += delegate ()
             {
                 this.PlayRandomSound();
             };
         }
-        private readonly CWorld World;
         private void OpenDirectory()
-            => this.AddDirectory(GetDirectoryInfo("Audio", "Laser"), ".mp3");
+            => this.AddDirectory(CSoundDirectoryEnum.Audio_Laser);
     }
     internal sealed class CHitPointEngine : CServiceLocatorNode
     {
@@ -618,15 +625,31 @@ namespace CharlyBeck.Mvi.Sfx
         {
             this.World = this.ServiceContainer.GetService<CWorld>();
             this.CreateDirectoryDic = true;
-            this.AddDirectory(CSoundDirectoryEnum.Wormhole, true);
+            this.AddDirectory(CSoundDirectoryEnum.Audio_Wormhole);
             this.World.WormholeEntered += this.OnWormholeEntered;
         }
         private readonly CWorld World;
 
         private void OnWormholeEntered(CSprite aSprite)
         {
-            this.GetRandomSound(CSoundDirectoryEnum.Wormhole_Enter).SoundBuffer.Play();
+            this.GetRandomSound(CSoundDirectoryEnum.Audio_Wormhole_Enter).SoundBuffer.Play();
         }
+
+    }
+
+    internal sealed class CGemCollectedSoundDirectory : CSoundDirectory
+    {
+        internal CGemCollectedSoundDirectory(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.AddDirectory(CSoundDirectoryEnum.Audio_GemCollected);
+
+            this.World.GemCollected += delegate (CGemSprite aGemSprite)
+            {
+                this.PlayRandomSound();
+            };
+            this.Init();
+        }
+
 
     }
 
@@ -640,6 +663,7 @@ namespace CharlyBeck.Mvi.Sfx
             this.EventSoundDirectory = new CDestroyedSoundDirectory(this);
             this.FlybySoundDirectory = new CFlybySoundDirectory(this);
             this.WormholeSoundDirectory = new CWormholeSoundDirectory(this);
+            this.GemCollectedSoundDirectory = new CGemCollectedSoundDirectory(this);
         }
         private readonly CCollisionSoundDirectory CollisionSoundDirectory;
         private readonly CAmbientSoundDirectory AmbientSoundDirectory;
@@ -647,6 +671,8 @@ namespace CharlyBeck.Mvi.Sfx
         private readonly CDestroyedSoundDirectory EventSoundDirectory;
         private readonly CFlybySoundDirectory FlybySoundDirectory;
         private readonly CWormholeSoundDirectory WormholeSoundDirectory;
+        private readonly CGemCollectedSoundDirectory GemCollectedSoundDirectory;
+
         private IEnumerable<CSoundDirectory> SoundDirectories
         {
             get
@@ -656,6 +682,8 @@ namespace CharlyBeck.Mvi.Sfx
                 yield return this.ShotsSoundDirectory;
                 yield return this.EventSoundDirectory;
                 yield return this.FlybySoundDirectory;
+                yield return this.WormholeSoundDirectory;
+                yield return this.GemCollectedSoundDirectory;
             }
         }
         internal void Update()
