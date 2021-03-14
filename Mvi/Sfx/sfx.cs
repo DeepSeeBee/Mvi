@@ -687,7 +687,7 @@ namespace CharlyBeck.Mvi.Sfx
 
     internal sealed class CGemCollectedSoundDirectory : CSoundDirectory
     {
-        private CSoundSequence SoundSequence = new CSoundSequence(8);
+        private CSoundSequence SoundSequence = new CSoundSequence(4);
 
         internal CGemCollectedSoundDirectory(CServiceLocatorNode aParent) : base(aParent)
         {

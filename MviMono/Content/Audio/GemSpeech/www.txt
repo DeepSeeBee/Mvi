@@ -19,6 +19,8 @@ English(US) - Rick:
 KruskalScanner
 SlowMotion
 Antigravity
+SpaceGrip
+Drill
 -----------------------------------------
 
 
@@ -34,8 +36,8 @@ Antigravity
 
 
 
-SpaceGrip
-Drill
+
+
 
 
 

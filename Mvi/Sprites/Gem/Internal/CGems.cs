@@ -2,8 +2,6 @@
 using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Sprites;
 using CharlyBeck.Mvi.Sprites.Shot;
-using CharlyBeck.Mvi.Story.Propability;
-using CharlyBeck.Mvi.Story.Value;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.ServiceLocator;
 using System;

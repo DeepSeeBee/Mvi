@@ -272,6 +272,7 @@
     <None Include="Content\Audio\GemSpeech\Offense_GuidedMissile.mp3" />
     <None Include="Content\Audio\GemSpeech\Offense_NuclearMissile.mp3" />
     <None Include="Content\Audio\GemSpeech\www.txt" />
+    <Content Include="Content\Audio\QuestSpeech\Q.txt" />
     <Content Include="Content\Video\Explosion1\Explosion Large Topview.mp4" />
     <Content Include="Content\Video\Explosion1\lic\lic.PNG" />
     <Content Include="Docu\Docu.txt" />

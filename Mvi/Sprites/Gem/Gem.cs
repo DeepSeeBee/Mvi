@@ -3,7 +3,6 @@ using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Models;
 using CharlyBeck.Mvi.Sprites.Gem.Internal;
 using CharlyBeck.Mvi.Sprites.Shot;
-using CharlyBeck.Mvi.Story.Propability;
 using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.LazyLoad;
@@ -13,11 +12,10 @@ using Mvi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CharlyBeck.Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.GemSlot;
 using System.Diagnostics;
+using CharlyBeck.Mvi.Propability;
 
 namespace CharlyBeck.Mvi.Sprites.Gem
 {
@@ -140,7 +138,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Increases fire rate.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        FireRate,            // Offense       <FIRR> // Erhöht feuerrate
+        FireRate,            // TODO: Rename to AmmoFireRate
 
         [CPropability(1d)]
         [CGemShortName("AMEN")]

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CharlyBeck.Mvi.Story.Propability
+namespace CharlyBeck.Mvi.Propability
 {
     using CDoubleRange = Tuple<double, double>;
 
