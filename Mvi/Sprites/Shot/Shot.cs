@@ -13,6 +13,7 @@ using CharlyBeck.Utils3.Asap;
 namespace CharlyBeck.Mvi.Sprites.Shot
 {
     using CharlyBeck.Mvi.Extensions;
+    using CharlyBeck.Mvi.Sprites.Avatar;
     using CharlyBeck.Mvi.XnaExtensions;
     using Microsoft.Xna.Framework;
 
@@ -42,8 +43,6 @@ namespace CharlyBeck.Mvi.Sprites.Shot
         protected override void OnBeginUse()
         {
             base.OnBeginUse();
-
-            this.TimeToLive = CStaticParameters.Shot_TimeToLive;
         }
         protected override void OnEndUse()
         {
@@ -67,7 +66,7 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             //this.WorldMatrix = Matrix.CreateScale((float)this.Scale) * Matrix.CreateTranslation(this.WorldPos.Value.ToVector3());
             this.WorldMatrix = this.NewWorldMatrix(CMatrixModifierBitEnum.Scale | CMatrixModifierBitEnum.Position);
             this.Reposition();
-            if (this.DistanceToAvatar > CStaticParameters.Shot_DistanceToAvatarWhenDead)
+            if (this.DistanceToAvatar > CStaticParameters.Shot_DieOnDistanceToAvatar)
                 this.DellocateIsQueued = true;
         }
 
@@ -78,42 +77,10 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             //this.DellocateIsQueued = true;
         }
 
-        internal void Build()
-        {
-            this.Scale = 0.01d;
-            this.Radius = 0.01d;
-        }
-
         internal override bool CanCollideWithTarget(CSprite aSprite)
             => base.CanCollideWithTarget(aSprite) 
             //&& !aSprite.IsHitByShot
             ;
-
-        
-        // internal void Collide()
-        // {
-        //    var aShot = this;
-        //    var aShotables = from aTest in this.FrameInfo.Sprites
-        //                     where aTest.IsHitable
-        //                     where !aTest.IsHit
-        //                     select aTest;
-        //    var aOwnPos = this.WorldPos;
-        //    foreach(var aShotable in aShotables)
-        //    {
-        //        var aOtherPos = aShotable.WorldPos;
-        //        var aOtherRadius = aShotable.Radius;
-        //        var aDistance = aOwnPos.GetDistance(aOtherPos);
-        //        var aIsHit = aDistance < aOtherRadius;
-        //        if(aIsHit)
-        //        {
-
-        //        }
-        //    }
-        //}
-        //internal override void Draw()
-        //{
-        //    base.Draw();
-        //}
     }
 
 
@@ -141,25 +108,12 @@ namespace CharlyBeck.Mvi.Sprites.Shot
                 this.ShotFired();
         }
 
-        private void AddShot(CVector3Dbl aShotWorldPos, CVector3Dbl aMoveVector, double aSpeed)
-        {
-            var aShot = this.AllocateSpriteNullable();
-            if(aShot is object)
-            {
-                aShot.WorldPos = aShotWorldPos;
-                aShot.MoveVector = aMoveVector;
-                aShot.Speed = aSpeed;
-                aShot.Build();
-                this.OnShotFired();
-            }
-            else
-            {
-                // TODO-Fehlzündungssound
-            }
-        }
-
         private TimeSpan? LastShot;
 
+        private CAvatarSprite AvatarSprite => this.World.AvatarSprite;
+
+        private TimeSpan FireShotRate 
+            => CStaticParameters.Shot_FireRateRange.GetInRangeTimespan(1.0d - this.AvatarSprite.AvatarValues.AmmoFireRateValue.Value);
         internal bool FireRateChoke()
         {
             bool aShot;
@@ -167,7 +121,7 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             {
                 aShot = true;
             }
-            else if(this.World.GameTimeTotal.Subtract(this.LastShot.Value).CompareTo(CStaticParameters.Shot_FireRate)> 0)
+            else if(this.World.GameTimeTotal.Subtract(this.LastShot.Value).CompareTo(this.FireShotRate)> 0)
             {
                 aShot = true;
             }
@@ -186,13 +140,30 @@ namespace CharlyBeck.Mvi.Sprites.Shot
         {
             if(this.FireRateChoke())
             {
-                var aAvatarPos = this.World.AvatarWorldPos;
-                var aAvatarSpeed = this.World.AvatarSpeed;
-                var aAvatarShootDirection = this.World.AvatarShootDirection;
-                var aShotPosition = aAvatarPos;
-                var aShotSpeed = Math.Max(aAvatarSpeed, CStaticParameters.Shot_MinSpeed);
-                var aShotMoveVector = aAvatarShootDirection;
-                this.AddShot(aShotPosition, aShotMoveVector, aShotSpeed);
+                var aShot = this.AllocateSpriteNullable();
+                if (aShot is object)
+                {
+                    var aAvatarPos = this.World.AvatarWorldPos;
+                    var aAvatarSpeed = this.World.AvatarSpeed;
+                    var aAvatarShootDirection = this.World.AvatarShootDirection;
+                    var aShotPosition = aAvatarPos;
+                    var aShotSpeed1 = CStaticParameters.Shot_SpeedRange.GetInRangeDouble(this.AvatarSprite.AvatarValues.AmmoSpeedValue.Value);
+                    var aShotSpeed = aShotSpeed1 + aAvatarSpeed;
+                    var aShotMoveVector = aAvatarShootDirection;
+                    var aRadius = CStaticParameters.Shot_RadiusRange.GetInRangeDouble(this.AvatarSprite.AvatarValues.AmmoThicknessValue.Value);
+                    var aTimeToLive = CStaticParameters.Shot_TimeToLive.GetInRangeTimespan(this.AvatarSprite.AvatarValues.AmmoEnergyValue.Value);
+                    aShot.WorldPos = aShotPosition;
+                    aShot.MoveVector = aShotMoveVector;
+                    aShot.Speed = aShotSpeed;
+                    aShot.Radius = aRadius;
+                    aShot.Scale = aRadius;
+                    aShot.TimeToLive = aTimeToLive;
+                    this.OnShotFired();
+                }
+                else
+                {
+                    // TODO-Fehlzündungssound
+                }
             }
         }
     }

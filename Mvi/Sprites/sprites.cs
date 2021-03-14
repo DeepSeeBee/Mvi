@@ -284,7 +284,8 @@ namespace CharlyBeck.Mvi.Sprites
         public CVector3Dbl AttractionToAvatar => CLazyLoad.Get(ref this.AttractionToAvatarM, this.NewAttractionToAvatar);
         public CVector3Dbl NewAttractionToAvatar()
         {
-            if (this.Destroyed)
+            if (this.Destroyed
+            || !this.IsInUse)
                 return new CVector3Dbl(0);
 
             var aG= CStaticParameters.Gravity_G;
@@ -370,7 +371,7 @@ namespace CharlyBeck.Mvi.Sprites
                     var aOtherPos = aCollideWith.WorldPos.Value;
                     var aOtherRadius = aCollideWith.Radius;
                     var aDistance = aOwnPos.GetDistance(aOtherPos);
-                    var aIsHit = aDistance - aOtherRadius - aOwnRadius < 0d;
+                    var aIsHit = (aDistance - aOtherRadius - aOwnRadius) < 0d;
                     if (aIsHit)
                     {
                         this.OnCollide(aCollideWith, aDistance);

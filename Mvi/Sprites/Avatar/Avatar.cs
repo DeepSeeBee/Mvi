@@ -16,7 +16,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
         internal CAvatarValues(CServiceLocatorNode aParent):base(aParent)
         {
             this.AmmoEnergyValue = AmmoEnergyDecl.NewDoubleValue(this);
-            this.AmmoRateValue = AmmoRateDecl.NewDoubleValue(this);
+            this.AmmoFireRateValue = AmmoFireRateDecl.NewDoubleValue(this);
             this.AmmoSpeedValue = AmmoSpeedDecl.NewDoubleValue(this);
             this.AmmoThicknessValue = AmmoThicknessDecl.NewDoubleValue(this);
             this.AntiGravityValue = AntiGravityDecl.NewDoubleValue(this);
@@ -31,19 +31,20 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             this.ThermalShieldValue = ThermalShieldDecl.NewBoolValue(this);
 
             this.Add(this.AmmoEnergyValue);
-            this.Add(this.AmmoRateValue);
+            this.Add(this.AmmoFireRateValue);
             this.Add(this.AmmoSpeedValue);
             this.Add(this.AmmoThicknessValue);
-            this.Add(this.AntiGravityValue);
-            this.Add(this.DrillCountValue);
-            this.Add(this.LifeCountValue);
-            this.Add(this.GuidedMissileCountValue);
-            this.Add(this.KruskalScannerCountValue);
-            this.Add(this.NuclearMissileCountValue);
-            this.Add(this.ShellValue);
-            this.Add(this.SlowMotionValue);
-            this.Add(this.SpaceGripValue);
-            this.Add(this.ThermalShieldValue);
+
+            // TODO: Noch nicht implementiert: this.Add(this.AntiGravityValue);
+            // TODO: Noch nicht implementiert: this.Add(this.DrillCountValue);
+            // TODO: Noch nicht implementiert: this.Add(this.LifeCountValue);
+            // TODO: Noch nicht implementiert: this.Add(this.GuidedMissileCountValue);
+            // TODO: Noch nicht implementiert: this.Add(this.KruskalScannerCountValue);
+            // TODO: Noch nicht implementiert: this.Add(this.NuclearMissileCountValue);
+            // TODO: Noch nicht implementiert: this.Add(this.ShellValue);
+            // TODO: Noch nicht implementiert: this.Add(this.SlowMotionValue);
+            // TODO: Noch nicht implementiert: this.Add(this.SpaceGripValue);
+            // TODO: Noch nicht implementiert: this.Add(this.ThermalShieldValue);
 
             this.Init();
         }
@@ -57,22 +58,22 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
                 CUnitEnum.Percent, // UnitEnum
-                0.1d, // Default
-                0.1d, // Min
+                0d, // Default
+                0d, // Min
                 1d, // Max
                 0.05d, // SmallChange
                 0.1d, // LargeChange
                 0 // Digits
             );
-        private static readonly CDoubleDeclaration AmmoRateDecl = new CDoubleDeclaration
+        private static readonly CDoubleDeclaration AmmoFireRateDecl = new CDoubleDeclaration
             (
-                Value.CValueEnum.Object_Avatar_AmmoRate,
+                Value.CValueEnum.Object_Avatar_AmmoFireRate,
                 new Guid("103a26fc-12c8-4f04-a7a6-f3a16e420504"), // Guid
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
                 CUnitEnum.Percent, // UnitEnum
-                0.1d, // Default
-                0.1d, // Min
+                0d, // Default
+                0d, // Min
                 1d, // Max
                 0.05d, // SmallChange
                 0.1d, // LargeChange
@@ -86,8 +87,8 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
                 CUnitEnum.Percent, // UnitEnum
-                0.1d, // Default
-                0.1d, // Min
+                0d, // Default
+                0d, // Min
                 1d, // Max
                 0.05d, // SmallChange
                 0.1d, // LargeChange
@@ -101,8 +102,8 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
                 CUnitEnum.Percent, // UnitEnum
-                0.1d, // Default
-                0.1d, // Min
+                0d, // Default
+                0d, // Min
                 1d, // Max
                 0.05d, // SmallChange
                 0.1d, // LargeChange
@@ -235,7 +236,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
         #endregion
         #region Values
         internal readonly CDoubleValue AmmoEnergyValue;
-        internal readonly CDoubleValue AmmoRateValue;
+        internal readonly CDoubleValue AmmoFireRateValue;
         internal readonly CDoubleValue AmmoSpeedValue;
         internal readonly CDoubleValue AmmoThicknessValue;
         internal readonly CDoubleValue AntiGravityValue;
@@ -267,7 +268,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
         }
 
         #region AvatarValues
-        private readonly CAvatarValues AvatarValues;
+        internal readonly CAvatarValues AvatarValues;
         internal override CValueObject ValueObject => this.AvatarValues;
         #endregion
     }
@@ -297,7 +298,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
         protected override CAvatarSprite NewSprite()
             => new CAvatarSprite(this);
 
-        private CAvatarSprite AvatarSprite;
+        internal CAvatarSprite AvatarSprite { get; private set; }
 
         internal CVector3Dbl AvatarPos { get => this.AvatarSprite.WorldPos.Value; set => this.AvatarSprite.WorldPos = value; }
     }

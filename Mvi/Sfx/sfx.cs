@@ -696,7 +696,7 @@ namespace CharlyBeck.Mvi.Sfx
             this.World.GemCollected += delegate (CGemSprite aGemSprite)
             {
                 var aSound = this.GetRandomSoundFile();
-                this.SoundSequence.Add(aSound);
+                aSound.SoundBuffer.Play();
                 this.World.OnGemCollectedSoundStarting(aGemSprite, this.SoundSequence.Add);
             };
             this.Init();

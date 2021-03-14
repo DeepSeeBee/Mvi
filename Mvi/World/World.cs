@@ -234,6 +234,8 @@ namespace CharlyBeck.Mvi.World
                         yield return aSprite;
             }
         }
+
+        internal CAvatarSprite AvatarSprite => this.AvatarManager.AvatarSprite;
         #endregion
     }
 
@@ -266,9 +268,9 @@ namespace CharlyBeck.Mvi.World
         public double LookLeftRight { get; set; }
         #endregion
         #region SpriteManagers
-        private CWorldSpriteManagers SpriteManagersM;
-        private CWorldSpriteManagers SpriteManagers => CLazyLoad.Get(ref this.SpriteManagersM, this.NewSpriteManagers);
-        private CWorldSpriteManagers NewSpriteManagers()
+        private CWorldSpriteManagers WorldSpriteManagersM;
+        private CWorldSpriteManagers WorldSpriteManagers => CLazyLoad.Get(ref this.WorldSpriteManagersM, this.NewWorldSpriteManagers);
+        private CWorldSpriteManagers NewWorldSpriteManagers()
         {
             var aSpriteManagers = new CWorldSpriteManagers(this);
             aSpriteManagers.ShotManager.ShotFired += this.OnShotFired;
@@ -277,7 +279,7 @@ namespace CharlyBeck.Mvi.World
         #endregion
         #region Shot
         public void Shoot()
-            => this.SpriteManagers.Shoot();
+            => this.WorldSpriteManagers.Shoot();
         #endregion
         #region SpaceSwitchQuadrantObjectPool
         private CObjectPool<CSpaceSwitchQuadrant> SpaceSwitchQuadrantObjectPool;
@@ -295,7 +297,7 @@ namespace CharlyBeck.Mvi.World
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CWorld>(() => this);
             aServiceContainer.AddService<CNewBorderFunc>(() => new CNewBorderFunc(()=> this.CubeSize));
-            aServiceContainer.AddService<CWormholeCubes>(() => this.SpriteManagers.WormholeCubes);
+            aServiceContainer.AddService<CWormholeCubes>(() => this.WorldSpriteManagers.WormholeCubes);
             aServiceContainer.AddService<CNewQuadrantFunc>(() => new CNewQuadrantFunc(this.NewSpaceSwitchQuadrant));
             aServiceContainer.AddService<CCubePersistentData>(() => this.CubePersistentData);
             return aServiceContainer;
@@ -314,7 +316,8 @@ namespace CharlyBeck.Mvi.World
         public CModels Models => CLazyLoad.Get(ref this.ModelsM, () => new CModels(this));
         #endregion
         #region Avatar
-        public CVector3Dbl AvatarWorldPos { get => this.SpriteManagers.AvatarPos; set => this.SpriteManagers.AvatarPos = value; }
+        internal CAvatarSprite AvatarSprite => this.WorldSpriteManagers.AvatarSprite;
+        public CVector3Dbl AvatarWorldPos { get => this.WorldSpriteManagers.AvatarPos; set => this.WorldSpriteManagers.AvatarPos = value; }
         public CVector3Dbl AvatarShootDirection { get; set; }
         public double AvatarSpeed { get; set; }
         #endregion
@@ -366,7 +369,7 @@ namespace CharlyBeck.Mvi.World
             {
                 if (!this.InitFrame)
                 {
-                    foreach (var aSprite in this.SpriteManagers.BaseSprites)
+                    foreach (var aSprite in this.WorldSpriteManagers.BaseSprites)
                         yield return aSprite;
 
                     //foreach (var aSprite in from aItem in this.SpaceQuadrants from aSprite in aItem.Sprites select aSprite)
@@ -414,11 +417,11 @@ namespace CharlyBeck.Mvi.World
             this.InitFrame = false;
             this.MoveVectorM = default;
             this.Cube.MoveTo(this.GetCubePos(this.AvatarWorldPos), true);
-            this.SpriteManagers.UpdateAvatarPos();
+            this.WorldSpriteManagers.UpdateAvatarPos();
             this.RefreshFrameInfo();
-            this.SpriteManagers.Update(this.FrameInfo);
-            this.SpriteManagers.Collide();
-            this.SpriteManagers.RemoveDeadSprites();
+            this.WorldSpriteManagers.Update(this.FrameInfo);
+            this.WorldSpriteManagers.Collide();
+            this.WorldSpriteManagers.RemoveDeadSprites();
         }
 
         internal CCubePos GetCubePos(CVector3Dbl aWorldPos)
@@ -433,7 +436,7 @@ namespace CharlyBeck.Mvi.World
                 this.SpriteDestroyedByShot(aSprite, aShotSprite);
             }
 
-            this.SpriteManagers.ExplosionsManager.AddExplosion(aSprite.WorldPos.Value, aSprite.Radius.GetValueOrDefault(1.0d));
+            this.WorldSpriteManagers.ExplosionsManager.AddExplosion(aSprite.WorldPos.Value, aSprite.Radius.GetValueOrDefault(1.0d));
         }
         #endregion
         #region Explosion
@@ -494,7 +497,7 @@ namespace CharlyBeck.Mvi.World
         private CBoolValue SlowDownNearObjectValueM;
         public CBoolValue SlowDownNearObjectValue => CLazyLoad.Get(ref this.SlowDownNearObjectValueM, () => CValue.GetStaticValue<CBoolValue>(this, LandingDeclaration));
         #region Cube
-        internal ICube Cube => this.SpriteManagers.Cube;
+        internal ICube Cube => this.WorldSpriteManagers.Cube;
         #endregion
     }
 
@@ -547,10 +550,11 @@ namespace CharlyBeck.Mvi.World
         private CVector3Dbl NewAttraction()
         {
             if (this.World.GravitationValue.Value)
-            {
+            { // TODO_OPT: Über array iterieren
                 var aSprites = this.Sprites;
                 var aAttractions = from aSprite in aSprites
                                    where aSprite.MassIsDefined
+                                      && aSprite.IsInUse
                                    select aSprite.AttractionToAvatar;
                 var aAttraction = aAttractions.Sum();
                 return aAttraction;

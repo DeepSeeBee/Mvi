@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace CharlyBeck.Mvi
 {
     using CDoubleRange = System.Tuple<double, double>;
+    using CTimeSpanRange = System.Tuple<TimeSpan, TimeSpan>;
 
     public static class CStaticParameters
     {
@@ -40,9 +41,12 @@ namespace CharlyBeck.Mvi
         public static readonly CDoubleRange MoonRadiusMax = new CDoubleRange(0.5d, 0.6d);
         public static readonly double SolarSystem_InheritOrbPlaneSlopePropabiltiy = 0.7d;
 
-        public const  double Shot_MinSpeed = 1.4;
-        public const double Shot_DistanceToAvatarWhenDead = 2.0;
-        public static readonly TimeSpan Shot_FireRate = new TimeSpan(0, 0, 0, 0, 333);
+        public static readonly CDoubleRange Shot_SpeedRange = new CDoubleRange(0.1d, 4d);
+        public static readonly double Shot_DieOnDistanceToAvatar = 2d;
+        public static readonly CDoubleRange Shot_RadiusRange = new CDoubleRange(0.0005, 0.05);
+        public static readonly CTimeSpanRange Shot_FireRateRange = new CTimeSpanRange(TimeSpan.FromMilliseconds(75), TimeSpan.FromMilliseconds(750));
+        public static readonly CTimeSpanRange Shot_TimeToLive = new CTimeSpanRange(TimeSpan.FromMilliseconds(3000), TimeSpan.FromMilliseconds(6000));
+
         public const bool Gravity_Enabled = false;
         public const double Gravity_MassMultiply = 3000d;
         public const double Gravity_G = 0.000000000066743d;
@@ -52,7 +56,6 @@ namespace CharlyBeck.Mvi
         public const int ExplosionCountMax = 10; // TODO-Not deterministic.
         public const int Shot_Count_Max = 20;
 
-        public static readonly TimeSpan Shot_TimeToLive = new TimeSpan(0, 0, 0, 0, 1333);
 
         public const int Gem_Class_InstanceCount = 10;
     }

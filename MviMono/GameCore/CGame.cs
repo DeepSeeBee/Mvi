@@ -478,25 +478,33 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
     internal sealed class CGame : Game
     {
+        #region ctor
         internal CGame(CServiceLocatorNode aParent)
         {
             this.Parent = aParent;
             this.GraphicsDeviceManager = new GraphicsDeviceManager(this);
+            this.Window.AllowUserResizing = true;
             this.Content.RootDirectory = "Content\\bin";
             this.OriginValue = CValue.GetStaticValue<CBoolValue>(this.ServiceLocatorNode, OriginValueDeclaration);
         }
         internal CGame():this(new CDefaultServiceLocatorNode())
         {
         }
+        protected override void Initialize()
+        {
+            this.Init3d();
 
+            this.MonoFacade.Load();
 
+            base.Initialize();
+        }
 
         protected override void EndRun()
         {
             base.EndRun();
             this.Avatar.Save();
         }
-
+        #endregion
         #region ServiceLocator
         private CServiceLocatorNode Parent;
         internal CServiceLocatorNode ServiceLocatorNode => this.MonoFacade;
@@ -518,14 +526,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             base.LoadContent();
         }
 
-        protected override void Initialize()
-        {
-            this.Init3d();
 
-            this.MonoFacade.Load();
-
-            base.Initialize();
-        }
 
         private bool SetMousePosition;
 

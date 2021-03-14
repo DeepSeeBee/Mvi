@@ -69,7 +69,7 @@ namespace CharlyBeck.Mvi.Value
         Global_Look_Angle,
 
         Object_Avatar_AmmoEnergy,
-        Object_Avatar_AmmoRate,
+        Object_Avatar_AmmoFireRate,
         Object_Avatar_AmmoSpeed,
         Object_Avatar_AmmoThickness,
         Object_Avatar_AntiGravity,
