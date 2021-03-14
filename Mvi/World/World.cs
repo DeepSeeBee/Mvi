@@ -404,8 +404,8 @@ namespace CharlyBeck.Mvi.World
         internal bool InitFrame = true;
         #region Values
         [CMemberDeclaration]
-        private static readonly CBoolValDecl GravitationValueDeclaration = new CBoolValDecl
-            ( CValueEnum.Gravitation, new Guid("61de4feb-eb03-4569-baea-055d520844b9"), true, CStaticParameters.Gravity_Enabled);
+        private static readonly CBoolDeclaration GravitationValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_Gravitation, new Guid("61de4feb-eb03-4569-baea-055d520844b9"), true, CStaticParameters.Gravity_Enabled);
         private CBoolValue GravitationValueM;
         public  CBoolValue GravitationValue => CLazyLoad.Get(ref this.GravitationValueM, () => CValue.GetStaticValue<CBoolValue>(this, GravitationValueDeclaration));
         #endregion
@@ -489,8 +489,8 @@ namespace CharlyBeck.Mvi.World
         }
         #endregion
         [CMemberDeclaration]
-        private static readonly CBoolValDecl LandingDeclaration = new CBoolValDecl
-            (CValueEnum.LandingMode, new Guid("065a36b6-cebe-43c4-bffc-c4e9bae64334"), false, false);
+        private static readonly CBoolDeclaration LandingDeclaration = new CBoolDeclaration
+            (CValueEnum.Global_LandingMode, new Guid("065a36b6-cebe-43c4-bffc-c4e9bae64334"), false, false);
         private CBoolValue SlowDownNearObjectValueM;
         public CBoolValue SlowDownNearObjectValue => CLazyLoad.Get(ref this.SlowDownNearObjectValueM, () => CValue.GetStaticValue<CBoolValue>(this, LandingDeclaration));
         #region Cube

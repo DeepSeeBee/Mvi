@@ -91,8 +91,8 @@ namespace CharlyBeck.Mvi.Sprites.GridLines
 
         #region Values
         [CMemberDeclaration]
-        internal static readonly CBoolValDecl QuadrantValueDeclaration = new CBoolValDecl
-            ( CValueEnum.GridLines, new Guid("4af89c99-2734-4c25-a8d5-9417a2d17b77"), true, CStaticParameters.Value_QuadrantGridLines);
+        internal static readonly CBoolDeclaration QuadrantValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_GridLines, new Guid("4af89c99-2734-4c25-a8d5-9417a2d17b77"), true, CStaticParameters.Value_QuadrantGridLines);
         public readonly CBoolValue QuadrantValue;
         internal override bool Visible => base.Visible && this.QuadrantValue.Value;
         #endregion    

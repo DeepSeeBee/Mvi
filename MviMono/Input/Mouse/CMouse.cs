@@ -75,8 +75,8 @@ namespace CharlyBeck.Mvi.Mono.Input.Mouse
         }
 
         [CMemberDeclaration]
-        private static readonly CValueDeclaration WinFormMouseEnabledValueDeclaration = new CBoolValDecl
-            ( CValueEnum.Mouse_WinForm, new Guid("2ea42139-7041-469a-ab1e-90157e61c5ee"), true, false);
+        private static readonly CValueDeclaration WinFormMouseEnabledValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_Mouse_WinForm, new Guid("2ea42139-7041-469a-ab1e-90157e61c5ee"), true, false);
         private CBoolValue WinFormMouseEnabledValueM;
         internal CBoolValue WinFormMouseEnabledValue => CLazyLoad.Get(ref this.WinFormMouseEnabledValueM, () => CValue.GetStaticValue<CBoolValue>(this, WinFormMouseEnabledValueDeclaration));
 

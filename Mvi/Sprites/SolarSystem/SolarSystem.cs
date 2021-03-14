@@ -180,15 +180,15 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         internal TimeSpan DayDuration { get; private set; }
         #region Values
         [CMemberDeclaration]
-        private static readonly CBoolValDecl OrbitPlaneSlopeValueDeclaration = new CBoolValDecl
-            ( CValueEnum.SolarSystem_OrbitPlaneSlope, new Guid("4f7f5808-f120-4e66-acb5-ac3f0bfa3429"), true, CStaticParameters.Value_SolarSystem_Orbit_Visible);
+        private static readonly CBoolDeclaration OrbitPlaneSlopeValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_SolarSystem_OrbitPlaneSlope, new Guid("4f7f5808-f120-4e66-acb5-ac3f0bfa3429"), true, CStaticParameters.Value_SolarSystem_Orbit_Visible);
         private CBoolValue OrbitPlaneSlopeValueM;
         private CBoolValue OrbitPlaneSlopeValue => CLazyLoad.Get(ref this.OrbitPlaneSlopeValueM, () => CValue.GetStaticValue<CBoolValue>(this, OrbitPlaneSlopeValueDeclaration));
         #endregion
         #region Values
         [CMemberDeclaration]
-        private static CValueDeclaration AnimateSolarSystemValueDeclaration = new CBoolValDecl
-            ( CValueEnum.SolarSystem_Animate, new Guid("cb53ccd6-dc7e-496f-a720-cbab040e5234"), true, CStaticParameters.Value_SolarSystem_Animate);
+        private static CValueDeclaration AnimateSolarSystemValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_SolarSystem_Animate, new Guid("cb53ccd6-dc7e-496f-a720-cbab040e5234"), true, CStaticParameters.Value_SolarSystem_Animate);
         private CBoolValue AnimateSolarSystemValueM;
         internal CBoolValue AnimateSolarSystemValue => CLazyLoad.Get(ref this.AnimateSolarSystemValueM, () => CValue.GetStaticValue<CBoolValue>(this, AnimateSolarSystemValueDeclaration));
         #endregion
@@ -317,8 +317,8 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #endregion
         #region Values
         [CMemberDeclaration]
-        private static readonly CBoolValDecl PlanetsVisibleValueDeclaration = new CBoolValDecl
-            ( CValueEnum.SolarSystem_PlanetVisible, new Guid("3412f4ab-14f3-447d-81fe-923f57993019"), true, CStaticParameters.Value_SolarSystem_Planet_Visible);
+        private static readonly CBoolDeclaration PlanetsVisibleValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_SolarSystem_PlanetVisible, new Guid("3412f4ab-14f3-447d-81fe-923f57993019"), true, CStaticParameters.Value_SolarSystem_Planet_Visible);
         private CBoolValue PlanetsVisibleValueM;
         private CBoolValue PlanetsVisibleValue => CLazyLoad.Get(ref this.PlanetsVisibleValueM, () => CValue.GetStaticValue<CBoolValue>(this, PlanetsVisibleValueDeclaration));
         internal override CBoolValue OrbVisibleValue => this.PlanetsVisibleValue;
@@ -347,8 +347,8 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
 
         #region Values
         [CMemberDeclaration]
-        private static readonly CBoolValDecl MoonsVisibleValueDeclaration = new CBoolValDecl
-            ( CValueEnum.SolarSystem_MoonVisible, new Guid("7962faea-31d9-482d-aab4-60667b797d54"), true, CStaticParameters.Value_SolarSystem_Moon_Visible);
+        private static readonly CBoolDeclaration MoonsVisibleValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_SolarSystem_MoonVisible, new Guid("7962faea-31d9-482d-aab4-60667b797d54"), true, CStaticParameters.Value_SolarSystem_Moon_Visible);
         private CBoolValue MoonsVisibleValueM;
         private CBoolValue MoonsVisibleValue => CLazyLoad.Get(ref this.MoonsVisibleValueM, () => CValue.GetStaticValue<CBoolValue>(this, MoonsVisibleValueDeclaration));
         internal override CBoolValue OrbVisibleValue => this.MoonsVisibleValue;
@@ -407,8 +407,8 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #endregion
         #region Values
         [CMemberDeclaration]
-        private static readonly CBoolValDecl SunsVisibleValueDeclaration = new CBoolValDecl
-            ( CValueEnum.SolarSystem_SunVisible, new Guid("afeb49da-5453-49d5-87ac-94d703e6cb3b"), true, CStaticParameters.Value_SolarSystem_Sun_Visible);
+        private static readonly CBoolDeclaration SunsVisibleValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_SolarSystem_SunVisible, new Guid("afeb49da-5453-49d5-87ac-94d703e6cb3b"), true, CStaticParameters.Value_SolarSystem_Sun_Visible);
         private CBoolValue SunsVisibleValueM;
         private CBoolValue SunsVisibleValue => CLazyLoad.Get(ref this.SunsVisibleValueM, () => CBoolValue.GetStaticValue<CBoolValue>(this, SunsVisibleValueDeclaration));
         internal override CBoolValue OrbVisibleValue => this.SunsVisibleValue;
@@ -416,7 +416,7 @@ namespace CharlyBeck.Mvi.Sprites.SolarSystem
         #region Chaos
         [CMemberDeclaration]
         internal static CDoubleDeclaration ChaosDecl = new CDoubleDeclaration
-            (CValueEnum.SolarSystem_Chaos, new Guid("ef38d532-b91a-4865-b054-b46a4f1e8773"), true, CGuiEnum.Slider, CUnitEnum.Percent, 0d, 0d, 1d, 0.01d, 0.1d, 0);
+            (CValueEnum.Global_SolarSystem_Chaos, new Guid("ef38d532-b91a-4865-b054-b46a4f1e8773"), true, CGuiEnum.Slider, CUnitEnum.Percent, 0d, 0d, 1d, 0.01d, 0.1d, 0);
         private CDoubleValue ChaosM;
         internal CDoubleValue Chaos => CLazyLoad.Get(ref this.ChaosM, ()=>CValue.GetStaticValue<CDoubleValue>(this, ChaosDecl));
         

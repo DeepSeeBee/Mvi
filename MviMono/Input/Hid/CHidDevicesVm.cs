@@ -168,8 +168,8 @@ namespace CharlyBeck.Mvi.Mono.Input.Hid
         #endregion
         #region Value
         [CMemberDeclaration]
-        private static readonly CBoolValDecl HidJoystickEnabledValueDeclaration = new CBoolValDecl
-            ( CValueEnum.Joystick, new Guid("e9f664f7-1fba-43e1-84ce-265fb7fd8d02"), true, CStaticParameters.Value_Joystick);
+        private static readonly CBoolDeclaration HidJoystickEnabledValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_Joystick, new Guid("e9f664f7-1fba-43e1-84ce-265fb7fd8d02"), true, CStaticParameters.Value_Joystick);
         private CBoolValue HidJoystickEnabledValueM;
         internal CBoolValue HidJoystickEnabledValue => CLazyLoad.Get(ref this.HidJoystickEnabledValueM, () => CBoolValue.GetStaticValue<CBoolValue>(this, HidJoystickEnabledValueDeclaration));
         #endregion

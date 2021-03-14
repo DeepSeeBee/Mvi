@@ -89,20 +89,7 @@ namespace CharlyBeck.Mvi.Mono.Wpf
         private readonly CGameState GameState;
         public object VmGameState => this.GameState;
 
-        private void Command_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var aFe = (FrameworkElement)sender;
-                var aDc = aFe.DataContext;
-                var aCmd = (CCommand)aDc;
-                aCmd.Invoke();
-            }
-            catch (Exception aExc)
-            {
 
-            }
-        }
     }
 
     internal sealed class CGameState : CChangeNotifier

@@ -46,78 +46,26 @@
             </Expander>
             <GroupBox DockPanel.Dock="Bottom" Header="Values" >
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Stretch" TextAlignment="Center" Text="ESC to uncapture Mouse/Exit Fullscreen" FontSize="9"/>
-                    <ListView DockPanel.Dock="Top" ItemsSource="{Binding VmMonoFacade.VmValues}">
-                        <ListView.View>
-                            <GridView>
-                                <GridView.Columns>
-                                    <GridViewColumn Header="Name" Width="150" DisplayMemberBinding="{Binding VmValueDeclaration.VmName}" />
-                                    <GridViewColumn Header="Value" Width="150">
-                                        <GridViewColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <DockPanel>
-                                                    <ContentControl HorizontalContentAlignment="Stretch" Width="120" Height="15">
-                                                        <Control.Resources>
-                                                            <Style x:Key="CmdButtonStyle" TargetType="Button">
-                                                                <EventSetter Event="Click" Handler="Command_Click"/>
-                                                            </Style>
-                                                        </Control.Resources>
-                                                        <Control.Style>
-                                                            <!-- TODO_OPT -->
-                                                            <Style TargetType="Control">
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding VmValueDeclaration.GuiEnum}" Value="CheckBox">
-                                                                        <Setter Property="Template">
-                                                                            <Setter.Value>
-                                                                                <ControlTemplate>
-                                                                                    <CheckBox IsChecked="{Binding VmValue}" >
-                                                                                    </CheckBox>
-                                                                                </ControlTemplate>
-                                                                            </Setter.Value>
-                                                                        </Setter>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding VmValueDeclaration.GuiEnum}" Value="Slider">
-                                                                        <Setter Property="Template">
-                                                                            <Setter.Value>
-                                                                                <ControlTemplate>
-                                                                                    <Slider Value="{Binding VmValue}"
-                                                                                            Minimum="{Binding VmMinumum}"
-                                                                                            Maximum="{Binding VmMaximum}"
-                                                                                            SmallChange="{Binding VmSmallChange}"
-                                                                                            LargeChange="{Binding VmLargeChange}">
-                                                                                        
-                                                                                    </Slider>
-                                                                                </ControlTemplate>
-                                                                            </Setter.Value>
-                                                                        </Setter>
-                                                                    </DataTrigger>
+                    <Grid>
+                        <TabControl>
+                            <TabItem Header="Global" x:Name="GlobalTabItem">
+                                <DockPanel>
+                                    <TextBlock Height="22" VerticalAlignment="Center" DockPanel.Dock="Top" HorizontalAlignment="Center" TextAlignment="Center" Text="ESC to uncapture Mouse/Exit Fullscreen" FontSize="9">
+                                    </TextBlock>
+                                    <local:CValuesGui DataContext="{Binding VmMonoFacade.VmValues}">
+                                    </local:CValuesGui>
 
-
-                                                                    <DataTrigger Binding="{Binding VmValueDeclaration.GuiEnum}" Value="Button">
-                                                                        <Setter Property="Template">
-                                                                            <Setter.Value>
-                                                                                <ControlTemplate>
-                                                                                    <Button  Style="{StaticResource CmdButtonStyle}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                                                                    </Button>
-                                                                                </ControlTemplate>
-                                                                            </Setter.Value>
-                                                                        </Setter>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Control.Style>
-                                                    </ContentControl>
-                                                </DockPanel>
-                                            </DataTemplate>
-                                        </GridViewColumn.CellTemplate>
-                                    </GridViewColumn>
-
-                                </GridView.Columns>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                    
-                  
+                                </DockPanel>
+                            </TabItem>
+                            <TabItem Header="Objects" >
+                                <DockPanel>
+                                    <ComboBox DockPanel.Dock="Top" Height="22" x:Name="ObjectsComboBox" ItemsSource="{Binding VmMonoFacade.VmValueObjecctRegistry.VmItems}" />
+                                    <local:CValuesGui DataContext="{Binding SelectedItem, ElementName=ObjectsComboBox}">
+                                    </local:CValuesGui>
+                                </DockPanel>
+                            </TabItem>
+                        </TabControl>
+                    </Grid>
                 </DockPanel>
             </GroupBox>
 

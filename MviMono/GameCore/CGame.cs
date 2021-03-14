@@ -548,19 +548,19 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         #region Values
         //[CMemberDeclaration]
-        private static readonly CBoolValDecl XnaMouseEnabledValueDeclaration = new CBoolValDecl
-            ( CValueEnum.Mouse_Xna,  new Guid("99e270ec-f288-4a86-8cde-caaf8af85cff"), true, false);
+        private static readonly CBoolDeclaration XnaMouseEnabledValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_Mouse_Xna,  new Guid("99e270ec-f288-4a86-8cde-caaf8af85cff"), true, false);
        
         private CBoolValue XnaMouseEnabledValueM;
         private CBoolValue XnaMouseEnabledValue => CLazyLoad.Get(ref this.XnaMouseEnabledValueM, () => CValue.GetStaticValue<CBoolValue>(this.World, XnaMouseEnabledValueDeclaration));
         [CMemberDeclaration]
-        private static readonly CBoolValDecl FullScreenValueDeclaration = new CBoolValDecl
-            ( CValueEnum.FullScreen, new Guid("99a83ab0-c037-4d78-9d2d-2adc1bcd627e"), true, false);
+        private static readonly CBoolDeclaration FullScreenValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_FullScreen, new Guid("99a83ab0-c037-4d78-9d2d-2adc1bcd627e"), true, false);
         private CBoolValue FullScreenValueM;
         private CBoolValue FullScreenValue => CLazyLoad.Get(ref this.FullScreenValueM, () => CValue.GetStaticValue<CBoolValue>(this.World, FullScreenValueDeclaration));
         [CMemberDeclaration]
-        private static readonly CBoolValDecl AccumulativeViewMatrixValueDeclaration = new CBoolValDecl
-            ( CValueEnum.AccumulativeViewMatrix, new Guid("e94a7502-aea0-45fc-a332-506e2ee750dc"), true, CStaticParameters.Value_AccumulativeViewMatrix);
+        private static readonly CBoolDeclaration AccumulativeViewMatrixValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_AccumulativeViewMatrix, new Guid("e94a7502-aea0-45fc-a332-506e2ee750dc"), true, CStaticParameters.Value_AccumulativeViewMatrix);
         private CBoolValue AccumulativeViewMatrixValueM;
         internal CBoolValue AccumulativeViewMatrixValue => CLazyLoad.Get(ref this.AccumulativeViewMatrixValueM, () => CValue.GetStaticValue<CBoolValue>(this.World, AccumulativeViewMatrixValueDeclaration));
         #endregion
@@ -1043,8 +1043,8 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             return aVertexBuffer;
         }
         [CMemberDeclaration]
-        internal static readonly CValueDeclaration OriginValueDeclaration = new CBoolValDecl
-            ( CValueEnum.Origin, new Guid("64f3ce9c-9960-443c-9553-a10c395695a0"), true, CStaticParameters.Value_Origin_Visible);
+        internal static readonly CValueDeclaration OriginValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_Origin, new Guid("64f3ce9c-9960-443c-9553-a10c395695a0"), true, CStaticParameters.Value_Origin_Visible);
         private readonly CBoolValue OriginValue;
 
         private void DrawCoordinates()

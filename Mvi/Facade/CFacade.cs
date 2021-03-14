@@ -99,6 +99,7 @@ namespace CharlyBeck.Mvi.Facade
     {
         public CFacade(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.ValueObjectRegistry = new CValueObjectRegistry(this);
             this.GemCategories = new CGemCategories(this);
             this.World = new CWorld(this);
             this.LookUp.Load();
@@ -149,16 +150,16 @@ namespace CharlyBeck.Mvi.Facade
         }
 
         #region Values
-        private CValues ValuesM;
-        public CValues Values => CLazyLoad.Get(ref this.ValuesM, this.NewValueRegistry);
+        private CDefaultValues ValuesM;
+        public CDefaultValues Values => CLazyLoad.Get(ref this.ValuesM, this.NewValueRegistry);
         public object VmValues => this.Values;
-        private CValues NewValueRegistry()
+        private CDefaultValues NewValueRegistry()
         {
-            var aValueRegistry = new CValues(this);
+            var aValueRegistry = new CDefaultValues(this);
             this.BuildValueRegistry(aValueRegistry);
             return aValueRegistry;
         }
-        protected virtual void BuildValueRegistry(CValues aValueRegistry)
+        protected virtual void BuildValueRegistry(CDefaultValues aValueRegistry)
         {
             var aAssemblies = new Assembly[] { typeof(CFacade).Assembly, this.GetType().Assembly };
             aValueRegistry.AddRange(aAssemblies);
@@ -185,6 +186,10 @@ namespace CharlyBeck.Mvi.Facade
             return aTask;
         }
         #endregion
+        #region ValueObjectRegistry
+        private readonly CValueObjectRegistry ValueObjectRegistry;
+        public object VmValueObjecctRegistry => this.ValueObjectRegistry;
+        #endregion
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
@@ -197,6 +202,7 @@ namespace CharlyBeck.Mvi.Facade
             aServiceContainer.AddService<CWorld>(() => this.World);
             aServiceContainer.AddService<CContentManager>(() => this.ContentManager);
             aServiceContainer.AddService<CGemCategories>(() => this.GemCategories);
+            aServiceContainer.AddService<CValueObjectRegistry>(() => this.ValueObjectRegistry);
             return aServiceContainer;
         }
         #endregion   
@@ -204,15 +210,15 @@ namespace CharlyBeck.Mvi.Facade
         #region Look
 
         [CMemberDeclaration]
-        internal static readonly CCommandDeclaration LookUpDecl = new CCommandDeclaration(CValueEnum.Look_Up, new Guid("790166c7-a357-4355-953f-a4c3fc78ae97"));
+        internal static readonly CCommandDeclaration LookUpDecl = new CCommandDeclaration(CValueEnum.Global_Look_Up, new Guid("790166c7-a357-4355-953f-a4c3fc78ae97"));
             [CMemberDeclaration]
-        internal static readonly CCommandDeclaration LookDownDecl = new CCommandDeclaration(CValueEnum.Look_Down, new Guid("eef4fc43-1ff7-479e-b38a-f0190dffcc06"));
+        internal static readonly CCommandDeclaration LookDownDecl = new CCommandDeclaration(CValueEnum.Global_Look_Down, new Guid("eef4fc43-1ff7-479e-b38a-f0190dffcc06"));
         [CMemberDeclaration]
-        internal static readonly CCommandDeclaration LookRightDecl = new CCommandDeclaration(CValueEnum.Look_Right, new Guid("afbc52f7-b718-4710-94b2-9cb3d4a90e28"));
+        internal static readonly CCommandDeclaration LookRightDecl = new CCommandDeclaration(CValueEnum.Global_Look_Right, new Guid("afbc52f7-b718-4710-94b2-9cb3d4a90e28"));
         [CMemberDeclaration]
-        internal static readonly CCommandDeclaration LookLeftDecl = new CCommandDeclaration(CValueEnum.Look_Left, new Guid("5f01a09a-7e94-45e5-b292-2d53c16b029c"));
+        internal static readonly CCommandDeclaration LookLeftDecl = new CCommandDeclaration(CValueEnum.Global_Look_Left, new Guid("5f01a09a-7e94-45e5-b292-2d53c16b029c"));
         [CMemberDeclaration]
-        internal static readonly CDoubleDeclaration LookAngleDecl = new CDoubleDeclaration(CValueEnum.Look_Angle, new Guid("492d14aa-9870-48c0-9031-f7517550827e"), true, CGuiEnum.Slider, CUnitEnum.Radians, (45d).ToRadians(), (0d).ToRadians(), (360d).ToRadians(), (45d).ToRadians(), (180d).ToRadians(), 0);
+        internal static readonly CDoubleDeclaration LookAngleDecl = new CDoubleDeclaration(CValueEnum.Global_Look_Angle, new Guid("492d14aa-9870-48c0-9031-f7517550827e"), true, CGuiEnum.Slider, CUnitEnum.Radians, (45d).ToRadians(), (0d).ToRadians(), (360d).ToRadians(), (45d).ToRadians(), (180d).ToRadians(), 0);
 
         private CDoubleValue LookAngleM;
         private CDoubleValue LookAngle => CLazyLoad.Get(ref this.LookAngleM, () => CDoubleValue.GetStaticValue<CDoubleValue>(this, LookAngleDecl));

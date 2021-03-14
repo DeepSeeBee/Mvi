@@ -28,6 +28,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CharlyBeck.Utils3.Asap;
+using CharlyBeck.Mvi.Value;
 
 namespace CharlyBeck.Mvi.Sprites
 {
@@ -54,6 +55,7 @@ namespace CharlyBeck.Mvi.Sprites
 
     public abstract class CSprite : CReuseable
     {
+        #region ctor
         internal CSprite(CServiceLocatorNode aParent) : base(aParent)
         {
             this.Facade = this.ServiceContainer.GetService<CFacade>();
@@ -67,18 +69,13 @@ namespace CharlyBeck.Mvi.Sprites
             this.PlatformSprite = this.NewPlatformSprite();
         }
 
-        internal int? Id;
-
-        internal CModels Models => this.World.Models;
-        internal CSoundDirectoryEnum? DestroyedSound;
-        internal bool DeallocateIsQueued;
-
-
         protected override void OnBeginUse()
         {
             base.OnBeginUse();
 
             this.IsHiddenInWorld = false;
+
+            this.RegisterValueObjectOnDemand();
         }
 
         internal void Build(CQuadrantBuildArgs a)
@@ -108,6 +105,8 @@ namespace CharlyBeck.Mvi.Sprites
         protected override void OnEndUse()
         {
             base.OnEndUse();
+            
+            this.UnregisterValueObjectOnDemand();
 
             this.WorldPos = default;
             this.IsNearestM = default;
@@ -120,13 +119,35 @@ namespace CharlyBeck.Mvi.Sprites
             this.PersistentId = default;
             this.BuildIsDone = false;
             this.IsHiddenInWorld = default;
-        }
 
+            
+        }
+        #endregion
+        #region ValueObject
+        internal bool ValueObjectIsDefined;
+        internal virtual CValueObject ValueObject => throw new CMethodNotOverridenExc();
+        private void RegisterValueObjectOnDemand()
+        {
+            if (this.ValueObjectIsDefined)
+                this.ValueObject.Register();
+        }
+        private void UnregisterValueObjectOnDemand()
+        {
+            if (this.ValueObjectIsDefined)
+                this.ValueObject.Unregister();
+        }
+        #endregion
+        #region ObjectId
         private CObjectId ObjectIdM;
         internal CObjectId ObjectId => CLazyLoad.Get(ref this.ObjectIdM, () => new CObjectId());
+        internal int? Id;
+        #endregion
         internal bool PlaysFlybySound;
         internal TimeSpan? TimeToLive;
 
+        internal CModels Models => this.World.Models;
+        internal CSoundDirectoryEnum? DestroyedSound;
+        internal bool DeallocateIsQueued;
         internal virtual void Draw()
         {
             if (this.Visible)

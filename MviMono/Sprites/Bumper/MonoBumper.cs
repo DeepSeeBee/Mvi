@@ -238,8 +238,8 @@ namespace MviMono.Sprites.Asteroid
 
         #region Values
         [CMemberDeclaration]
-        private static readonly CBoolValDecl DrawOrbitsValueDeclaration = new CBoolValDecl
-            ( CValueEnum.SolarSystem_Orbits, new Guid("54570387-102d-48a8-aac9-a68044fefc54"), true, true);
+        private static readonly CBoolDeclaration DrawOrbitsValueDeclaration = new CBoolDeclaration
+            ( CValueEnum.Global_SolarSystem_Orbits, new Guid("54570387-102d-48a8-aac9-a68044fefc54"), true, true);
         private CBoolValue DrawOrbitsValueM;
         private CBoolValue DrawOrbitsValue => CLazyLoad.Get(ref this.DrawOrbitsValueM, () => CValue.GetStaticValue<CBoolValue>(this, DrawOrbitsValueDeclaration));
         #endregion

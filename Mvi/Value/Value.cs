@@ -6,11 +6,13 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using CharlyBeck.Utils3.Strings;
 
 namespace CharlyBeck.Mvi.Value
 {
@@ -20,12 +22,14 @@ namespace CharlyBeck.Mvi.Value
         Bool,
         Double,
         Enum,
+        Int64,
     }
 
     public enum CGuiEnum
     {
         Checkbox,
         Textbox,
+        NumericTextBox,
         Slider,
         ComboBox,
         Button,
@@ -42,27 +46,42 @@ namespace CharlyBeck.Mvi.Value
 
     public enum CValueEnum
     {
-        AccumulativeViewMatrix,
-        Origin,
-        FullScreen,
-        LandingMode,
-        Gravitation,
-        Mouse_Xna,
-        SolarSystem_SunVisible,
-        SolarSystem_PlanetVisible,
-        SolarSystem_MoonVisible,
-        SolarSystem_Orbits,
-        SolarSystem_Chaos,
-        GridLines,
-        SolarSystem_OrbitPlaneSlope,
-        SolarSystem_Animate,
-        Joystick,
-        Mouse_WinForm,
-        Look_Up,
-        Look_Down,
-        Look_Left,
-        Look_Right,
-        Look_Angle,
+        Global_AccumulativeViewMatrix,
+        Global_Origin,
+        Global_FullScreen,
+        Global_LandingMode,
+        Global_Gravitation,
+        Global_Mouse_Xna,
+        Global_SolarSystem_SunVisible,
+        Global_SolarSystem_PlanetVisible,
+        Global_SolarSystem_MoonVisible,
+        Global_SolarSystem_Orbits,
+        Global_SolarSystem_Chaos,
+        Global_GridLines,
+        Global_SolarSystem_OrbitPlaneSlope,
+        Global_SolarSystem_Animate,
+        Global_Joystick,
+        Global_Mouse_WinForm,
+        Global_Look_Up,
+        Global_Look_Down,
+        Global_Look_Left,
+        Global_Look_Right,
+        Global_Look_Angle,
+
+        Object_Avatar_AmmoEnergy,
+        Object_Avatar_AmmoRate,
+        Object_Avatar_AmmoSpeed,
+        Object_Avatar_AmmoThickness,
+        Object_Avatar_AntiGravity,
+        Object_Avatar_Drill,
+        Object_Avatar_LifeCount,
+        Object_Avatar_GuidedMissileCount,
+        Object_Avatar_KruskalScannerCount,
+        Object_Avatar_NuclearMissileCount,
+        Object_Avatar_Shell,
+        Object_Avatar_SlowMotion,
+        Object_Avatar_SpaceGrip,
+        Object_Avatar_ThermalShield,
     }
 
     public sealed class CMemberDeclarationAttribute : Attribute
@@ -128,7 +147,7 @@ namespace CharlyBeck.Mvi.Value
     {
         internal CCommand (CServiceLocatorNode aParent, CCommandDeclaration aCmdDeclaration) : base(aParent, aCmdDeclaration)
         {
-            
+            this.Init();
         }
 
         public event Action Invoked;
@@ -168,14 +187,17 @@ namespace CharlyBeck.Mvi.Value
         internal readonly T DefaultValue;
     }
 
-    public sealed class CBoolValDecl : CValueDeclaration<bool>
+    public sealed class CBoolDeclaration : CValueDeclaration<bool>
     {
-        public CBoolValDecl(CValueEnum aValueEnum, Guid aGuid, bool aIsPersistent, bool aDefaultValue) : base(aValueEnum, aGuid, aIsPersistent,  CGuiEnum.Checkbox, CUnitEnum.Bool, aDefaultValue)
+        public CBoolDeclaration(CValueEnum aValueEnum, Guid aGuid, bool aIsPersistent, bool aDefaultValue) : base(aValueEnum, aGuid, aIsPersistent,  CGuiEnum.Checkbox, CUnitEnum.Bool, aDefaultValue)
         {
         }
         internal override CValueTypeEnum ValueTypeEnum => CValueTypeEnum.Bool;
         internal override CValue NewValue(CServiceLocatorNode aParent)
-                => new CBoolValue(aParent, this);
+                => this.NewBoolValue(aParent);
+
+        internal CBoolValue NewBoolValue(CServiceLocatorNode aParent)
+            => new CBoolValue(aParent, this);
     }
 
     public abstract class CNumericValueDeclaration<T> : CValueDeclaration<T>
@@ -193,7 +215,29 @@ namespace CharlyBeck.Mvi.Value
         internal readonly T LargeChange;
         internal readonly T SmallChange;
     }
-    
+    public sealed class CInt64Declaration : CNumericValueDeclaration<Int64>
+    {
+        public CInt64Declaration(CValueEnum aValueEnum,
+                                    Guid aGuid,
+                                    bool aIsPersistent,
+                                    CUnitEnum aUnitEnum,
+                                    Int64 aDefaultValue,
+                                    Int64 aMin,
+                                    Int64 aMax,
+                                    Int64 aSmallChange,
+                                    Int64 aLargeChange)
+            :
+            base(aValueEnum, aGuid, aIsPersistent, CGuiEnum.NumericTextBox, aUnitEnum, aDefaultValue, aMin, aMax, aSmallChange, aLargeChange)
+        {
+        }
+        internal override CValueTypeEnum ValueTypeEnum => CValueTypeEnum.Int64;
+        internal override CValue NewValue(CServiceLocatorNode aParent)
+            => this.NewInt64Value(aParent);
+        internal CInt64Value NewInt64Value(CServiceLocatorNode aParent)
+            => new CInt64Value(aParent, this);
+
+
+    }
     public sealed class CDoubleDeclaration : CNumericValueDeclaration<Double>
     {
         public CDoubleDeclaration(CValueEnum aValueEnum, 
@@ -214,10 +258,10 @@ namespace CharlyBeck.Mvi.Value
         internal readonly int Digits;
         internal override CValueTypeEnum ValueTypeEnum => CValueTypeEnum.Double;
         internal override CValue NewValue(CServiceLocatorNode aParent)
+            => this.NewDoubleValue(aParent);
+        internal CDoubleValue NewDoubleValue(CServiceLocatorNode aParent)
             => new CDoubleValue(aParent, this);
-
     }
-
     public abstract class CValue :  CChangeNotifier
     {
         public CValue(CServiceLocatorNode aServiceLocatorNode, CValueDeclaration aValueDeclaration) :base(aServiceLocatorNode)
@@ -230,23 +274,73 @@ namespace CharlyBeck.Mvi.Value
         internal readonly CValueDeclaration ValueDeclaration;
         public object VmValueDeclaration => this.ValueDeclaration;
 
-        protected void SetValue(Action aSetValueAction)
+        protected void SetValueInGuiThread(Action aSetValueAction)
         {
             this.ServiceContainer.GetService<CAddInGameThreadAction>()(aSetValueAction);
         }
-
+        #region ViewModel
         public abstract object VmValue 
         {
             get;
             set; 
         }
+        public object VmName => this.ValueDeclaration.Name.TrimStart(this.Values.NamePrefix);
+        #endregion
+        #region Values
+        private CValues ValuesM;
+        private CValues Values => CLazyLoad.Get(ref this.ValuesM, () => this.ServiceContainer.GetService<CValues>());
+        #endregion
+        #region Increment
+        internal virtual void Increment(bool aDecrement, bool aLargeChange) { }
+        #endregion
+        #region ViewModel
+        protected void InvokeFromGui(Action aInGameThreadAction, Action aInGuiAction = null)
+        {
+            var aGuiDispatcher = System.Windows.Threading.Dispatcher.CurrentDispatcher;
+            var aGameAction = this.ServiceContainer.GetService<CAddInGameThreadAction>();
+            aGameAction(delegate ()
+            {
+                try
+                {
+                    aInGameThreadAction();
+                }
+                catch (Exception aExc)
+                {
+                    aGuiDispatcher.BeginInvoke(new Action(delegate ()
+                    {
+                        System.Windows.MessageBox.Show(aExc.Message, this.ValueDeclaration.Name, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    }));
+                }
+                if(aInGuiAction is object)
+                    aInGuiAction();
+            });
+        }
+
+        public void VmIncrement()
+        {
+            this.InvokeFromGui(delegate () { this.Increment(false, false); });
+        }
+        public void VmDecrement()
+        {
+            this.InvokeFromGui(delegate () { this.Increment(true, false); });
+        }
+        #endregion
+
+
     }
 
     public abstract class CValue<T> : CValue
     {
         public CValue(CServiceLocatorNode aParent, CValueDeclaration<T> aValueDeclaration) : base(aParent, aValueDeclaration)
         {
-            this.Value = aValueDeclaration.DefaultValue;
+            this.ValueDeclaration = aValueDeclaration;
+        }
+
+        internal readonly CValueDeclaration<T> ValueDeclaration;
+        protected override void Init()
+        {
+            base.Init();
+            this.Value = this.ValueDeclaration.DefaultValue;
         }
 
         private T ValueM;
@@ -255,20 +349,23 @@ namespace CharlyBeck.Mvi.Value
             get => this.ValueM;
             set
             {
-                if (!object.Equals(this.ValueM, value))
+                var aNewVal = this.Coerce(value);
+                if (!object.Equals(this.ValueM, aNewVal))
                 {
-                    this.ValueM = value;
+                    this.ValueM =  aNewVal;
                     this.NotifyChange(nameof(this.VmValue));
                 }
             }       
         }
+        protected virtual T Coerce(T aValue)
+            => aValue;
         public override object VmValue 
         { 
             get => this.ConvertGuiValue(this.Value);
             set
             {
                 var aValue = this.ConvertGuiValueBack(value);
-                this.SetValue(delegate () { this.Value = aValue; });
+                this.SetValueInGuiThread(delegate () { this.Value = aValue; });
             }
         }
         protected T ConvertGuiValueBack(object aGuiValue) => (T)aGuiValue;
@@ -277,8 +374,9 @@ namespace CharlyBeck.Mvi.Value
 
     public sealed class CBoolValue : CValue<bool>
     {
-        public CBoolValue(CServiceLocatorNode aParent, CBoolValDecl aValueDeclaration) : base(aParent, aValueDeclaration)
+        public CBoolValue(CServiceLocatorNode aParent, CBoolDeclaration aValueDeclaration) : base(aParent, aValueDeclaration)
         {
+            this.Init();
         }
     }
 
@@ -293,17 +391,55 @@ namespace CharlyBeck.Mvi.Value
         public object VmMaximum => this.NumericValueDeclaration.Maximum;
         public object VmSmallChange => this.NumericValueDeclaration.SmallChange;
         public object VmLargeChange => this.NumericValueDeclaration.LargeChange;
+
     }
 
-    public sealed class CDoubleValue : CValue<double>
+    public sealed class CDoubleValue : CNumericVal<double>
     {
         public CDoubleValue(CServiceLocatorNode aParent, CDoubleDeclaration aValueDeclaration) : base(aParent, aValueDeclaration)
+        {
+            this.DoubleDeclaration = aValueDeclaration;
+            this.Init();
+        }
+        internal readonly CDoubleDeclaration DoubleDeclaration;
+        internal override void Increment(bool aDecrement, bool aLargeChange)
+        {
+            var aStep = aLargeChange ? this.DoubleDeclaration.LargeChange : this.DoubleDeclaration.SmallChange;
+            var aDelta = aDecrement ? -aStep : aStep;
+            this.Value += aDelta;
+        }
+        protected override double Coerce(double aValue)
+            => Math.Max(this.DoubleDeclaration.Minimum, Math.Min(this.DoubleDeclaration.Maximum, aValue));
+    }
+    public sealed class CInt64Value : CValue<Int64>
+    {
+        public CInt64Value(CServiceLocatorNode aParent, CInt64Declaration aValueDeclaration) : base(aParent, aValueDeclaration)
+        {
+            this.Int64Declaration = aValueDeclaration;
+            this.Init();
+        }
+        internal readonly CInt64Declaration Int64Declaration;
+        internal override void Increment(bool aDecrement, bool aLargeChange)
+        {
+            var aStep = aLargeChange ? this.Int64Declaration.LargeChange : this.Int64Declaration.SmallChange;
+            var aDelta = aDecrement ? -aStep : aStep;
+            this.Value += aDelta;
+        }
+        protected override Int64 Coerce(Int64 aValue)
+                => Math.Max(this.Int64Declaration.Minimum, Math.Min(this.Int64Declaration.Maximum, aValue));
+
+    }
+    public sealed class CDefaultValues
+    :
+        CValues
+    {
+        public CDefaultValues(CServiceLocatorNode aParent) : base(aParent)
         {
         }
     }
 
-    public sealed class CValues 
-    : 
+    public abstract class CValues 
+    :
         CServiceLocatorNode
     ,   IEnumerable<CValue>
     {
@@ -312,8 +448,6 @@ namespace CharlyBeck.Mvi.Value
         {
 
         }
-        public override T Throw<T>(Exception aException)
-            => aException.Throw<T>();
         #endregion
         #region Values
         public void AddRange(IEnumerable<Assembly> aAssemblies)
@@ -358,5 +492,83 @@ namespace CharlyBeck.Mvi.Value
         public CValue GetValue(CValueDeclaration aValueDeclaration)
             => this.ValueDic[aValueDeclaration];
         #endregion
+        #region NamePrefix
+        private string NamePrefixM;
+        internal string NamePrefix => CLazyLoad.Get(ref this.NamePrefixM, this.NewNamePrefix);
+        private string NewNamePrefix()
+        {
+            var aValues = this.ValueDic.Keys;
+            var aEnums = aValues.Select(v => v.ValueEnum);
+            var aTexts = aEnums.Select(e => e.ToString()).ToArray();
+            if (aTexts.Length > 1)
+            {
+                var aLens = aTexts.Select(t => t.Length);
+                var aLenMin = aLens.Min();
+                for (var i = 1; i < aLenMin; ++i)
+                {
+                    var aRefText = aTexts[0];
+                    var aPrefix = aRefText.Substring(0, i);
+                    var âMatch = aTexts.Select(t => t.StartsWith(aPrefix));
+                    var aDontMatch = âMatch.Contains(false);
+                    if (aDontMatch)
+                    {
+                        return aRefText.Substring(0, i - 1);
+                    }
+                }
+            }
+            return string.Empty;
+
+
+        }
+        #endregion
+
+    }
+
+    internal abstract class CValueObject : CValues
+    {
+        #region ctor
+        internal CValueObject(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.ValueObjectRegistry = this.ServiceContainer.GetService<CValueObjectRegistry>();
+        }
+        #endregion
+        #region ValueObjectRegistry
+        internal void Register()
+        {
+            this.ValueObjectRegistry.Add(this);
+        }
+        internal void Unregister()
+        {
+            this.ValueObjectRegistry.Remove(this);
+        }
+        private readonly CValueObjectRegistry ValueObjectRegistry;
+        #endregion
+        #region ServiceContainer
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            aServiceContainer.AddService<CValues>(() => this);
+            return aServiceContainer;
+        }
+        #endregion
+    }
+
+    internal sealed class CValueObjectRegistry : CServiceLocatorNode 
+    {
+        internal CValueObjectRegistry(CServiceLocatorNode aParent) : base(aParent)
+        {
+        }
+        private readonly List<CValueObject> ValueObjects = new List<CValueObject>();
+        internal void Add(CValueObject aValueObject)
+        {
+            this.ValueObjects.Add(aValueObject);
+        }
+        internal void Remove(CValueObject aValueObject)
+        {
+            this.ValueObjects.Remove(aValueObject);
+        }
+        public object VmItems => this.ValueObjects;
     }
 }

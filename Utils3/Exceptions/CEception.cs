@@ -11,4 +11,6 @@ namespace CharlyBeck.Utils3.Exceptions
       public static T Throw<T>(this Exception aExc)
          => throw aExc;
    }
+
+    public sealed class CMethodNotOverridenExc : Exception { }
 }
