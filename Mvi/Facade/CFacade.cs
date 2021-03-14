@@ -17,6 +17,8 @@ using CharlyBeck.Utils3.Asap;
 using Microsoft.Xna.Framework;
 using System.Threading;
 using CharlyBeck.Mvi.ContentManager;
+using CharlyBeck.Utils3.Reflection;
+using CharlyBeck.Mvi.Sprites.Gem;
 
 namespace CharlyBeck.Mvi.Facade
 {
@@ -46,7 +48,7 @@ namespace CharlyBeck.Mvi.Facade
         Crosshair,
         Explosion,
         Gem,
-        _Count
+        GemSlotControls
     }
     public delegate CPlatformSprite CNewPlatformSpriteFunc(Tuple<CServiceLocatorNode, CSprite> aParentAndSprite);
 
@@ -55,7 +57,7 @@ namespace CharlyBeck.Mvi.Facade
         
         internal CPlatformSpriteFactory(CServiceLocatorNode aParent):base(aParent)
         {
-            var c = (int)CPlatformSpriteEnum._Count;
+            var c = typeof(CPlatformSpriteEnum).GetEnumMaxValue() + 1;
             var aEntries = new CEntry[c];
             for(var i = 0; i < c; ++i)
             {
@@ -97,6 +99,7 @@ namespace CharlyBeck.Mvi.Facade
     {
         public CFacade(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.GemCategories = new CGemCategories(this);
             this.World = new CWorld(this);
             this.LookUp.Load();
             this.LookDown.Load();
@@ -193,6 +196,7 @@ namespace CharlyBeck.Mvi.Facade
             aServiceContainer.AddService<CAddInGameThreadAction>(() => new CAddInGameThreadAction(this.AddInGameThreadAction));
             aServiceContainer.AddService<CWorld>(() => this.World);
             aServiceContainer.AddService<CContentManager>(() => this.ContentManager);
+            aServiceContainer.AddService<CGemCategories>(() => this.GemCategories);
             return aServiceContainer;
         }
         #endregion   
@@ -266,6 +270,9 @@ namespace CharlyBeck.Mvi.Facade
         #region ContentManager
         private CContentManager ContentManagerM;
         private CContentManager ContentManager => CLazyLoad.Get(ref this.ContentManagerM, () => new CContentManager(this));
+        #endregion
+        #region GemCategories
+        private readonly CGemCategories GemCategories;
         #endregion
     }
 

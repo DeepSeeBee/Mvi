@@ -77,6 +77,8 @@ namespace CharlyBeck.Mvi.Sprites
         protected override void OnBeginUse()
         {
             base.OnBeginUse();
+
+            this.IsHiddenInWorld = false;
         }
 
         internal void Build(CQuadrantBuildArgs a)
@@ -100,6 +102,7 @@ namespace CharlyBeck.Mvi.Sprites
             this.TileWorldPos = this.GetWorldPos(a.QuadrantBuildArgs.TileCubePos);
             this.Reposition();
             this.BuildIsDone = true;
+
         }
 
         protected override void OnEndUse()
@@ -116,6 +119,7 @@ namespace CharlyBeck.Mvi.Sprites
             this.SpritePersistentData = default;
             this.PersistentId = default;
             this.BuildIsDone = false;
+            this.IsHiddenInWorld = default;
         }
 
         private CObjectId ObjectIdM;
@@ -136,7 +140,7 @@ namespace CharlyBeck.Mvi.Sprites
             if(!this.Destroyed)
             {
                 this.Destroyed = true;
-                //this.DeallocateIsQueued = true;
+                this.IsHiddenInWorld = true;
                 this.World.OnDestroyedByShot(this, aShotSprite);
             }
         }
@@ -168,9 +172,10 @@ namespace CharlyBeck.Mvi.Sprites
             => this.PlatformSprite.Reposition();
         internal virtual int ChangesCount => 0;
         internal virtual bool Visible => true             
-            //&& !this.IsHitByShot 
+            && !this.IsHiddenInWorld.Value
             && !this.Destroyed
             ;
+        internal bool? IsHiddenInWorld;
 
         private bool? IsNearestM;
         public bool IsNearest => CLazyLoad.Get(ref this.IsNearestM, () =>this.World.FrameInfo.SpritesOrderedByDistance.OfType<CSprite>().First().RefEquals<CSprite>(this));
@@ -304,16 +309,23 @@ namespace CharlyBeck.Mvi.Sprites
         #endregion
         #region Collision
         public bool CollisionIsEnabled => this.CollisionSourceEnum.HasValue;
+
+        public bool HasDistanceToAvatar = true;
+
         internal CCollisionSourceEnum? CollisionSourceEnum = default(CCollisionSourceEnum?);
         internal virtual void Collide()
         {
-            if(this.CollisionIsEnabled)
+            if(this.CollisionIsEnabled
+            && !this.IsHiddenInWorld.Value)
             {
                 this.Collide(this.CanCollideWithTarget);
             }
         }
         internal virtual bool CanCollideWithTarget(CSprite aSprite)
-            => this.CollisionSourceEnum.HasValue && aSprite.GetCanCollideWithSource(this.CollisionSourceEnum.Value);
+            => this.CollisionSourceEnum.HasValue 
+            && aSprite.GetCanCollideWithSource(this.CollisionSourceEnum.Value)
+            && !aSprite.IsHiddenInWorld.Value
+            ;
         private void Collide(Func<CSprite, bool> aCanCollideWith)
             => this.Collide(this.FrameInfo.Sprites.Where(aCanCollideWith));
         private void Collide(IEnumerable<CSprite> aSprites)
@@ -330,7 +342,8 @@ namespace CharlyBeck.Mvi.Sprites
             var aOwnRadius = this.Radius.Value;
             foreach (var aCollideWith in aSprites)
             {
-                if (aCollideWith.IsInUse)
+                if (aCollideWith.IsInUse
+                )
                 {
                     var aOtherPos = aCollideWith.WorldPos.Value;
                     var aOtherRadius = aCollideWith.Radius;

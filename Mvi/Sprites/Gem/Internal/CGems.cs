@@ -2,7 +2,6 @@
 using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Sprites;
 using CharlyBeck.Mvi.Sprites.Shot;
-using CharlyBeck.Mvi.Story.Bonus;
 using CharlyBeck.Mvi.Story.Propability;
 using CharlyBeck.Mvi.Story.Value;
 using CharlyBeck.Mvi.World;
@@ -70,9 +69,12 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CExtraLifeGem : CGemSprite
     {
         #region ctor
-        internal CExtraLifeGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CExtraLifeGem(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Defense;
+            this.Init();
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
     /// <summary>
@@ -81,9 +83,12 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CShellRepairGem : CGemSprite
     {
         #region ctor
-        internal CShellRepairGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CShellRepairGem(CServiceLocatorNode aParent) : base(aParent) 
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Defense;
+            this.Init();
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
     /// <summary>
@@ -92,17 +97,23 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CShieldGem : CGemSprite
     {
         #region ctor
-        internal CShieldGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CShieldGem(CServiceLocatorNode aParent) : base(aParent) 
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Defense;
+            this.Init();
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
     internal sealed class CLaserEnergyGem  : CGemSprite
     {
         #region ctor
-        internal CLaserEnergyGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CLaserEnergyGem(CServiceLocatorNode aParent) : base(aParent) 
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Offense;
+            this.Init();
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Offense;
     }
 
     /// <summary>
@@ -111,9 +122,12 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CNuclearMissileGem : CGemSprite
     {
         #region ctor
-        internal CNuclearMissileGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CNuclearMissileGem(CServiceLocatorNode aParent) : base(aParent) 
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Offense;
+            this.Init();
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Offense;
     }
 
     /// <summary>
@@ -122,9 +136,11 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CThermalShieldGem : CGemSprite
     {
         #region ctor
-        internal CThermalShieldGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CThermalShieldGem(CServiceLocatorNode aParent) : base(aParent) 
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Navigation;
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
     }
 
     /// <summary>
@@ -133,9 +149,13 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CKruskalScannerGem : CGemSprite
     {
         #region ctor
-        internal CKruskalScannerGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CKruskalScannerGem(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Navigation;
+            this.Init();
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
+      
     }
 
 
@@ -145,64 +165,81 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CDrillEnergyGem : CGemSprite
     {
         #region ctor
-        internal CDrillEnergyGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CDrillEnergyGem(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Defense;
+            this.Init();
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
 
     internal sealed class CAmmoSpeedGem : CGemSprite
     {
         #region ctor
-        internal CAmmoSpeedGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CAmmoSpeedGem(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Defense;
+            this.Init();
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
     }
     internal sealed class CFireRateGem : CGemSprite
     {
         #region ctor
-        internal CFireRateGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CFireRateGem(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Defense;
+            this.Init(); 
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Defense;
+
     }
 
     internal sealed class CSlowMotionGem :CGemSprite
     {
         #region ctor
-        internal CSlowMotionGem(CServiceLocatorNode aParent) : base(aParent) { }
-        #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
+        internal CSlowMotionGem(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Navigation;
+            this.Init();
+        }
+        #endregion 
     }
 
     internal sealed class CAntigravityGem : CGemSprite
     {
         #region ctor
-        internal CAntigravityGem(CServiceLocatorNode aParent) : base(aParent) { }
+        internal CAntigravityGem(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.GetCategoryEnum = CGemCategoryEnum.Navigation;
+            this.Init();
+        }
         #endregion
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
     }
 
-    internal sealed class CGemManager :  CServiceLocatorNode
-    {
-        #region ctor
-        internal CGemManager(CServiceLocatorNode aParent) : base(aParent) { }
-        #endregion
-    }
+    //internal sealed class CGemManager :  CServiceLocatorNode
+    //{
+    //    #region ctor
+    //    internal CGemManager(CServiceLocatorNode aParent) : base(aParent) { }
+    //    #endregion
+    //}
 
     internal sealed class CGuidedMissileGem : CGemSprite
     {
         internal CGuidedMissileGem(CServiceLocatorNode aParent):base(aParent)
         {
-
+            this.GetCategoryEnum = CGemCategoryEnum.Offense;
+            this.Init();
         }
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Offense;
     }
 
     internal sealed class CSpaceGripGem : CGemSprite
     {
         internal CSpaceGripGem(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.GetCategoryEnum = CGemCategoryEnum.Navigation;
+            this.Init();
         }
-        internal override CGemClassEnum GemClassEnum => CGemClassEnum.Navigation;
     }
 
 

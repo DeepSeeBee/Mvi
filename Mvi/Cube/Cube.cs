@@ -102,11 +102,25 @@ namespace CharlyBeck.Mvi.Cube
            => this.NextDouble() > aPropability;
         internal T NextItem<T>(T[] aItems)
            => aItems[this.NextInteger(0, aItems.Length - 1)];
-        internal T[] NextItems<T>(T[] aItems)
+        internal T[] NextSubset<T>(T[] aItems)
         {
             var aCount = (double)aItems.Length;
             var aPropability = 1.0d / aCount;
             return (from aItem in aItems where this.NextBoolean(aPropability) select aItem).ToArray();
+        }
+
+        internal T[] NextShuffledSequence<T>(T[] aItems)
+        {
+            // TODO_OPT
+            var aTmp = aItems.ToList();
+            var aResult = new List<T>(aItems.Length);
+            while(aTmp.Count > 0)
+            {
+                var aIdx = this.NextInteger(0, aTmp.Count-1);
+                aResult.Add(aTmp[aIdx]);
+                aTmp.RemoveAt(aIdx);
+            }
+            return aResult.ToArray();
         }
 
         internal TimeSpan NextFromTimeSpanRange(CTimeSpanRange aRange)
@@ -116,7 +130,7 @@ namespace CharlyBeck.Mvi.Cube
            => this.NextItem(typeof(T).GetEnumValues().Cast<T>().ToArray());
 
         internal T[] NextEnums<T>()
-           => this.NextItems(typeof(T).GetEnumValues().Cast<T>().ToArray());
+           => this.NextSubset(typeof(T).GetEnumValues().Cast<T>().ToArray());
 
         internal CVector3Dbl NextVector3Dbl(double aXyz)
             => new CVector3Dbl(this.NextDouble(aXyz), this.NextDouble(aXyz), this.NextDouble(aXyz));

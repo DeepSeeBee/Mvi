@@ -126,6 +126,7 @@
     <Compile Include="Sprites\Crosshair\MonoCrosshair.cs" />
     <Compile Include="Sprites\Cube\MonoCube.cs" />
     <Compile Include="Sprites\Explosion\MonoExplosion.cs" />
+    <Compile Include="Sprites\GemSlot\MonoGemSlot.cs" />
     <Compile Include="Sprites\Gem\MonoGem.cs" />
     <Compile Include="Sprites\Shot\MonoShot.cs" />
     <Compile Include="Sprites\sprites.cs" />

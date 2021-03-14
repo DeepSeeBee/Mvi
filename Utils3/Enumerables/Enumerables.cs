@@ -31,7 +31,7 @@ namespace CharlyBeck.Utils3.Enumerables
             {
                 aArray[aIdx] = aItem;
                 ++aIdx;
-                if (aIdx == aCount - 1)
+                if (aIdx == aCount)
                     return aArray;
             }
             throw new InvalidOperationException();

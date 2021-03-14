@@ -16,11 +16,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CharlyBeck.Utils3.Asap;
+using CharlyBeck.Mvi.Sprites.GemSlot;
+using System.Diagnostics;
 
 namespace CharlyBeck.Mvi.Sprites.Gem
 {
     using CGemPropability = CPropability<CGemEnum>;
-    enum CGemClassEnum
+    enum CGemCategoryEnum
     {
         Offense,
         Defense,
@@ -91,6 +93,67 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         
     }
 
+    internal abstract class CGemCategory : CServiceLocatorNode
+    {
+        internal CGemCategory(CServiceLocatorNode aParent)
+        {
+
+        }
+        internal CGemCategoryEnum GemClassEnum;
+        internal CVector3Dbl Color;
+    }
+
+    internal sealed class CGemCategories : CServiceLocatorNode
+    {
+        #region ctor
+        internal CGemCategories(CServiceLocatorNode aParent): base(aParent)
+        {
+            this.Array = this.NewGemClasses();
+        }
+        #endregion
+        #region GemClasses
+        private CGemCategory[] NewGemClasses()
+        {
+            var aCount = typeof(CGemCategoryEnum).GetEnumMaxValue() + 1;
+            var aGemCategories = new CGemCategory[aCount];
+            aGemCategories[(int)CGemCategoryEnum.Offense] = new COffenseGemClass(this);
+            aGemCategories[(int)CGemCategoryEnum.Defense] = new CDefenseGemClass(this);
+            aGemCategories[(int)CGemCategoryEnum.Navigation] = new CNavigationGemClass(this);
+            return aGemCategories;
+        }
+        internal readonly CGemCategory[] Array;
+        internal CGemCategory Get(CGemCategoryEnum aGemCategoryEnum)
+            => this.Array[(int)aGemCategoryEnum];
+        #endregion
+    }
+
+    internal sealed class CDefenseGemClass : CGemCategory
+    {
+        internal CDefenseGemClass(CServiceLocatorNode aParent):base(aParent)
+        {
+            this.GemClassEnum = CGemCategoryEnum.Defense;
+            this.Color = CColors.Green;
+        }
+    }
+
+    internal sealed class CNavigationGemClass : CGemCategory
+    {
+        internal CNavigationGemClass(CServiceLocatorNode aParent):base(aParent)
+        {
+            this.GemClassEnum = CGemCategoryEnum.Navigation;
+            this.Color = CColors.Blue;
+        }
+    }
+
+    internal sealed class COffenseGemClass : CGemCategory
+    {
+        internal COffenseGemClass(CServiceLocatorNode aParent):base(aParent)
+        {
+            this.GemClassEnum = CGemCategoryEnum.Offense;
+            this.Color = CColors.Red;
+        }
+    }
+
     /// <summary>
     /// Item to collect, grants special abilites.
     /// </summary>
@@ -99,17 +162,32 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         #region ctor
         internal CGemSprite(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.GemCategories = this.ServiceContainer.GetService<CGemCategories>();
             this.PlattformSpriteEnum = CPlatformSpriteEnum.Gem;
             this.CollisionSourceEnum = CCollisionSourceEnum.Gem;
 
-
             this.Init();
         }
+        protected override void Init()
+        {
+            base.Init();
+            this.GemCategory = this.GemCategories.Get(this.GetCategoryEnum);
+        }
+        protected override void OnEndUse()
+        {
+            base.OnEndUse();
+
+            Debug.Assert(!(this.GemSlotNullable is object));
+        }
+        #endregion
+        #region GemCategories
+        private readonly CGemCategories GemCategories;
+
         #endregion
         internal virtual CValue TargetValue => throw new NotImplementedException();
         internal virtual bool ModifyTargetValueIsEnabled => false;
         internal virtual CValue SourceValue => throw new NotImplementedException();
-        internal abstract CGemClassEnum GemClassEnum { get; }
+        internal CGemCategoryEnum GetCategoryEnum;
         internal void Collect()
         {
             if (this.ModifyTargetValueIsEnabled)
@@ -118,8 +196,16 @@ namespace CharlyBeck.Mvi.Sprites.Gem
                 //this.TargetValue.Add(this.SourceValue);
             }
 
-            this.DeallocateIsQueued = true;
             this.World.OnGemCollected(this);
+            if(this.IsReferenced)
+            {
+                this.IsHiddenInWorld = true;
+                this.TimeToLive = default;
+            }
+            else
+            {
+                this.DeallocateIsQueued = true;
+            }
         }
         protected override void OnCollide(CSprite aCollideWith, double aDistance)
         {
@@ -147,9 +233,11 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
             this.Reposition();
         }
-
-
+        internal CGemSlot GemSlotNullable;
+        internal bool IsReferenced => this.GemSlotNullable is object;
+        internal CGemCategory GemCategory { get; private set; }
     }
+
     internal sealed class CGemSpriteManager : CMultiPoolSpriteManager<CGemSprite, CGemEnum>
     {
 
@@ -224,6 +312,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
             return aServiceContainer;
         }
         #endregion
+
     }
 
 }

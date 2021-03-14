@@ -127,7 +127,7 @@ namespace MviMono.Sprites.Asteroid
             var aAvatarDistanceToSurface = aBumperSprite.AvatarDistanceToSurface;
             var aVertexBufferIndex = this.MviAsteroidModel.GetSphereIdx(aAvatarDistanceToSurface);
             var aLineListVertexBuffer = this.SphereLineListVertexBuffers[aVertexBufferIndex]; // this.GetSphereLineListVertexBuffer(aAvatarDistanceToSurface);
-            var aTriangleStripVertexBuffer = this.SphereTriangleListVertexBuffers[aVertexBufferIndex];// this.GetSphereTriangleStripVertexBuffer(aAvatarDistanceToSurface);
+            var aTriangleListVertexBuffer = this.SphereTriangleListVertexBuffers[aVertexBufferIndex];// this.GetSphereTriangleStripVertexBuffer(aAvatarDistanceToSurface);
 
             var aIsNearest = aBumperSprite.IsNearest;
             var aIsBelowSurface = aBumperSprite.IsBelowSurface;
@@ -156,7 +156,7 @@ namespace MviMono.Sprites.Asteroid
                 foreach (var aPass in aBasicEffect.CurrentTechnique.Passes)
                 {
                     aPass.Apply();
-                    aTriangleStripVertexBuffer.DrawTriangleList(aGraphicsDevice);
+                    aTriangleListVertexBuffer.DrawTriangleList(aGraphicsDevice);
                 }
                 aGraphicsDevice.RasterizerState = aOldRasterizerState;
             }

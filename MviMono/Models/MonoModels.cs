@@ -4,6 +4,7 @@ using CharlyBeck.Mvi.Mono.Sprites.Crosshair;
 using CharlyBeck.Mvi.Mono.Sprites.Cube;
 using CharlyBeck.Mvi.Mono.Sprites.Explosion;
 using CharlyBeck.Mvi.Mono.Sprites.Gem;
+using CharlyBeck.Mvi.Mono.Sprites.GemSlot;
 using CharlyBeck.Mvi.Mono.Sprites.Shot;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.Exceptions;
@@ -41,6 +42,7 @@ namespace MviMono.Models
             this.MonoCrosshairModel = new CMonoCrosshairModel(this);
             this.MonoExplosionModel = new CMonoExplosionModel(this);
             this.MonoGemModel = new CMonoGemModel(this);
+            this.MonoGemSlotControlsModel = new CMonoGemSlotControlsModel(this);
         }
         #endregion
 
@@ -61,9 +63,9 @@ namespace MviMono.Models
                 yield return this.MonoCrosshairModel;
                 yield return this.MonoExplosionModel;
                 yield return this.MonoGemModel;
+                yield return this.MonoGemSlotControlsModel;
             }
         }
-
 
         internal readonly CMonoAvatarModel MonoAvatarModel;
         internal readonly CMonoCubeModel MonoCubeModel;
@@ -72,6 +74,7 @@ namespace MviMono.Models
         internal readonly CMonoCrosshairModel MonoCrosshairModel;
         internal readonly CMonoExplosionModel MonoExplosionModel;
         internal readonly CMonoGemModel MonoGemModel;
+        internal readonly CMonoGemSlotControlsModel MonoGemSlotControlsModel;
 
     }
 

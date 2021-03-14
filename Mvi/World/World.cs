@@ -30,6 +30,7 @@ using CharlyBeck.Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.Avatar;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.Sprites.Gem;
+using CharlyBeck.Mvi.Sprites.GemSlot;
 
 namespace CharlyBeck.Mvi.World
 {
@@ -158,6 +159,7 @@ namespace CharlyBeck.Mvi.World
         #region ctor
         internal CWorldSpriteManagers(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.GemSlotControlsSpriteManager = new CGemSlotControlsSpriteManager(this);
             this.AvatarManager = new CAvatarManager(this);
             this.ShotManager = new CShotManager(this);
             this.CrosshairManager = new CCrosshairManager(this);
@@ -185,6 +187,9 @@ namespace CharlyBeck.Mvi.World
         #region Gems
         private readonly CGemSpriteManager GemSpriteManager;
         #endregion
+        #region GemSlotControls
+        private readonly CGemSlotControlsSpriteManager GemSlotControlsSpriteManager;
+        #endregion
         #region Cubes
         internal ICube Cube => this.WormholeCubes;
         private CWormholeCubes WormholeCubesM;
@@ -209,6 +214,7 @@ namespace CharlyBeck.Mvi.World
         {
             get
             {
+                yield return this.GemSlotControlsSpriteManager;
                 yield return this.AvatarManager;
                 yield return this.ShotManager;
                 yield return this.CrosshairManager;
@@ -218,7 +224,6 @@ namespace CharlyBeck.Mvi.World
                 yield return this.GemSpriteManager;
             }
         }
-
         internal override IEnumerable<CSprite> BaseSprites
         {
             get
@@ -299,7 +304,7 @@ namespace CharlyBeck.Mvi.World
         internal void Draw()
         {
             //var aSuns = this.Sprites.OfType<CharlyBeck.Mvi.Sprites.SolarSystem.CSun>();
-            foreach (var aSprite in this.Sprites)
+            foreach (var aSprite in this.Sprites) // TODO - SpriteMAnagers.Draw verwenden mit schnelleren iteration über riesen-Array.
                 aSprite.Draw();
         }
         #endregion
@@ -518,8 +523,9 @@ namespace CharlyBeck.Mvi.World
             this.World = aWorld;
             var aCube = aWorld.Cube;
             {
-                this.Sprites = this.World.Sprites.Where(s=>s.BuildIsDone && s.IsInUse).ToArray();
-                this.SpriteDistances = (from aSprite in this.Sprites 
+                this.Sprites = this.World.Sprites.Where(s=>s.BuildIsDone && s.IsInUse && !s.IsHiddenInWorld.Value).ToArray();
+                this.SpriteDistances = (from aSprite in this.Sprites
+                                        where aSprite.HasDistanceToAvatar
                                         select new Tuple<CSprite, double>(aSprite, aSprite.DistanceToAvatar)).ToArray().OrderBy(aDist => aDist.Item2).ToArray();
                 this.NearestBumperAndDistance = (from aSpriteAndDistance in this.SpriteDistances where (aSpriteAndDistance.Item1 is CBumperSprite) select new Tuple<CBumperSprite, double>((CBumperSprite)aSpriteAndDistance.Item1, aSpriteAndDistance.Item2)).FirstOrDefault();
                 this.CubePositions = this.World.Cube.CubePositions;
