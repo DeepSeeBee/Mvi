@@ -69,7 +69,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CExtraLifeGem : CGemSprite
     {
         #region ctor
-        internal CExtraLifeGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ExtraLifeGem)
+        internal CExtraLifeGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ExtraLife)
         {
             this.Init();
         }
@@ -206,7 +206,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CAntigravityGem : CGemSprite
     {
         #region ctor
-        internal CAntigravityGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.Antigravity)
+        internal CAntigravityGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AntiGravity)
         {
             this.Init();
         }

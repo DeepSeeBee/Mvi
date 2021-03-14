@@ -1,0 +1,41 @@
+https://notevibes.com/cabinet.php
+
+English(US) - Salli:
+Shield
+ExtraLife
+ShellRepair
+ThermalShield
+
+
+English(US) - John:
+AmmoThickness
+AmmoSpeed
+FireRate
+AmmoEnergy
+NuclearMissile
+GuidedMissile
+
+English(US) - Rick:
+KruskalScanner
+SlowMotion
+Antigravity
+-----------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SpaceGrip
+Drill
+
+
+

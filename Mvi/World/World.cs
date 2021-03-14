@@ -31,6 +31,7 @@ using CharlyBeck.Mvi.Sprites.Avatar;
 using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.Sprites.Gem;
 using CharlyBeck.Mvi.Sprites.GemSlot;
+using CharlyBeck.Mvi.Sfx;
 
 namespace CharlyBeck.Mvi.World
 {
@@ -390,6 +391,14 @@ namespace CharlyBeck.Mvi.World
             {
                 this.GemCollected(aGemSprite);
             }    
+        }
+        internal event Action<CGemSprite, Action<CSoundFile>> GemCollectedSoundStarting;
+        internal void OnGemCollectedSoundStarting(CGemSprite aGemSprite, Action<CSoundFile> aAddFollowUp)
+        {
+            if (this.GemCollectedSoundStarting is object)
+            {
+                this.GemCollectedSoundStarting(aGemSprite, aAddFollowUp);
+            }
         }
         #endregion
         internal bool InitFrame = true;

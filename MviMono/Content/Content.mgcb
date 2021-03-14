@@ -139,54 +139,6 @@
 /processorParam:Quality=Best
 /build:Audio/Ambient/PM_INT_TX_Whoosh_23.mp3
 
-#begin Audio/Collect/PM_CSPH_Alarms_2_Cb.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collect/PM_CSPH_Alarms_2_Cb.mp3
-
-#begin Audio/Collect/PM_CSPH_Beeps_67.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collect/PM_CSPH_Beeps_67.mp3
-
-#begin Audio/Collect/PM_CSPH_Beeps_83.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collect/PM_CSPH_Beeps_83.mp3
-
-#begin Audio/Collect/PM_CSPH_Calculations_20_Cb.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collect/PM_CSPH_Calculations_20_Cb.mp3
-
-#begin Audio/Collect/PM_CSPH_Calculations_7_Cb.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collect/PM_CSPH_Calculations_7_Cb.mp3
-
-#begin Audio/Collect/PM_CSPH_Clicks_9.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collect/PM_CSPH_Clicks_9.mp3
-
-#begin Audio/Collect/PM_CSPH_Open_3_Cb.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collect/PM_CSPH_Open_3_Cb.mp3
-
-#begin Audio/Collect/PM_CSPH_Open_47_Cb.mp3
-/importer:Mp3Importer
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Audio/Collect/PM_CSPH_Open_47_Cb.mp3
-
 #begin Audio/Collision/DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF.mp3
 /importer:Mp3Importer
 /processor:SoundEffectProcessor
@@ -415,6 +367,96 @@
 /processorParam:Quality=Best
 /build:Audio/GemCollected/PM_CSPH_Open_47_Cb.mp3
 
+#begin Audio/GemSpeech/Defense_ExtraLife.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Defense_ExtraLife.mp3
+
+#begin Audio/GemSpeech/Defense_ShellRepair.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Defense_ShellRepair.mp3
+
+#begin Audio/GemSpeech/Defense_Shield.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Defense_Shield.mp3
+
+#begin Audio/GemSpeech/Defense_ThermalShield .mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Defense_ThermalShield .mp3;Audio/GemSpeech/Defense_ThermalShield.mp3
+
+#begin Audio/GemSpeech/Navigation_AntiGravity.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Navigation_AntiGravity.mp3
+
+#begin Audio/GemSpeech/Navigation_Drill.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Navigation_Drill.mp3
+
+#begin Audio/GemSpeech/Navigation_KruskalScanner.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Navigation_KruskalScanner.mp3
+
+#begin Audio/GemSpeech/Navigation_SlowMotion.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Navigation_SlowMotion.mp3
+
+#begin Audio/GemSpeech/Navigation_SpaceGrip.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Navigation_SpaceGrip.mp3
+
+#begin Audio/GemSpeech/Offense_AmmoEnergy.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Offense_AmmoEnergy.mp3
+
+#begin Audio/GemSpeech/Offense_AmmoSpeed.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Offense_AmmoSpeed.mp3
+
+#begin Audio/GemSpeech/Offense_AmmoThickness .mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Offense_AmmoThickness .mp3;Audio/GemSpeech/Offense_AmmoThickness.mp3
+
+#begin Audio/GemSpeech/Offense_FireRate.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Offense_FireRate.mp3
+
+#begin Audio/GemSpeech/Offense_GuidedMissile.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Offense_GuidedMissile.mp3
+
+#begin Audio/GemSpeech/Offense_NuclearMissile.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Audio/GemSpeech/Offense_NuclearMissile.mp3
+
 #begin Audio/Laser/PM_AG_1_1_ABSTRACT_GUNS.mp3
 /importer:Mp3Importer
 /processor:SoundEffectProcessor
@@ -619,7 +661,7 @@
 /processorParam:FirstCharacter= 
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Color
-/build:SpriteFont/Ethnocentric72.bmp;SpriteFont/Ethnocentric72.bmp
+/build:SpriteFont/Ethnocentric72.bmp
 
 #begin SpriteFont/test.bmp
 /importer:TextureImporter

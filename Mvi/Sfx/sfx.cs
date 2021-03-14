@@ -68,6 +68,9 @@ namespace CharlyBeck.Mvi.Sfx
         Audio_GemCollected,
         [CSoundDirectoryPath(@"Audio\Laser", true)]
         Audio_Laser,
+        [CSoundDirectoryPath(@"Audio\GemSpeech", true)]
+        Audio_GemSpeech
+
     }
 
     internal enum CSoundFxClassEnum
@@ -141,7 +144,7 @@ namespace CharlyBeck.Mvi.Sfx
             }
             this.SoundBuffer = this.SoundBufferLoader.LoadSoundBuffer(this.FileInfo);
         }
-        private readonly FileInfo FileInfo;
+        internal readonly FileInfo FileInfo;
         private FileInfo XmlFileInfo =>
             new FileInfo(Path.Combine(this.FileInfo.Directory.FullName, this.FileInfo.Name.TrimEnd(this.FileInfo.Extension) + ".xml"));
         private void ReadXml()
@@ -175,7 +178,6 @@ namespace CharlyBeck.Mvi.Sfx
         internal readonly CWorld World;
         internal bool CreateDirectoryDic;
         private Dictionary<CSoundDirectoryEnum, List<CSoundFile>> SoundFileDic  = new Dictionary<CSoundDirectoryEnum, List<CSoundFile>>();
-
         internal void Play(CSoundFile aSoundFile)
         {
             aSoundFile.SoundBuffer.Volume = this.RandomGenerator.NextFromDoubleRange(this.GetVolumeRange());
@@ -323,8 +325,10 @@ namespace CharlyBeck.Mvi.Sfx
             }
         }
 
+        internal CSoundFile GetRandomSoundFile()
+            => this.SoundFiles[this.RandomGenerator.NextInteger(0, this.SoundFiles.Count - 1)];
         private CSoundBuffer GetRandomSoundBuffer()
-            => this.SoundFiles[this.RandomGenerator.NextInteger(0, this.SoundFiles.Count - 1)].SoundBuffer;
+            =>this.GetRandomSoundFile().SoundBuffer;
 
         protected CSoundBuffer CurrentSoundBuffer;
         private enum CRandomScapeStateEnum
@@ -345,6 +349,46 @@ namespace CharlyBeck.Mvi.Sfx
         private CContentManager ContentManagerM;
         private CContentManager ContentManager => CLazyLoad.Get(ref this.ContentManagerM, () => this.ServiceContainer.GetService<CContentManager>());
         #endregion
+    }
+
+    internal sealed class CSoundSequence 
+    {
+        internal CSoundSequence(int aCountMax, params CSoundFile[] aSoundFiles)
+        {
+            this.CountMax = aCountMax;
+            this.List = new List<CSoundFile>(aSoundFiles);
+        }
+        internal readonly int CountMax;
+        private readonly List<CSoundFile> List;
+        internal void Add(CSoundFile aSoundFile)
+        {
+            while (this.CountMax > 0
+               && this.List.Count >= this.CountMax)
+            { 
+                Debug.Print("CSoundSequence: Remove because of flood.");
+                this.List.RemoveAt(0);            
+            }
+            if (this.List.Count < this.CountMax)
+                this.List.Add(aSoundFile);
+        }
+        private CSoundFile CurrentNullable;
+        internal void Update()
+        {
+            if (this.CurrentNullable is object
+            && !this.CurrentNullable.SoundBuffer.IsPlaying)
+            {
+             //   Debug.Print(DateTime.Now.ToString() + ": CSoundSequence: Sound stopped");
+                this.CurrentNullable = default;
+            }
+            if (this.List.Count > 0
+            && !(this.CurrentNullable is object))
+            {
+               // Debug.Print(DateTime.Now.ToString() + ": CSoundSequence: Sound starts.");
+                this.CurrentNullable = this.List.First();
+                this.CurrentNullable.SoundBuffer.Play();
+                this.List.RemoveAt(0);
+            }
+        }
     }
 
     internal sealed class CAmbientSoundDirectory : CSoundDirectory
@@ -643,20 +687,68 @@ namespace CharlyBeck.Mvi.Sfx
 
     internal sealed class CGemCollectedSoundDirectory : CSoundDirectory
     {
+        private CSoundSequence SoundSequence = new CSoundSequence(8);
+
         internal CGemCollectedSoundDirectory(CServiceLocatorNode aParent) : base(aParent)
         {
             this.AddDirectory(CSoundDirectoryEnum.Audio_GemCollected);
 
             this.World.GemCollected += delegate (CGemSprite aGemSprite)
             {
-                this.PlayRandomSound();
+                var aSound = this.GetRandomSoundFile();
+                this.SoundSequence.Add(aSound);
+                this.World.OnGemCollectedSoundStarting(aGemSprite, this.SoundSequence.Add);
             };
             this.Init();
         }
-
+        internal override void Update()
+        {
+            base.Update();
+            this.SoundSequence.Update();
+        }
 
     }
 
+
+    internal sealed class CGemSpeechSoundDirectory :CSoundDirectory
+    {
+        internal CGemSpeechSoundDirectory(CServiceLocatorNode aParent) :base(aParent)
+        {
+            this.AddDirectory(CSoundDirectoryEnum.Audio_GemSpeech);
+            var aGetGemCategoryEnum = new Func<FileInfo, CGemCategoryEnum>(aFileInfo =>
+            { // TODO-Hack
+                var aName = TrimBaseDirectory(aFileInfo).TrimEnd(aFileInfo.Extension).TrimStart(@"Audio\GemSpeech\");
+                var aSplit = aName.Split('_');
+                var aCategoryText = aSplit[0];
+                var aCategoryEnum = (CGemCategoryEnum)Enum.Parse(typeof(CGemCategoryEnum), aCategoryText);
+                return aCategoryEnum;
+            });
+            var aGetGemEnum = new Func<FileInfo, CGemEnum>(aFileInfo =>
+            {// TODO-Hack
+                var aName = TrimBaseDirectory(aFileInfo).TrimEnd(aFileInfo.Extension).TrimStart(@"Audio\GemSpeech\");
+                var aSplit = aName.Split('_');
+                var aGemEnumText = aSplit[1];
+                var aGemEnum = (CGemEnum)Enum.Parse(typeof(CGemEnum), aGemEnumText);
+                return aGemEnum;
+            });
+            var aSoundFiles1 = this.SoundFiles;
+            var aSoundFiles2 = (from aSoundFile in aSoundFiles1
+                               select new Tuple<CGemCategoryEnum, CGemEnum, CSoundFile>
+                               (
+                                   aGetGemCategoryEnum(aSoundFile.FileInfo),
+                                   aGetGemEnum(aSoundFile.FileInfo),
+                                   aSoundFile
+                                )).ToArray();
+            this.World.GemCollectedSoundStarting += delegate (CGemSprite aGemSprite, Action<CSoundFile> aAddFollowUp)
+            {
+                var aSound = (from aTest in aSoundFiles2 where aTest.Item2 == aGemSprite.GemEnum select aTest).Single();
+                aAddFollowUp(aSound.Item3);
+            };
+
+            this.Init();
+        }
+
+    }
     internal sealed class CSoundManager : CServiceLocatorNode
     {
         internal CSoundManager(CServiceLocatorNode aParent)  :base(aParent)
@@ -668,6 +760,7 @@ namespace CharlyBeck.Mvi.Sfx
             this.FlybySoundDirectory = new CFlybySoundDirectory(this);
             this.WormholeSoundDirectory = new CWormholeSoundDirectory(this);
             this.GemCollectedSoundDirectory = new CGemCollectedSoundDirectory(this);
+            this.GemSpeechSoundDirectory = new CGemSpeechSoundDirectory(this);
         }
         private readonly CCollisionSoundDirectory CollisionSoundDirectory;
         private readonly CAmbientSoundDirectory AmbientSoundDirectory;
@@ -676,6 +769,7 @@ namespace CharlyBeck.Mvi.Sfx
         private readonly CFlybySoundDirectory FlybySoundDirectory;
         private readonly CWormholeSoundDirectory WormholeSoundDirectory;
         private readonly CGemCollectedSoundDirectory GemCollectedSoundDirectory;
+        private readonly CGemSpeechSoundDirectory GemSpeechSoundDirectory;
 
         private IEnumerable<CSoundDirectory> SoundDirectories
         {
@@ -688,6 +782,7 @@ namespace CharlyBeck.Mvi.Sfx
                 yield return this.FlybySoundDirectory;
                 yield return this.WormholeSoundDirectory;
                 yield return this.GemCollectedSoundDirectory;
+                yield return this.GemSpeechSoundDirectory;
             }
         }
         internal void Update()
@@ -696,6 +791,15 @@ namespace CharlyBeck.Mvi.Sfx
             foreach (var aSoundDirectory in aSoundDirectories)
                 aSoundDirectory.Update();
         }
+        #region ServiceContainer
+        private CServiceContainer ServiceContainerM;
+        public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
+        private CServiceContainer NewServiceContainer()
+        {
+            var aServiceContainer = base.ServiceContainer.Inherit(this);
+            return aServiceContainer;
+        }
+        #endregion
     }
 
 }

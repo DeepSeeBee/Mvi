@@ -95,7 +95,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Increments ship count.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        ExtraLifeGem,        // Defense       <EXLF> // Extraleben.
+        ExtraLife,        // Defense       <EXLF> // Extraleben.
 
         [CPropability(1d)]
         [CGemShortName("SHRP")]
@@ -198,12 +198,12 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
         [CPropability(0.4d)]
         [CGemShortName("AGRA")]
-        [CGemName("Antigravity")]
+        [CGemName("AntiGravity")]
         [CGemCategoryEnum(CGemCategoryEnum.Navigation)]
         [CGemDescription("Reduce gravity.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        Antigravity,         // Navigation    <AGRA> // Gravitation von planeten hat keinen/weniger einfluss.     Turn off or lower gravity.
+        AntiGravity,         // Navigation    <AGRA> // Gravitation von planeten hat keinen/weniger einfluss.     Turn off or lower gravity.
 
        // [CPropability(0.2d)]
        // AutoPilot,           // Navigation    <AUTP> // Zum automatischen folgen von umlaufbahnen.                Follow path of orb. Press when orb is focused.
@@ -433,7 +433,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         {
             switch (aClassEnum)
             {
-                case CGemEnum.ExtraLifeGem: return new CNewFunc(() => new CExtraLifeGem(this));
+                case CGemEnum.ExtraLife: return new CNewFunc(() => new CExtraLifeGem(this));
                 case CGemEnum.ShellRepair: return new CNewFunc(() => new CShellRepairGem(this));
                 case CGemEnum.Shield: return new CNewFunc(() => new CShieldGem(this));
                 case CGemEnum.AmmoSpeed: return new CNewFunc(() => new CAmmoSpeedGem(this));
@@ -444,7 +444,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
                 case CGemEnum.ThermalShield: return new CNewFunc(() => new CThermalShieldGem(this));
                 case CGemEnum.KruskalScanner: return new CNewFunc(() => new CKruskalScannerGem(this));
                 case CGemEnum.SlowMotion: return new CNewFunc(() => new CSlowMotionGem(this));
-                case CGemEnum.Antigravity: return new CNewFunc(() => new CAntigravityGem(this));
+                case CGemEnum.AntiGravity: return new CNewFunc(() => new CAntigravityGem(this));
                 case CGemEnum.SpaceGrip: return new CNewFunc(() => new CSpaceGripGem(this));
                 case CGemEnum.Drill: return new CNewFunc(() => new CDrillGem(this));
                 case CGemEnum.AmmoThickness: return new CNewFunc(() => new CAmmoThicknessGem(this));
