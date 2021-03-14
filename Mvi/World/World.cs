@@ -159,13 +159,13 @@ namespace CharlyBeck.Mvi.World
         #region ctor
         internal CWorldSpriteManagers(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.GemSlotControlsSpriteManager = new CGemSlotControlsSpriteManager(this);
             this.AvatarManager = new CAvatarManager(this);
             this.ShotManager = new CShotManager(this);
             this.CrosshairManager = new CCrosshairManager(this);
             this.ExplosionsManager = new CExplosionsManager(this);
             this.SolarSystemSpriteManagers = this.Cube.Quadrants.Select(aQ => aQ.ServiceContainer.GetService<CQuadrantSpriteManager>()).ToArray();
             this.GemSpriteManager = new CGemSpriteManager(this);
+            this.GemSlotControlsSpriteManager = new CGemSlotControlsSpriteManager(this);
             this.Init();
         }
         #endregion
@@ -214,7 +214,6 @@ namespace CharlyBeck.Mvi.World
         {
             get
             {
-                yield return this.GemSlotControlsSpriteManager;
                 yield return this.AvatarManager;
                 yield return this.ShotManager;
                 yield return this.CrosshairManager;
@@ -222,6 +221,7 @@ namespace CharlyBeck.Mvi.World
                 foreach (var aSpriteManager in this.SolarSystemSpriteManagers)
                     yield return aSpriteManager;
                 yield return this.GemSpriteManager;
+                yield return this.GemSlotControlsSpriteManager;
             }
         }
         internal override IEnumerable<CSprite> BaseSprites

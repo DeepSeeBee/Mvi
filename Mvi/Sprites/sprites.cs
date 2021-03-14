@@ -322,7 +322,8 @@ namespace CharlyBeck.Mvi.Sprites
             }
         }
         internal virtual bool CanCollideWithTarget(CSprite aSprite)
-            => this.CollisionSourceEnum.HasValue 
+            => aSprite.IsInUse
+            && this.CollisionSourceEnum.HasValue 
             && aSprite.GetCanCollideWithSource(this.CollisionSourceEnum.Value)
             && !aSprite.IsHiddenInWorld.Value
             ;

@@ -42,6 +42,10 @@ namespace CharlyBeck.Mvi.Sfx
 
     public enum CSoundDirectoryEnum
     {
+        [CSoundDirectoryPath(@"Audio\Ambient", true)]
+        Audio_Ambient,
+        [CSoundDirectoryPath(@"Audio\Collision", true)]
+        Audio_Collision,
         [CSoundDirectoryPath(@"Audio\Destroyed", false)]
         Audio_Destroyed,
         [CSoundDirectoryPath(@"Audio\Destroyed\Planet", true)]
@@ -230,12 +234,12 @@ namespace CharlyBeck.Mvi.Sfx
                 return aSound;
             }
         }
-        protected void AddDirectory(DirectoryInfo aDirectoryInfo, string aExtension)
-        {
-            var aFileInfos = aDirectoryInfo.GetFiles("*" + aExtension);
-            foreach (var sf in aFileInfos)
-                this.AddFile(sf);
-        }
+        //protected void AddDirectory(DirectoryInfo aDirectoryInfo, string aExtension)
+        //{
+        //    var aFileInfos = aDirectoryInfo.GetFiles("*" + aExtension);
+        //    foreach (var sf in aFileInfos)
+        //        this.AddFile(sf);
+        //}
         protected void AddDirectory(CSoundDirectoryEnum aSoundDirectoryEnum)
         {
             var aDirectory = GetDirectoryInfo(aSoundDirectoryEnum.GetCustomAttribute<CSoundDirectoryPathAttribute>().Path);
@@ -351,7 +355,7 @@ namespace CharlyBeck.Mvi.Sfx
             this.RandomSoundScapeIsEnabled = true;
         }
         private void OpenDirectory()
-            => this.AddDirectory(GetDirectoryInfo( "Audio", "Ambient"), ".mp3");
+            => this.AddDirectory(CSoundDirectoryEnum.Audio_Ambient);
     }
 
     internal sealed class CDestroyedSoundDirectory : CSoundDirectory
@@ -396,7 +400,7 @@ namespace CharlyBeck.Mvi.Sfx
         private double MinimumCount = 1; // TODO_PARAMETERS
         private double MinimumDistance = 0.25; // TODO_PARAMETERS
         private void OpenDirectory()
-            => this.AddDirectory(GetDirectoryInfo("Audio", "Flyby"), ".mp3");
+            => this.AddDirectory(CSoundDirectoryEnum.Audio_Flyby);
     }
 
     internal sealed class CCollisionSoundDirectory : CSoundDirectory
@@ -409,7 +413,7 @@ namespace CharlyBeck.Mvi.Sfx
                 this.HitPointEngine.Load();
         }
         private void OpenDirectory()
-            => this.AddDirectory(GetDirectoryInfo("Audio", "Collision"), ".xml");
+            => this.AddDirectory(CSoundDirectoryEnum.Audio_Collision);
         internal override bool HitPointEngineIsDefined => false;
     }
     internal sealed class CShotsSoundDirectory : CSoundDirectory

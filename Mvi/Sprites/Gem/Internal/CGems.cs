@@ -69,9 +69,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CExtraLifeGem : CGemSprite
     {
         #region ctor
-        internal CExtraLifeGem(CServiceLocatorNode aParent) : base(aParent)
+        internal CExtraLifeGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ExtraLifeGem)
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Defense;
             this.Init();
         }
         #endregion
@@ -83,9 +82,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CShellRepairGem : CGemSprite
     {
         #region ctor
-        internal CShellRepairGem(CServiceLocatorNode aParent) : base(aParent) 
+        internal CShellRepairGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ShellRepair) 
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Defense;
             this.Init();
         }
         #endregion
@@ -97,34 +95,39 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CShieldGem : CGemSprite
     {
         #region ctor
-        internal CShieldGem(CServiceLocatorNode aParent) : base(aParent) 
+        internal CShieldGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.Shield) 
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Defense;
             this.Init();
         }
         #endregion
     }
 
-    internal sealed class CLaserEnergyGem  : CGemSprite
+    internal sealed class CAmmoEnergyGem  : CGemSprite
     {
         #region ctor
-        internal CLaserEnergyGem(CServiceLocatorNode aParent) : base(aParent) 
+        internal CAmmoEnergyGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AmmoEnergy) 
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Offense;
             this.Init();
         }
         #endregion
     }
-
+    internal sealed class CAmmoThicknessGem : CGemSprite
+    {
+        #region ctor
+        internal CAmmoThicknessGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AmmoThickness)
+        {
+            this.Init();
+        }
+        #endregion
+    }
     /// <summary>
     /// Required for destroing suns
     /// </summary>
     internal sealed class CNuclearMissileGem : CGemSprite
     {
         #region ctor
-        internal CNuclearMissileGem(CServiceLocatorNode aParent) : base(aParent) 
+        internal CNuclearMissileGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.NuclearMissile) 
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Offense;
             this.Init();
         }
         #endregion
@@ -136,9 +139,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CThermalShieldGem : CGemSprite
     {
         #region ctor
-        internal CThermalShieldGem(CServiceLocatorNode aParent) : base(aParent) 
+        internal CThermalShieldGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ThermalShield) 
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Navigation;
         }
         #endregion
     }
@@ -149,9 +151,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CKruskalScannerGem : CGemSprite
     {
         #region ctor
-        internal CKruskalScannerGem(CServiceLocatorNode aParent) : base(aParent)
+        internal CKruskalScannerGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.KruskalScanner)
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Navigation;
             this.Init();
         }
         #endregion
@@ -162,12 +163,11 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Zum Bohren in planeten benötigt.
     /// </summary>
-    internal sealed class CDrillEnergyGem : CGemSprite
+    internal sealed class CDrillGem : CGemSprite
     {
         #region ctor
-        internal CDrillEnergyGem(CServiceLocatorNode aParent) : base(aParent)
+        internal CDrillGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.Drill)
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Defense;
             this.Init();
         }
         #endregion
@@ -176,9 +176,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CAmmoSpeedGem : CGemSprite
     {
         #region ctor
-        internal CAmmoSpeedGem(CServiceLocatorNode aParent) : base(aParent)
+        internal CAmmoSpeedGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AmmoSpeed)
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Defense;
             this.Init();
         }
         #endregion
@@ -186,9 +185,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CFireRateGem : CGemSprite
     {
         #region ctor
-        internal CFireRateGem(CServiceLocatorNode aParent) : base(aParent)
+        internal CFireRateGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.FireRate)
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Defense;
             this.Init(); 
         }
         #endregion
@@ -198,9 +196,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CSlowMotionGem :CGemSprite
     {
         #region ctor
-        internal CSlowMotionGem(CServiceLocatorNode aParent) : base(aParent)
+        internal CSlowMotionGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.SlowMotion)
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Navigation;
             this.Init();
         }
         #endregion 
@@ -209,9 +206,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CAntigravityGem : CGemSprite
     {
         #region ctor
-        internal CAntigravityGem(CServiceLocatorNode aParent) : base(aParent)
+        internal CAntigravityGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.Antigravity)
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Navigation;
             this.Init();
         }
         #endregion
@@ -226,18 +222,16 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
 
     internal sealed class CGuidedMissileGem : CGemSprite
     {
-        internal CGuidedMissileGem(CServiceLocatorNode aParent):base(aParent)
+        internal CGuidedMissileGem(CServiceLocatorNode aParent):base(aParent, CGemEnum.GuidedMissile)
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Offense;
             this.Init();
         }
     }
 
     internal sealed class CSpaceGripGem : CGemSprite
     {
-        internal CSpaceGripGem(CServiceLocatorNode aParent) : base(aParent)
+        internal CSpaceGripGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.SpaceGrip)
         {
-            this.GetCategoryEnum = CGemCategoryEnum.Navigation;
             this.Init();
         }
     }

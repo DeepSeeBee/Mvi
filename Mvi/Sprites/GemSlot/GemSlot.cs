@@ -46,7 +46,7 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
 
     internal static class CConsts
     {
-        internal const int GemClass_SlotCount = 5;
+        internal const int GemClass_SlotCount = 7;
         public static readonly int GemClass_Count = typeof(CGemCategoryEnum).GetEnumMaxValue() + 1;
 
     }
@@ -260,6 +260,22 @@ internal abstract class CTmpActivatorSlot
         public CVector3Dbl Translate { get; private set; }
     }
 
+    public struct CTextRect
+    {
+        public CTextRect(double aX, double aY, double aDx, double aDy)
+        {
+            this.X = aX;
+            this.Y = aY;
+            this.Dx = aDx;
+            this.Dy = aDy;
+        }
+        public readonly double X;
+        public readonly double Y;
+        public readonly double Dx;
+        public readonly double Dy;
+
+    }
+
     public struct CGemSlotDrawInfo
     {
         internal CGemSlotDrawInfo(CGemSlot aGemSlot, CGemSlotModel aGemSlotModel)
@@ -275,7 +291,7 @@ internal abstract class CTmpActivatorSlot
             var aScreenWidth = 2f;
             var aScreenHeight = 2f;
             var aGemClassIdx = (int)aGemClassEnum;
-            var aDx = 0.1f;
+            var aDx = 0.15f;
             var aTranslateX = aSide == CGemSideEnum.Left
                             ? -aScreenWidth / 2f + aMarginX
                             : aSide == CGemSideEnum.Right
@@ -284,15 +300,19 @@ internal abstract class CTmpActivatorSlot
                             ;
             var aSlotCount1 = CConsts.GemClass_SlotCount + 1;
             var aSlotCount2 = aSlotCount1 * CConsts.GemClass_Count;
-            var aSlotDy = aScreenHeight / aSlotCount2;
+            var aDy = aScreenHeight / aSlotCount2;
             var aScreenSlotIndex = aGemClassIdx * aSlotCount1
                            + aIndex;
-            var aTranslateY = -1d + aSlotDy * aScreenSlotIndex + aSlotDy / 2f;
-            var aTranslateZ = 0.1d;
+            var aTranslateY = -1d + aDy * aScreenSlotIndex + aDy / 2f;
+            var aTranslateZ = 0d;
             var aTranslate = new CVector3Dbl(aTranslateX, aTranslateY, aTranslateZ);
-            var sm = Matrix.CreateScale(aDx, aSlotDy, 1f);
+            var sm = Matrix.CreateScale(aDx, aDy, 1f);
             var tm = Matrix.CreateTranslation(aTranslate.ToVector3());
             this.Matrix =  sm * tm;
+            var aGemSpriteNullable = aGemSlot.GemSpriteNullable;
+            var aTextScale = Math.Min(aDx, aDy);
+            this.Text = aGemSpriteNullable is object ? aGemSpriteNullable.ShortName : string.Empty;
+            this.TextRect = new CTextRect((float)aTranslateX , (float)aTranslateY , aDx, aDy);
         }
 
 
@@ -303,6 +323,9 @@ internal abstract class CTmpActivatorSlot
         public CVector3Dbl Color => this.GemSlot.GemClass.Color;
 
         public readonly Matrix Matrix;
+
+        public readonly string Text;
+        public readonly CTextRect TextRect;
     }
 
 
@@ -401,7 +424,7 @@ internal abstract class CTmpActivatorSlot
             this.AddOnAllocate = true;
             this.World.GemCollected += delegate (CGemSprite aGemSprite)
             {
-                var aFreeSlot = this.ControlsSprite.FindFreeSlotNullable(aGemSprite.GetCategoryEnum);
+                var aFreeSlot = this.ControlsSprite.FindFreeSlotNullable(aGemSprite.GemCategoryEnum);
                 if(aFreeSlot is object)
                 {
                     aFreeSlot.GemSpriteNullable = aGemSprite;

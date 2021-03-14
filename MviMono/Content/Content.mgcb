@@ -613,17 +613,21 @@
 /processorParam:Quality=Best
 /build:Audio/Wormhole/NewWorld/PM_SRUN_LOOP_1_85bpm_CB.mp3
 
-#begin ball.png
+#begin SpriteFont/Ethnocentric72.bmp
 /importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
+/processor:FontTextureProcessor
+/processorParam:FirstCharacter= 
 /processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:ball.png;Ball.png
+/build:SpriteFont/Ethnocentric72.bmp;SpriteFont/Ethnocentric72.bmp
+
+#begin SpriteFont/test.bmp
+/importer:TextureImporter
+/processor:FontTextureProcessor
+/processorParam:FirstCharacter= 
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Color
+/build:SpriteFont/test.bmp
 
 #begin Video/Explosion1/Explosion Large Topview.mp4
 /importer:H264Importer

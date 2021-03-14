@@ -9,7 +9,8 @@ namespace CharlyBeck.Utils3.Enumerables
     public static class Enumerables
     {
 
-
+        public static IEnumerable<int> Range(this int i)
+            => Enumerable.Range(0, i);
         public static bool ElementsAreEqual<T>(this T[] lhs, T[] rhs)
         {
             if(lhs.Length == rhs.Length)

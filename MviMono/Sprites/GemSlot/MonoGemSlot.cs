@@ -61,9 +61,11 @@ namespace CharlyBeck.Mvi.Mono.Sprites.GemSlot
             aGraphicsDevice.RasterizerState = this.RasterizerStateNoCull;
             foreach (var aDrawInfo in aDrawInfos)
             {
-                e.View = aDrawInfo.Matrix;
+                var aColor = aDrawInfo.Color.ToColor();
+                var m = aDrawInfo.Matrix;
+                e.View = m;
                 aGraphicsDevice.BlendState = this.BlendState; 
-                aGraphicsDevice.BlendFactor = aDrawInfo.Color.ToColor();
+                aGraphicsDevice.BlendFactor = aColor;
         
                 foreach (var p in e.CurrentTechnique.Passes)
                 {
@@ -73,8 +75,10 @@ namespace CharlyBeck.Mvi.Mono.Sprites.GemSlot
                         this.MonoModel.GemSlotTriangleList.DrawTriangleList(this.GraphicsDevice);                    
                     }
                     this.MonoModel.GemSlotLineList.DrawLineList(this.GraphicsDevice);
-
                 }
+
+                var aTextRect = aDrawInfo.TextRect;
+                this.MonoModels.DrawString(aDrawInfo.Text, aTextRect, aColor);
             }
             e.View = aOldView;
             e.World = aOldWorld;

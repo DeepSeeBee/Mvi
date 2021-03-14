@@ -12,21 +12,29 @@ using CharlyBeck.Utils3.Strings;
 using System.IO;
 using CharlyBeck.Utils3.SystemIo;
 using CharlyBeck.Mvi.ContentManager;
+using CharlyBeck.Mvi.FontConvert;
 
 namespace CharlyBeck.Mvi.Mono
 {
     internal static class Program
     {
 
-
-
-        [STAThread]
-        static void Main(string[] args)
+        private static void InterpretCommandLineArgs()
         {
             if (Environment.CommandLine.Contains("/BuildContentList"))
             {
                 CContentManager.BuildContentList();
             }
+            if (Environment.CommandLine.Contains("/BuildSpriteFonts"))
+            {
+                new CTtfToBmpConverter().Convert();
+            }
+        }
+
+        [STAThread]
+        static void Main(string[] args)
+        {
+            InterpretCommandLineArgs();
 
             var aUseDebugWindow = true;
             if(aUseDebugWindow)

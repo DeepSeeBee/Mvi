@@ -50,6 +50,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Sprites.Gem;
     using CharlyBeck.Mvi.Mono.Sprites.GemSlot;
     using CharlyBeck.Mvi.Sprites.GemSlot;
+    using CharlyBeck.Utils3.Strings;
 
     internal abstract class CBase : CServiceLocatorNode
     {
@@ -509,23 +510,11 @@ namespace CharlyBeck.Mvi.Mono.GameCore
 
         internal CWorld World => this.MonoFacade.World;
         private readonly GraphicsDeviceManager GraphicsDeviceManager;
-        private SpriteBatch SpriteBatch;
-        //B   private Texture2D BallTexture;
 
         protected override void LoadContent()
         {
-
             this.Avatar = CAvatar.Load(this);
             this.MonoFacade.MonoModels.LoadContent();
-
-
-
-            this.SpriteBatch = new SpriteBatch(this.GraphicsDevice);
-            // this.BallTexture = this.Content.Load<Texture2D>("Ball");
-
-           // var aSound = Content.Load<Song>(@"Audio\Collision\DSGNBoom_Impact Epic Boom Trailer 1_PMSFX_DF");
-
-            //this.Content.Load<Texture>
             base.LoadContent();
         }
 
@@ -1081,11 +1070,27 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             this.InitTriangle();
         }
 
+        private SpriteBatch FontSpriteBatch;
+
         private void Draw3d()
         {
             GraphicsDevice.Clear(Color.Black);
             this.MonoFacade.Draw();
             this.DrawCoordinates();
+
+            //this.MonoFacade.MonoModels.DrawString("HELLO", Color.Red, new Vector2(), 1f);
+
+            //foreach (var aEffectPass in this.BasicEffect.CurrentTechnique.Passes)
+            //{
+            //    aEffectPass.Apply();
+
+            //    if (!(this.FontSpriteBatch is object))
+            //        this.FontSpriteBatch = new SpriteBatch(this.GraphicsDevice);
+            //    var aChars = this.SpriteFont.Characters.Select(c => c.ToString()).JoinString();
+            //    this.FontSpriteBatch.Begin();
+            //    this.FontSpriteBatch.DrawString(this.SpriteFont, aChars , new Vector2(), Color.White);
+            //    this.FontSpriteBatch.End();
+            //}
         }
         #endregion
 

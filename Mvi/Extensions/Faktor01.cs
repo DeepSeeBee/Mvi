@@ -24,5 +24,13 @@ namespace CharlyBeck.Mvi.Extensions
             return r;
         }
 
+        public static float F01_Map(this float f, 
+                                    float aSourceMin, 
+                                    float aSourceMax, 
+                                    float aTargetMin, 
+                                    float aTargetMax)
+            => (float)((double)f).F01_Map((double)aSourceMin, (double)aSourceMax, (double)aTargetMin, (double)aTargetMax);
+
+
     }
 }
