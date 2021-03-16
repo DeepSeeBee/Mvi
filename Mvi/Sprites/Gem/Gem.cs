@@ -27,65 +27,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         Navigation,
     }
 
-    public sealed class CGemShortNameAttribute : Attribute
-    {
-        public CGemShortNameAttribute(string aShortName)
-        {
-            this.ShortName = aShortName;
-        }
-        public readonly string ShortName;
-    }
-    public sealed class CGemNameAttribute : Attribute
-    {
-        public CGemNameAttribute(string aName)
-        {
-            this.Name = aName;
-        }
-        public readonly string Name;
-    }
-
-    public sealed class CGemDescriptionAttribute : Attribute
-    {
-        public CGemDescriptionAttribute(string aDescription)
-        {
-            this.Description = aDescription;
-        }
-        public readonly string Description;
-    }
-
-    public sealed class CGemAffectSpaceAttribute : Attribute
-    {
-        public CGemAffectSpaceAttribute(bool aAffectSpace)
-        {
-            this.AffectSpace = aAffectSpace;
-        }
-        public readonly bool AffectSpace;
-    }
-
-
-    public sealed class CGemAffectSurfaceAttribute : Attribute
-    {
-        public CGemAffectSurfaceAttribute(bool aAffectSurface)
-        {
-            this.AffectSurface = aAffectSurface;
-        }
-        public readonly bool AffectSurface;
-    }
-
-    public sealed class CGemCategoryEnumAttribute : Attribute
-    {
-        public CGemCategoryEnumAttribute(CGemCategoryEnum aGemCategoryEnum)
-        {
-            this.GemCategoryEnum = aGemCategoryEnum;
-        }
-        public readonly CGemCategoryEnum GemCategoryEnum;
-    }
-
     internal enum CGemEnum
     {
-        /////////////////////// Class .........Text...............................................................Hilfetext
-
-
         [CPropability(0.1)]
         [CGemShortName("EXLF")]
         [CGemName("Extra Life")]
@@ -93,7 +36,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Increments ship count.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        ExtraLife,        // Defense       <EXLF> // Extraleben.
+        ExtraLife, 
 
         [CPropability(1d)]
         [CGemShortName("SHRP")]
@@ -102,7 +45,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Repairs the shell which is damaged on collisions.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        ShellRepair,         // Defense       <SHRP> // Hülle reparieren, hülle geht bei kollisionen kaputt
+        ShellRepair,   
 
         [CPropability(1d)]
         [CGemShortName("SHLD")]
@@ -111,7 +54,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Go kamikaze and fly through matter.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        Shield,           // Defense       <SHLD> // Schutzschild, kamikatze flug auf planeten
+        Shield,          
 
         [CPropability(1d)]
         [CGemShortName("AMTH")]
@@ -129,7 +72,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Increases speed of shots")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        AmmoSpeed,           // Offense       <AMSP> // Schüsse flieen schneller
+        AmmoSpeed,        
 
         [CPropability(1d)]
         [CGemShortName("FIRR")]
@@ -138,7 +81,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Increases fire rate.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        FireRate,            // TODO: Rename to AmmoFireRate
+        FireRate,
 
         [CPropability(1d)]
         [CGemShortName("AMEN")]
@@ -147,7 +90,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Increases strength of ammo.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        AmmoEnergy,      // Offense       <LSEN> // zum zerstören von asteroiden                              
+        AmmoEnergy,
 
         [CPropability(0.25)]
         [CGemShortName("NUKE")]
@@ -156,7 +99,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Produces a huge explosion.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        NuclearMissile,   // Offense       <NUKE> // zum zerstören von sonnen4Destroy a sun. (Dont do when planets remain)
+        NuclearMissile,
 
         [CPropability(0.4d)]
         [CGemShortName("GDMS")]
@@ -165,7 +108,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Target seeking missile.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)] // Verhält sich, wie ein starker schuss.
-        GuidedMissile,       // Offense       <GDEM> // Hilfeich zum zsertören kleiner monde.                     Shoot to fire, press again to follow target.
+        GuidedMissile,
 
         [CPropability(0.3d)]
         [CGemShortName("THSH")]
@@ -174,7 +117,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Land on a planet.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)] // Verhält sich wie normales schild.
-        ThermalShield,    // Navigation    <THSH> // Zum landen auf planeten                                   Land on a planet.
+        ThermalShield,
 
         [CPropability(0.15d)]
         [CGemShortName("KRSK")]
@@ -183,7 +126,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Produce wormholes upon planet hit.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        KruskalScanner,   // Navigation    <WHLE> // Zum öffnen von wurmlöchern                                Turn a sun into a wormhole to teleport and teleport..
+        KruskalScanner, 
 
         [CPropability(0.4d)]
         [CGemShortName("SLMO")]
@@ -192,7 +135,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Decelerate time.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        SlowMotion,          // Navigation    <SLMO> // Verlangsamt alles                                         Turn down the speed of time.
+        SlowMotion,
 
         [CPropability(0.4d)]
         [CGemShortName("AGRA")]
@@ -201,10 +144,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Reduce gravity.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
-        AntiGravity,         // Navigation    <AGRA> // Gravitation von planeten hat keinen/weniger einfluss.     Turn off or lower gravity.
-
-       // [CPropability(0.2d)]
-       // AutoPilot,           // Navigation    <AUTP> // Zum automatischen folgen von umlaufbahnen.                Follow path of orb. Press when orb is focused.
+        AntiGravity,
 
         [CPropability(0.3d)]
         [CGemShortName("SPCG")]
@@ -227,6 +167,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         //
         //FuelGem,
         //QuestGem,
+        // AutoPilot,           // Navigation    <AUTP> // Zum automatischen folgen von umlaufbahnen.                Follow path of orb. Press when orb is focused.
+
     }
 
 

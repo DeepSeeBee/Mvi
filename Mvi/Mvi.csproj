@@ -98,6 +98,7 @@
     <Compile Include="ContentManager\ContentManager.cs" />
     <Compile Include="Extensions\Range.cs" />
     <Compile Include="FontConvert\CTtfToBmpConverter.cs" />
+    <Compile Include="Input\Joystick.cs" />
     <Compile Include="Sprites\Avatar\Avatar.cs" />
     <Compile Include="Sprites\Gem\Gem.cs" />
     <Compile Include="CStaticParameters.cs" />

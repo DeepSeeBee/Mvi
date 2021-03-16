@@ -51,6 +51,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
     using CharlyBeck.Mvi.Mono.Sprites.GemSlot;
     using CharlyBeck.Mvi.Sprites.GemSlot;
     using CharlyBeck.Utils3.Strings;
+    using CharlyBeck.Mvi.Input;
 
     internal abstract class CBase : CServiceLocatorNode
     {
@@ -77,9 +78,6 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         internal static CVector3Dbl GetGameCoordinates(this Vector3 aVector)
             => new CVector3Dbl(aVector.X, aVector.Y, aVector.Z);
     }
-
-
-
 
     internal sealed class CMonoFacade : CFacade
     {
@@ -132,6 +130,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
         #region Joystick
         private CJoystick1 Joystick1M;
         internal CJoystick1 Joystick1 => CLazyLoad.Get(ref this.Joystick1M, () => new CJoystick1(this));
+        public override IJoystick Joystick => this.Joystick1;
         #endregion
         #region SoundLoader
         private CMonoSoundLoader MonoSoundLoaderM;
@@ -621,7 +620,7 @@ namespace CharlyBeck.Mvi.Mono.GameCore
                     aRotX -= 1.0f;
                 aRotX = aRotX +(float)this.World.LookLeftRight.ToDegrees();
                 this.World.LookLeftRight = 0d;
-               // aRotX = aRotX + (float)aJoystick.GetAxis(CJoystick1.CAxisEnum.X);
+           //     aRotX = aRotX + (float)aJoystick.GetAxis(CJoystick1.CAxisEnum.X);
 
                 var aRadians1 = MathHelper.ToRadians((float)(aRotX * this.CamSpeedRy * aGameTime.ElapsedGameTime.TotalSeconds));
                 var aRadians2 = this.DebugWindowUpdate.LookLeftRight.Retrieve();

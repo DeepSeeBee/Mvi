@@ -19,6 +19,7 @@ using System.Threading;
 using CharlyBeck.Mvi.ContentManager;
 using CharlyBeck.Utils3.Reflection;
 using CharlyBeck.Mvi.Sprites.Gem;
+using CharlyBeck.Mvi.Input;
 
 namespace CharlyBeck.Mvi.Facade
 {
@@ -203,6 +204,7 @@ namespace CharlyBeck.Mvi.Facade
             aServiceContainer.AddService<CContentManager>(() => this.ContentManager);
             aServiceContainer.AddService<CGemCategories>(() => this.GemCategories);
             aServiceContainer.AddService<CValueObjectRegistry>(() => this.ValueObjectRegistry);
+            aServiceContainer.AddService<IJoystick>(() => this.Joystick);
             return aServiceContainer;
         }
         #endregion   
@@ -279,6 +281,10 @@ namespace CharlyBeck.Mvi.Facade
         #endregion
         #region GemCategories
         private readonly CGemCategories GemCategories;
+        #endregion
+        #region Joystick
+        public abstract IJoystick Joystick { get; }
+
         #endregion
     }
 

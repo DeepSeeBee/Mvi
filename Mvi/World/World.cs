@@ -32,6 +32,7 @@ using CharlyBeck.Mvi.Sprites.SolarSystem;
 using CharlyBeck.Mvi.Sprites.Gem;
 using CharlyBeck.Mvi.Sprites.GemSlot;
 using CharlyBeck.Mvi.Sfx;
+using CharlyBeck.Mvi.Input;
 
 namespace CharlyBeck.Mvi.World
 {
@@ -254,7 +255,7 @@ namespace CharlyBeck.Mvi.World
             this.NearAsteroidSpeedMin = 0.0001;
             this.NearAsteroidSpeedForRadius0 = 0.001;
             this.SphereScaleCount = 25;
-
+            this.JoystickState = new CJoystick(this);
             
         }
         public override void Load()
@@ -320,6 +321,9 @@ namespace CharlyBeck.Mvi.World
         public CVector3Dbl AvatarWorldPos { get => this.WorldSpriteManagers.AvatarPos; set => this.WorldSpriteManagers.AvatarPos = value; }
         public CVector3Dbl AvatarShootDirection { get; set; }
         public double AvatarSpeed { get; set; }
+        #endregion
+        #region Joystick
+        internal readonly CJoystick JoystickState;
         #endregion
         public readonly double EdgeLen;
         internal readonly CVector3Dbl EdgeLenAsPos;
@@ -416,6 +420,7 @@ namespace CharlyBeck.Mvi.World
         {
             this.InitFrame = false;
             this.MoveVectorM = default;
+            this.JoystickState.Update();
             this.Cube.MoveTo(this.GetCubePos(this.AvatarWorldPos), true);
             this.WorldSpriteManagers.UpdateAvatarPos();
             this.RefreshFrameInfo();
@@ -531,7 +536,7 @@ namespace CharlyBeck.Mvi.World
             this.CubePositionsM = default;
             this.AttractionM = default;
             this.AvatarMoveVectorM = default;
-
+    
             this.World = aWorld;
             var aCube = aWorld.Cube;
             {
@@ -577,6 +582,7 @@ namespace CharlyBeck.Mvi.World
             return aAttractionMove;
         }
         #endregion
+
         public TimeSpan GameTimeElapsed => this.World.GameTimeElapsed;
         public TimeSpan GameTimeTotal => this.World.GameTimeTotal;
 

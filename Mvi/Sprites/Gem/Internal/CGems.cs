@@ -57,6 +57,59 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
 
     }
 
+    public sealed class CGemShortNameAttribute : Attribute
+    {
+        public CGemShortNameAttribute(string aShortName)
+        {
+            this.ShortName = aShortName;
+        }
+        public readonly string ShortName;
+    }
+    public sealed class CGemNameAttribute : Attribute
+    {
+        public CGemNameAttribute(string aName)
+        {
+            this.Name = aName;
+        }
+        public readonly string Name;
+    }
+
+    public sealed class CGemDescriptionAttribute : Attribute
+    {
+        public CGemDescriptionAttribute(string aDescription)
+        {
+            this.Description = aDescription;
+        }
+        public readonly string Description;
+    }
+
+    public sealed class CGemAffectSpaceAttribute : Attribute
+    {
+        public CGemAffectSpaceAttribute(bool aAffectSpace)
+        {
+            this.AffectSpace = aAffectSpace;
+        }
+        public readonly bool AffectSpace;
+    }
+
+
+    public sealed class CGemAffectSurfaceAttribute : Attribute
+    {
+        public CGemAffectSurfaceAttribute(bool aAffectSurface)
+        {
+            this.AffectSurface = aAffectSurface;
+        }
+        public readonly bool AffectSurface;
+    }
+
+    public sealed class CGemCategoryEnumAttribute : Attribute
+    {
+        public CGemCategoryEnumAttribute(CGemCategoryEnum aGemCategoryEnum)
+        {
+            this.GemCategoryEnum = aGemCategoryEnum;
+        }
+        public readonly CGemCategoryEnum GemCategoryEnum;
+    }
 
 
 

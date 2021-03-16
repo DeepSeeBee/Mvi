@@ -1,6 +1,8 @@
-﻿using CharlyBeck.Mvi.Value; // CChangeNotifier
+﻿using CharlyBeck.Mvi.Input;
+using CharlyBeck.Mvi.Value; // CChangeNotifier
 using CharlyBeck.Utils3.Exceptions;
 using CharlyBeck.Utils3.LazyLoad;
+using CharlyBeck.Utils3.Reflection;
 using CharlyBeck.Utils3.ServiceLocator;
 using HidLibrary;
 using System;
@@ -58,7 +60,7 @@ namespace CharlyBeck.Mvi.Mono.Input.Hid
             else if (b < D_80)
                 return (b - D_80) / D_80;
             else
-                return (b - D_80+1) / D_80;
+                return (b - D_80 + 1) / D_80;
         }
             
         protected bool GetMaskedByte(int aByteIndex, byte aMask)
@@ -72,7 +74,10 @@ namespace CharlyBeck.Mvi.Mono.Input.Hid
         internal void BeginUpdate()
             => this.HidDeviceVm.BeginUpdate();
     }
-    public sealed class CJoystick1  : CJoystick
+    public sealed class CJoystick1  
+    : 
+        CJoystick
+    ,   IJoystick
     {
         #region ctor
         internal CJoystick1(CServiceLocatorNode aParent) : base(aParent)
@@ -172,6 +177,24 @@ namespace CharlyBeck.Mvi.Mono.Input.Hid
             ( CValueEnum.Global_Joystick, new Guid("e9f664f7-1fba-43e1-84ce-265fb7fd8d02"), true, CStaticParameters.Value_Joystick);
         private CBoolValue HidJoystickEnabledValueM;
         internal CBoolValue HidJoystickEnabledValue => CLazyLoad.Get(ref this.HidJoystickEnabledValueM, () => CBoolValue.GetStaticValue<CBoolValue>(this, HidJoystickEnabledValueDeclaration));
+        #endregion
+        #region MviAdapter
+        void IJoystick.Update(CJoystickState aJoystickState)
+        {
+            aJoystickState[CJoystickButtonEnum.Fire1] = this.IsButtonPressed(CButtonEnum.StickFront);
+            aJoystickState[CJoystickButtonEnum.Fire2] = this.IsButtonPressed(CButtonEnum.StickSide);
+            aJoystickState[CJoystickButtonEnum.SideTopLeft] = this.IsButtonPressed(CButtonEnum.Side1);
+            aJoystickState[CJoystickButtonEnum.SideTopRight] = this.IsButtonPressed(CButtonEnum.Side2);
+            aJoystickState[CJoystickButtonEnum.SideMidLeft] = this.IsButtonPressed(CButtonEnum.Side3);
+            aJoystickState[CJoystickButtonEnum.SideMidRight] = this.IsButtonPressed(CButtonEnum.Side4);
+            aJoystickState[CJoystickButtonEnum.SideBotLeft] = this.IsButtonPressed(CButtonEnum.Side5);
+            aJoystickState[CJoystickButtonEnum.SideBotRight] = this.IsButtonPressed(CButtonEnum.Side6);
+            aJoystickState[CJoystickButtonEnum.TipTopLeft] = this.IsButtonPressed(CButtonEnum.StickTop1);
+            aJoystickState[CJoystickButtonEnum.TipTopRight] = this.IsButtonPressed(CButtonEnum.StickTop2);
+            aJoystickState[CJoystickButtonEnum.TipBotLeft] = this.IsButtonPressed(CButtonEnum.StickTop3);
+            aJoystickState[CJoystickButtonEnum.TipBotRight] = this.IsButtonPressed(CButtonEnum.StickTop4);
+        }
+
         #endregion
     }
 
