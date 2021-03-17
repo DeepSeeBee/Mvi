@@ -26,25 +26,26 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             this.KruskalScannerCountValue = KruskalScannerCountDecl.NewInt64Value(this);
             this.NuclearMissileCountValue = NuclearMissileCountDecl.NewInt64Value(this);
             this.ShellValue = ShellDecl.NewDoubleValue(this);
+            this.ShieldValue = ShieldDecl.NewDoubleValue(this);
             this.SlowMotionValue= SlowMotionDecl.NewDoubleValue(this);
             this.SpaceGripValue = SpaceGripDecl.NewDoubleValue(this);
-            this.ThermalShieldValue = ThermalShieldDecl.NewBoolValue(this);
+            this.ThermalShieldValue = ThermalShieldDecl.NewTimeSpanValue(this);
 
             this.Add(this.AmmoEnergyValue);
             this.Add(this.AmmoFireRateValue);
             this.Add(this.AmmoSpeedValue);
             this.Add(this.AmmoThicknessValue);
-
-            // TODO: Noch nicht implementiert: this.Add(this.AntiGravityValue);
-            // TODO: Noch nicht implementiert: this.Add(this.DrillCountValue);
-            // TODO: Noch nicht implementiert: this.Add(this.LifeCountValue);
-            // TODO: Noch nicht implementiert: this.Add(this.GuidedMissileCountValue);
-            // TODO: Noch nicht implementiert: this.Add(this.KruskalScannerCountValue);
-            // TODO: Noch nicht implementiert: this.Add(this.NuclearMissileCountValue);
-            // TODO: Noch nicht implementiert: this.Add(this.ShellValue);
-            // TODO: Noch nicht implementiert: this.Add(this.SlowMotionValue);
-            // TODO: Noch nicht implementiert: this.Add(this.SpaceGripValue);
-            // TODO: Noch nicht implementiert: this.Add(this.ThermalShieldValue);
+            this.Add(this.AntiGravityValue);
+            this.Add(this.DrillCountValue);
+            this.Add(this.LifeCountValue);
+            this.Add(this.GuidedMissileCountValue);
+            this.Add(this.KruskalScannerCountValue);
+            this.Add(this.NuclearMissileCountValue);
+            this.Add(this.ShellValue);
+            this.Add(this.ShieldValue);
+            this.Add(this.SlowMotionValue);
+            this.Add(this.SpaceGripValue);
+            this.Add(this.ThermalShieldValue);
 
             this.Init();
         }
@@ -191,13 +192,27 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
                 CUnitEnum.Percent, // UnitEnum
-                0d, // Default
+                1d, // Default
                 0d, // Min
                 1d, // Max
                 0.05d, // SmallChange
                 0.1d, // LargeChange
                 0 // Digits
             );
+        private static readonly CDoubleDeclaration ShieldDecl = new CDoubleDeclaration
+        (
+            Value.CValueEnum.Object_Avatar_Shield,
+            new Guid("132c1c5b-f1bf-49b2-8edb-c299c6b21776"), // Guid
+            true, // IsPersistent
+            CGuiEnum.Slider, // GuiEnum
+            CUnitEnum.Percent, // UnitEnum
+            1d, // Default
+            0d, // Min
+            1d, // Max
+            0.05d, // SmallChange
+            0.1d, // LargeChange
+            0 // Digits
+        );
         private static readonly CDoubleDeclaration SlowMotionDecl = new CDoubleDeclaration
             (
                 Value.CValueEnum.Object_Avatar_SlowMotion,
@@ -226,12 +241,16 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
                 0.1d, // LargeChange
                 0 // Digits
             );
-        private static readonly CBoolDeclaration ThermalShieldDecl = new CBoolDeclaration
+        private static readonly CTimeSpanDeclaration ThermalShieldDecl = new CTimeSpanDeclaration
             (
                 Value.CValueEnum.Object_Avatar_ThermalShield,
                 new Guid("b9f26f5c-bc3c-4eb0-914d-eff40647adbd"), // Guid
                 true, // IsPersistent
-                false // Default
+                new TimeSpan(),    // Default
+                new TimeSpan(), // Min
+                TimeSpan.FromMinutes(1), // Max
+                TimeSpan.FromSeconds(5), // SmallChange
+                TimeSpan.FromSeconds(20) // LargeChange
             );
         #endregion
         #region Values
@@ -246,9 +265,10 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
         internal readonly CInt64Value KruskalScannerCountValue;
         internal readonly CInt64Value NuclearMissileCountValue;
         internal readonly CDoubleValue ShellValue;
+        internal readonly CDoubleValue ShieldValue;
         internal readonly CDoubleValue SlowMotionValue;
         internal readonly CDoubleValue SpaceGripValue;
-        internal readonly CBoolValue ThermalShieldValue;
+        internal readonly CTimeSpanValue ThermalShieldValue;
         #endregion
     }
 

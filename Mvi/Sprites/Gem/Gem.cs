@@ -16,6 +16,7 @@ using CharlyBeck.Utils3.Asap;
 using CharlyBeck.Mvi.Sprites.GemSlot;
 using System.Diagnostics;
 using CharlyBeck.Mvi.Propability;
+using CharlyBeck.Mvi.Sprites.Avatar;
 
 namespace CharlyBeck.Mvi.Sprites.Gem
 {
@@ -269,14 +270,32 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         {
             base.Init();
         }
+        public override void Load()
+        {
+            base.Load();
+            this.ValueModifiersArray = this.ValueModifiers.ToArray();
+        }
         protected override void OnEndUse()
         {
             base.OnEndUse();
 
             Debug.Assert(!(this.GemSlotNullable is object));
         }
+        internal virtual void BuildGem(CSprite aDestroyed, CShotSprite aDestroying, CRandomGenerator aRandomGenerator)
+        {
+            this.WorldPos = aDestroyed.WorldPos.Value;
+            this.TimeToLive = new TimeSpan(0, 0, 10);
+            this.Scale = 0.05d;
+            this.Radius = 0.05d;
+        }
         #endregion
+        #region Avatar
+        private CAvatarSprite AvatarSprite => this.World.AvatarSprite;
+        internal CAvatarValues AvatarValues => this.AvatarSprite.AvatarValues;
+        #endregion
+        #region GemEnum
         internal readonly CGemEnum GemEnum;
+        #endregion
         #region GemCategories
         private readonly CGemCategories GemCategories;
 
@@ -285,13 +304,20 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         internal string Name;
         internal string ShortName;
         #endregion
-        internal virtual CValue TargetValue => throw new NotImplementedException();
-        internal virtual bool ModifyTargetValueIsEnabled => false;
-        internal virtual CValue SourceValue => throw new NotImplementedException();
+        #region GemCategory
         internal readonly CGemCategoryEnum GemCategoryEnum;
+        internal CGemCategory GemCategory { get; private set; }
+        #endregion
+        #region Collect
         internal void Collect()
         {
             this.World.OnGemCollected(this);
+
+            if(this.ActivateOnCollect)
+            {
+                this.Activate();
+            }
+
             if(this.IsReferenced)
             {
                 this.IsHiddenInWorld = true;
@@ -302,7 +328,6 @@ namespace CharlyBeck.Mvi.Sprites.Gem
                 this.DeallocateIsQueued = true;
             }
         }
-        internal TimeSpan? RemainingActiveTime;
 
         protected override void OnCollide(CSprite aCollideWith, double aDistance)
         {
@@ -310,18 +335,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
             this.Collect();
         }
-        internal override void Collide()
-        {
-            base.Collide();
-        }
-        internal virtual void BuildGem(CSprite aDestroyed, CShotSprite aDestroying, CRandomGenerator aRandomGenerator)
-        {
-            this.WorldPos = aDestroyed.WorldPos.Value;
-            this.TimeToLive = new TimeSpan(0, 0, 10);
-            this.Scale = 0.05d;
-            this.Radius = 0.05d;
-        }
-
+        #endregion
+        #region Update
         internal override void Update(CFrameInfo aFrameInfo)
         {
             base.Update(aFrameInfo);
@@ -346,24 +361,60 @@ namespace CharlyBeck.Mvi.Sprites.Gem
                 this.Reposition();
             }
         }
-
+        #endregion
+        #region Activate
+        internal bool ActivateOnCollect;
+        internal bool ActiveDurationIsEnabled;
         internal void Activate()
         {
             this.World.OnGemActivated(this);
 
-            this.RemainingActiveTime = new TimeSpan(0, 0, 5); // TODO_PARAMETERS
+            if(this.ActiveDurationIsEnabled)
+            {
+                this.RemainingActiveTime = CStaticParameters.Gem_ActiveTime; 
+            }
 
             if (!this.IsReferenced)
             {
                 this.DeallocateIsQueued = true;
             }
         }
-
+        internal bool GemIsActive => this.RemainingActiveTime.HasValue;
+        internal TimeSpan? RemainingActiveTime;
+        #endregion
+        #region GemSlot
         internal CGemSlot GemSlotNullable;
         internal bool IsReferenced => this.GemSlotNullable is object;
-        internal CGemCategory GemCategory { get; private set; }
-        internal bool GemIsActive => this.RemainingActiveTime.HasValue;
+        #endregion
+        #region Modifiers
+        private CValueModifier DefaultValueModifierM;
+        internal CValueModifier DefaultValueModifier =>CLazyLoad.Get(ref this.DefaultValueModifierM, this.NewDefaultValueModifier);
+        internal abstract CValueModifier NewDefaultValueModifier();
+        internal virtual IEnumerable<CValueModifier> ValueModifiers => new CValueModifier[] { this.DefaultValueModifier };
+        private CValueModifier[] ValueModifiersArray;
+        
+        internal void ApplyModifiers()
+        {
+            var a = this.ValueModifiersArray;
+            var c = a.Length;
+            for(var i = 0; i < c; ++i)
+            {
+                a[i].Apply();
+            }
+        }
+        internal void UnapplyValues()
+        {
+            var a = this.ValueModifiersArray;
+            var c = a.Length;
+            for (var i = 0; i < c; ++i)
+            {
+                a[i].Unapply();
+            }
+        }
+        #endregion
     }
+
+
 
     internal sealed class CGemSpriteManager : CMultiPoolSpriteManager<CGemSprite, CGemEnum>
     {
@@ -410,7 +461,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
                 case CGemEnum.ThermalShield: return new CNewFunc(() => new CThermalShieldGem(this));
                 case CGemEnum.KruskalScanner: return new CNewFunc(() => new CKruskalScannerGem(this));
                 case CGemEnum.SlowMotion: return new CNewFunc(() => new CSlowMotionGem(this));
-                case CGemEnum.AntiGravity: return new CNewFunc(() => new CAntigravityGem(this));
+                case CGemEnum.AntiGravity: return new CNewFunc(() => new CAntiGravityGem(this));
                 case CGemEnum.SpaceGrip: return new CNewFunc(() => new CSpaceGripGem(this));
                 case CGemEnum.Drill: return new CNewFunc(() => new CDrillGem(this));
                 case CGemEnum.AmmoThickness: return new CNewFunc(() => new CAmmoThicknessGem(this));

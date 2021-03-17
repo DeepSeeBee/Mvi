@@ -56,7 +56,7 @@
                                                                 </Setter.Value>
                                                             </Setter>
                                                         </DataTrigger>
-                                                        <DataTrigger Binding="{Binding VmValueDeclaration.GuiEnum}" Value="NumericTextBox">
+                                                        <DataTrigger Binding="{Binding VmValueDeclaration.GuiEnum}" Value="IncrementableTextBox">
                                                             <Setter Property="Template">
                                                                 <Setter.Value>
                                                                     <ControlTemplate>

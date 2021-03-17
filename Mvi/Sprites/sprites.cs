@@ -511,6 +511,12 @@ namespace CharlyBeck.Mvi.Sprites
 
             this.OnRootAllocateStaticSprites();
         }
+        public override void Load()
+        {
+            base.Load();
+            foreach (var aFree in this.Frees)
+                aFree.Load();
+        }
 
         internal event Action RootAllocateStaticSprites;
         private void OnRootAllocateStaticSprites()

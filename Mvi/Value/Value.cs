@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CharlyBeck.Utils3.Strings;
+using CharlyBeck.Utils3.DateTimes;
 
 namespace CharlyBeck.Mvi.Value
 {
@@ -23,13 +24,14 @@ namespace CharlyBeck.Mvi.Value
         Double,
         Enum,
         Int64,
+        TimeSpan
     }
 
     public enum CGuiEnum
     {
         Checkbox,
         Textbox,
-        NumericTextBox,
+        IncrementableTextBox,
         Slider,
         ComboBox,
         Button,
@@ -42,6 +44,7 @@ namespace CharlyBeck.Mvi.Value
         Percent,
         Count,
         Bool,
+        Time,
     }
 
     public enum CValueEnum
@@ -79,6 +82,7 @@ namespace CharlyBeck.Mvi.Value
         Object_Avatar_KruskalScannerCount,
         Object_Avatar_NuclearMissileCount,
         Object_Avatar_Shell,
+        Object_Avatar_Shield,
         Object_Avatar_SlowMotion,
         Object_Avatar_SpaceGrip,
         Object_Avatar_ThermalShield,
@@ -227,7 +231,7 @@ namespace CharlyBeck.Mvi.Value
                                     Int64 aSmallChange,
                                     Int64 aLargeChange)
             :
-            base(aValueEnum, aGuid, aIsPersistent, CGuiEnum.NumericTextBox, aUnitEnum, aDefaultValue, aMin, aMax, aSmallChange, aLargeChange)
+            base(aValueEnum, aGuid, aIsPersistent, CGuiEnum.IncrementableTextBox, aUnitEnum, aDefaultValue, aMin, aMax, aSmallChange, aLargeChange)
         {
         }
         internal override CValueTypeEnum ValueTypeEnum => CValueTypeEnum.Int64;
@@ -261,6 +265,30 @@ namespace CharlyBeck.Mvi.Value
             => this.NewDoubleValue(aParent);
         internal CDoubleValue NewDoubleValue(CServiceLocatorNode aParent)
             => new CDoubleValue(aParent, this);
+    }
+
+
+    public sealed class CTimeSpanDeclaration : CNumericValueDeclaration<TimeSpan>
+    {
+        internal CTimeSpanDeclaration(CValueEnum aValueEnum, 
+                                      Guid aGuid, 
+                                      bool aIsPersistent, 
+                                      TimeSpan aDefault,
+                                      TimeSpan aMin,
+                                      TimeSpan aMax,
+                                      TimeSpan aSmallChange,
+                                      TimeSpan aLargeChange
+                                      ) 
+        :
+            base(aValueEnum, aGuid, aIsPersistent, CGuiEnum.IncrementableTextBox, CUnitEnum.Time, aDefault, aMin, aMax, aSmallChange, aLargeChange)
+        {
+        }
+        internal override CValue NewValue(CServiceLocatorNode aParent)
+            => this.NewTimeSpanValue(aParent);
+
+        internal CTimeSpanValue NewTimeSpanValue(CServiceLocatorNode aParent)
+            => new CTimeSpanValue(aParent, this);
+        internal override CValueTypeEnum ValueTypeEnum => CValueTypeEnum.TimeSpan;
     }
     public abstract class CValue :  CChangeNotifier
     {
@@ -337,7 +365,7 @@ namespace CharlyBeck.Mvi.Value
             this.ValueDeclaration = aValueDeclaration;
         }
 
-        internal readonly CValueDeclaration<T> ValueDeclaration;
+        internal readonly new CValueDeclaration<T> ValueDeclaration;
         protected override void Init()
         {
             base.Init();
@@ -369,8 +397,8 @@ namespace CharlyBeck.Mvi.Value
                 this.SetValueInGuiThread(delegate () { this.Value = aValue; });
             }
         }
-        protected T ConvertGuiValueBack(object aGuiValue) => (T)aGuiValue;
-        protected object ConvertGuiValue(T aValue) => aValue;
+        protected virtual T ConvertGuiValueBack(object aGuiValue) => (T)aGuiValue;
+        protected virtual object ConvertGuiValue(T aValue) => aValue;
     }
 
     public sealed class CBoolValue : CValue<bool>
@@ -438,7 +466,26 @@ namespace CharlyBeck.Mvi.Value
         {
         }
     }
-
+    public sealed class CTimeSpanValue : CNumericVal<TimeSpan>
+    {
+        internal CTimeSpanValue(CServiceLocatorNode aParent, CTimeSpanDeclaration aDecl) :base(aParent, aDecl)
+        {
+            this.TimeSpanDeclaration = aDecl;
+        }
+        internal readonly CTimeSpanDeclaration TimeSpanDeclaration;
+        internal override void Increment(bool aDecrement, bool aLargeChange)
+        {
+            var aSteps = aLargeChange ? this.TimeSpanDeclaration.LargeChange : this.TimeSpanDeclaration.SmallChange;
+            var aValue = aDecrement ? -aSteps : aSteps;
+            this.Value = this.Value.Add(aValue);
+        }
+        protected override TimeSpan Coerce(TimeSpan aValue)
+            => aValue.Min(this.TimeSpanDeclaration.Maximum).Max(this.TimeSpanDeclaration.Minimum);
+        protected override object ConvertGuiValue(TimeSpan aValue)
+            => aValue.ToString();
+        protected override TimeSpan ConvertGuiValueBack(object aGuiValue)
+            => TimeSpan.Parse(aGuiValue.ToString());
+    }
     public abstract class CValues 
     :
         CServiceLocatorNode
@@ -572,4 +619,127 @@ namespace CharlyBeck.Mvi.Value
         }
         public object VmItems => this.ValueObjects;
     }
+
+
+    internal abstract class CValueModifier : CServiceLocatorNode
+    {
+        internal CValueModifier(CServiceLocatorNode aParent) : base(aParent)
+        {
+        }
+
+        internal abstract void Apply();
+        internal abstract void Unapply();
+    }
+
+    internal abstract class CValueModifier<T, TValue> : CValueModifier where TValue : CValue<T> where T: struct
+    {
+        internal CValueModifier(CServiceLocatorNode aParent) : base(aParent)
+        {
+        }
+
+        internal Func<T?> GetApplyValue;
+        internal Func<T?> GetUnapplyValue;
+        internal Func<TValue> GetValue;
+        internal T? ApplyValue
+        {
+            get => this.GetApplyValue is object ? this.GetApplyValue() : default;
+            set => this.GetApplyValue = new Func<T?>(() => value);
+        }
+        internal T? UnapplyValue
+        {
+            get => this.GetUnapplyValue is object ? this.GetUnapplyValue() : default;
+            set => this.GetUnapplyValue = new Func<T?>(() => value);
+        }
+        internal TValue Value
+        {
+            get => this.GetValue();
+            set => this.GetValue = new Func<TValue>(() => value);
+        }
+    }
+
+    internal sealed class CAddDoubleModifier : CValueModifier<double, CDoubleValue>
+    {
+        internal CAddDoubleModifier(CServiceLocatorNode aParent) : base(aParent)
+        {
+        }
+
+        internal override void Apply()
+        {
+            var aValue = this.Value;
+            var aApplyValue = this.ApplyValue;
+            if(aApplyValue.HasValue)
+                aValue.Value += aApplyValue.Value;
+        }
+        internal override void Unapply()
+        {
+            var aValue = this.Value;
+            var aUnapplyValue = this.UnapplyValue;
+            if (aUnapplyValue.HasValue)
+                aValue.Value += aUnapplyValue.Value;
+        }
+    }
+    internal sealed class CAddInt64Modifier : CValueModifier<Int64, CInt64Value>
+    {
+        internal CAddInt64Modifier(CServiceLocatorNode aParent) : base(aParent)
+        {
+        }
+
+        internal override void Apply()
+        {
+            var aValue = this.Value;
+            var aApplyValue = this.ApplyValue;
+            if (aApplyValue.HasValue)
+                aValue.Value += aApplyValue.Value;
+        }
+        internal override void Unapply()
+        {
+            var aValue = this.Value;
+            var aUnapplyValue = this.UnapplyValue;
+            if (aUnapplyValue.HasValue)
+                aValue.Value += aUnapplyValue.Value;
+        }
+    }  
+    internal sealed class CAddTimeSpanModifier : CValueModifier<TimeSpan, CTimeSpanValue>
+    {
+        internal CAddTimeSpanModifier(CServiceLocatorNode aParent) : base(aParent)
+        {
+        }
+
+        internal override void Apply()
+        {
+            var aValue = this.Value;
+            var aApplyValue = this.ApplyValue;
+            if (aApplyValue.HasValue)
+                aValue.Value += aApplyValue.Value;
+        }
+        internal override void Unapply()
+        {
+            var aValue = this.Value;
+            var aUnapplyValue = this.UnapplyValue;
+            if (aUnapplyValue.HasValue)
+                aValue.Value += aUnapplyValue.Value;
+        }
+    }
+    internal sealed class CBoolModifier : CValueModifier<bool, CBoolValue>
+    {
+        internal CBoolModifier(CServiceLocatorNode aParent) : base(aParent)
+        {
+        }
+
+        internal override void Apply()
+        {
+            var aValue = this.Value;
+            var aApplyValue = this.ApplyValue;
+            if (aApplyValue.HasValue)
+                aValue.Value = aApplyValue.Value;
+        }
+        internal override void Unapply()
+        {
+            var aValue = this.Value;
+            var aUnapplyValue = this.UnapplyValue;
+            if (aUnapplyValue.HasValue)
+                aValue.Value = aUnapplyValue.Value;
+        }
+    }
 }
+

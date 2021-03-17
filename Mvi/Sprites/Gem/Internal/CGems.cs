@@ -2,6 +2,7 @@
 using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Sprites;
 using CharlyBeck.Mvi.Sprites.Shot;
+using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.World;
 using CharlyBeck.Utils3.ServiceLocator;
 using System;
@@ -111,9 +112,6 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         public readonly CGemCategoryEnum GemCategoryEnum;
     }
 
-
-
-
     /// <summary>
     /// Gives an extra live to the player
     /// </summary>
@@ -122,8 +120,16 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CExtraLifeGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ExtraLife)
         {
+            this.ActiveDurationIsEnabled = false;
+            this.ActivateOnCollect = true;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+            => new CAddInt64Modifier(this)
+            {
+                ApplyValue = 1,
+                Value = this.AvatarValues.LifeCountValue,
+            };
         #endregion
     }
 
@@ -133,10 +139,17 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     internal sealed class CShellRepairGem : CGemSprite
     {
         #region ctor
-        internal CShellRepairGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ShellRepair) 
+        internal CShellRepairGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ShellRepair)
         {
+            this.ActiveDurationIsEnabled = false;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+        => new CAddDoubleModifier(this)
+        {
+            ApplyValue = CStaticParameters.Gem_ShellRepair_ModifierValue,
+            Value = this.AvatarValues.ShellValue,
+        };
         #endregion
     }
 
@@ -148,8 +161,15 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CShieldGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.Shield) 
         {
+            this.ActiveDurationIsEnabled = false;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+            => new CAddDoubleModifier(this)
+            {
+                ApplyValue = CStaticParameters.Gem_Shield_ModifierValue,
+                Value = this.AvatarValues.ShieldValue,
+            };
         #endregion
     }
 
@@ -158,8 +178,16 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CAmmoEnergyGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AmmoEnergy) 
         {
+            this.ActiveDurationIsEnabled = true;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+            => new CAddDoubleModifier(this)
+            {
+                ApplyValue = CStaticParameters.Gem_AmmoEnergy_ModifierValue,
+                UnapplyValue = -CStaticParameters.Gem_AmmoEnergy_ModifierValue,
+                Value = this.AvatarValues.AmmoEnergyValue,
+            };
         #endregion
     }
     internal sealed class CAmmoThicknessGem : CGemSprite
@@ -167,8 +195,16 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CAmmoThicknessGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AmmoThickness)
         {
+            this.ActiveDurationIsEnabled = true;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+            => new CAddDoubleModifier(this)
+            {
+                ApplyValue = CStaticParameters.Gem_AmmoThickness_ModifierValue,
+                UnapplyValue = -CStaticParameters.Gem_AmmoThickness_ModifierValue,
+                Value = this.AvatarValues.AmmoThicknessValue,
+            };
         #endregion
     }
     /// <summary>
@@ -179,8 +215,16 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CNuclearMissileGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.NuclearMissile) 
         {
+            this.ActivateOnCollect = true;
+            this.ActiveDurationIsEnabled = false;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+            => new CAddInt64Modifier(this)
+            {
+                ApplyValue = CStaticParameters.Gem_NuclearMissile_ModifierValue,
+                Value = this.AvatarValues.NuclearMissileCountValue,
+            };
         #endregion
     }
 
@@ -192,7 +236,16 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CThermalShieldGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ThermalShield) 
         {
+            this.ActiveDurationIsEnabled = false;
+
+            this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+            => new CAddTimeSpanModifier(this)
+            {
+                ApplyValue = CStaticParameters.Gem_ThermalShield_ModifierValue,
+                Value = this.AvatarValues.ThermalShieldValue,
+            };
         #endregion
     }
 
@@ -204,10 +257,17 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CKruskalScannerGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.KruskalScanner)
         {
+            this.ActiveDurationIsEnabled = false;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+            => new CAddInt64Modifier(this)
+            {
+                ApplyValue = CStaticParameters.Gem_KruskalScanner_ModifierValue,
+                Value = this.AvatarValues.KruskalScannerCountValue,
+            };
         #endregion
-      
+
     }
 
 
@@ -219,8 +279,16 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CDrillGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.Drill)
         {
+            this.ActiveDurationIsEnabled = false;
+            this.ActivateOnCollect = true;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+            => new CAddInt64Modifier(this)
+            {
+                ApplyValue = CStaticParameters.Gem_Drill_ModifierValue,
+                Value = this.AvatarValues.DrillCountValue,
+            };
         #endregion
     }
 
@@ -229,8 +297,16 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CAmmoSpeedGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AmmoSpeed)
         {
+            this.ActiveDurationIsEnabled = true;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+        => new CAddDoubleModifier(this)
+        {
+            ApplyValue = CStaticParameters.Gem_AmmoSpeed_ModifierValue,
+            UnapplyValue = -CStaticParameters.Gem_AmmoSpeed_ModifierValue,
+            Value = this.AvatarValues.AmmoSpeedValue,
+        };
         #endregion
     }
     internal sealed class CFireRateGem : CGemSprite
@@ -238,8 +314,16 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CFireRateGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.FireRate)
         {
+            this.ActiveDurationIsEnabled = true;
             this.Init(); 
         }
+        internal override CValueModifier NewDefaultValueModifier()
+        => new CAddDoubleModifier(this)
+        {
+            ApplyValue = CStaticParameters.Gem_AmmoFireRate_ModifierValue,
+            UnapplyValue = -CStaticParameters.Gem_AmmoFireRate_ModifierValue,
+            Value = this.AvatarValues.AmmoFireRateValue,
+        };
         #endregion
 
     }
@@ -249,18 +333,34 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #region ctor
         internal CSlowMotionGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.SlowMotion)
         {
+            this.ActiveDurationIsEnabled = true;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+        => new CAddDoubleModifier(this)
+        {
+            ApplyValue = CStaticParameters.Gem_SlowMotion_ModifierValue,
+            UnapplyValue = -CStaticParameters.Gem_SlowMotion_ModifierValue,
+            Value = this.AvatarValues.SlowMotionValue,
+        };
         #endregion 
     }
 
-    internal sealed class CAntigravityGem : CGemSprite
+    internal sealed class CAntiGravityGem : CGemSprite
     {
         #region ctor
-        internal CAntigravityGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AntiGravity)
+        internal CAntiGravityGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AntiGravity)
         {
+            this.ActiveDurationIsEnabled = true;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+        => new CAddDoubleModifier(this)
+        {
+            ApplyValue = CStaticParameters.Gem_AntiGravity_ModifierValue,
+            UnapplyValue = -CStaticParameters.Gem_AntiGravity_ModifierValue,
+            Value = this.AvatarValues.AntiGravityValue,
+        };
         #endregion
     }
 
@@ -275,16 +375,32 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     {
         internal CGuidedMissileGem(CServiceLocatorNode aParent):base(aParent, CGemEnum.GuidedMissile)
         {
+            this.ActiveDurationIsEnabled = false;
+            this.ActivateOnCollect = true;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+               => new CAddInt64Modifier(this)
+               {
+                   ApplyValue = CStaticParameters.Gem_GuidedMissile_ModifierValue,
+                   Value = this.AvatarValues.GuidedMissileCountValue,
+               };
     }
 
     internal sealed class CSpaceGripGem : CGemSprite
     {
         internal CSpaceGripGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.SpaceGrip)
         {
+            this.ActiveDurationIsEnabled = true;
             this.Init();
         }
+        internal override CValueModifier NewDefaultValueModifier()
+            => new CAddDoubleModifier(this)
+            {
+                ApplyValue = CStaticParameters.Gem_SpaceGrip_ModifierValue,
+                UnapplyValue = -CStaticParameters.Gem_SpaceGrip_ModifierValue,
+                Value = this.AvatarValues.SpaceGripValue,
+            };
     }
 
 

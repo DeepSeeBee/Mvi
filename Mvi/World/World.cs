@@ -278,6 +278,7 @@ namespace CharlyBeck.Mvi.World
         {
             base.Load();
             this.Cube.Load();
+            this.WorldSpriteManagers.Load();
         }
         #endregion
         #region Look

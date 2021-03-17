@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Asap\asap.cs" />
+    <Compile Include="DateTimes\DateTimes.cs" />
     <Compile Include="Enumerables\Enumerables.cs" />
     <Compile Include="Exceptions\CEception.cs" />
     <Compile Include="LazyLoad\CLazyLoad.cs" />

@@ -55,8 +55,25 @@ namespace CharlyBeck.Mvi
 
         public const int ExplosionCountMax = 10; // TODO-Not deterministic.
         public const int Shot_Count_Max = 20;
-
-
         public const int Gem_Class_InstanceCount = 10;
+
+        public const double Gem_ShellRepair_ModifierValue = 0.1d;
+        public const double Gem_Shield_ModifierValue = 0.1d;
+        public const double Gem_AmmoEnergy_ModifierValue = 0.1d;
+        public const double Gem_AmmoThickness_ModifierValue = 0.1d;
+        public const double Gem_AmmoSpeed_ModifierValue = 0.1d;
+        public const double Gem_AmmoFireRate_ModifierValue = 0.1d;
+        public const double Gem_SlowMotion_ModifierValue = -0.1d;
+        public const double Gem_AntiGravity_ModifierValue = 0.1d;
+        public const double Gem_SpaceGrip_ModifierValue = 0.1d;
+
+        public static readonly TimeSpan Gem_ThermalShield_ModifierValue = TimeSpan.FromSeconds(20);
+
+        public const Int64 Gem_GuidedMissile_ModifierValue = 1;
+        public const Int64 Gem_NuclearMissile_ModifierValue = 1;
+        public const Int64 Gem_Drill_ModifierValue = 1;
+        public const Int64 Gem_KruskalScanner_ModifierValue = 1;
+
+        public static readonly TimeSpan  Gem_ActiveTime = new TimeSpan(0, 0, 90); 
     }
 }
