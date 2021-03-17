@@ -69,8 +69,9 @@ namespace CharlyBeck.Mvi.Sfx
         [CSoundDirectoryPath(@"Audio\Laser", true)]
         Audio_Laser,
         [CSoundDirectoryPath(@"Audio\GemSpeech", true)]
-        Audio_GemSpeech
-
+        Audio_GemSpeech,
+        [CSoundDirectoryPath(@"Audio\GemActivate", true)]
+        Audio_GemActivate
     }
 
     internal enum CSoundFxClassEnum
@@ -739,16 +740,58 @@ namespace CharlyBeck.Mvi.Sfx
                                    aGetGemEnum(aSoundFile.FileInfo),
                                    aSoundFile
                                 )).ToArray();
+            var aSoundFilesByGemEnum = new CSoundFile[typeof(CGemEnum).GetEnumMaxValue() + 1];
+            foreach(var aSoundFile in aSoundFiles2)
+            {
+                aSoundFilesByGemEnum[(int)aSoundFile.Item2] = aSoundFile.Item3;
+            }
+            this.SoundFilesByGemEnum = aSoundFilesByGemEnum;
+
             this.World.GemCollectedSoundStarting += delegate (CGemSprite aGemSprite, Action<CSoundFile> aAddFollowUp)
             {
-                var aSound = (from aTest in aSoundFiles2 where aTest.Item2 == aGemSprite.GemEnum select aTest).Single();
-                aAddFollowUp(aSound.Item3);
+                //var aSound = // (from aTest in aSoundFiles2 where aTest.Item2 == aGemSprite.GemEnum select aTest).Single();
+                //aAddFollowUp(aSound.Item3);
+            };
+
+            this.SoundSequence = new CSoundSequence(2);
+
+            this.World.GemActivated += delegate (CGemSprite aGemSprite)
+            {
+                var aGemEnum = aGemSprite.GemEnum;
+                var aSoundFile = this.GetSoundFile(aGemEnum);
+                if(aSoundFile is object)
+                {
+                    this.SoundSequence.Add(aSoundFile);
+                }
             };
 
             this.Init();
         }
+        private readonly CSoundFile[] SoundFilesByGemEnum;
+        private readonly CSoundSequence SoundSequence;
+        internal override void Update()
+        {
+            base.Update();
+            this.SoundSequence.Update();
+        }
 
+        private CSoundFile GetSoundFile(CGemEnum aGemEnum)
+            => this.SoundFilesByGemEnum[(int)aGemEnum];
     }
+
+    internal sealed class CGemActivateSoundDirectory : CSoundDirectory
+    {
+        internal CGemActivateSoundDirectory (CServiceLocatorNode aParent):base(aParent)
+        {
+            this.AddDirectory(CSoundDirectoryEnum.Audio_GemActivate);
+
+            this.World.GemActivated += delegate (CGemSprite aGemSprite)
+            {
+                this.PlayRandomSound();
+            };
+        }
+    }
+
     internal sealed class CSoundManager : CServiceLocatorNode
     {
         internal CSoundManager(CServiceLocatorNode aParent)  :base(aParent)
@@ -761,6 +804,7 @@ namespace CharlyBeck.Mvi.Sfx
             this.WormholeSoundDirectory = new CWormholeSoundDirectory(this);
             this.GemCollectedSoundDirectory = new CGemCollectedSoundDirectory(this);
             this.GemSpeechSoundDirectory = new CGemSpeechSoundDirectory(this);
+            this.GemActivateSoundDirectory = new CGemActivateSoundDirectory(this);
         }
         private readonly CCollisionSoundDirectory CollisionSoundDirectory;
         private readonly CAmbientSoundDirectory AmbientSoundDirectory;
@@ -770,7 +814,7 @@ namespace CharlyBeck.Mvi.Sfx
         private readonly CWormholeSoundDirectory WormholeSoundDirectory;
         private readonly CGemCollectedSoundDirectory GemCollectedSoundDirectory;
         private readonly CGemSpeechSoundDirectory GemSpeechSoundDirectory;
-
+        private readonly CGemActivateSoundDirectory GemActivateSoundDirectory;
         private IEnumerable<CSoundDirectory> SoundDirectories
         {
             get
@@ -783,6 +827,7 @@ namespace CharlyBeck.Mvi.Sfx
                 yield return this.WormholeSoundDirectory;
                 yield return this.GemCollectedSoundDirectory;
                 yield return this.GemSpeechSoundDirectory;
+                yield return this.GemActivateSoundDirectory;
             }
         }
         internal void Update()

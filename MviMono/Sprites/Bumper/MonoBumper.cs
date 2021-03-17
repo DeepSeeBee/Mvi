@@ -72,6 +72,8 @@ namespace MviMono.Sprites.Asteroid
             aRasterizerState.CullMode = CullMode.CullClockwiseFace;
             this.RasterizerState = aRasterizerState;
 
+            this.RotateBy90Degrees = Matrix.CreateRotationZ(MathHelper.ToRadians(90f));
+
         }
         public override T Throw<T>(Exception aException)
             => aException.Throw<T>();
@@ -106,6 +108,8 @@ namespace MviMono.Sprites.Asteroid
             }
         }
 
+        private Matrix RotateBy90Degrees;
+
         private readonly BlendState BlendState;
         private readonly RasterizerState RasterizerState;
 
@@ -123,20 +127,21 @@ namespace MviMono.Sprites.Asteroid
             var aWorldMatrix = aOldWorldMatrix * aScaleMatrix * aTranslateMatrix;
             aBasicEffect.Alpha = (float)aAlpha;
             aBasicEffect.World = aWorldMatrix;
-            var aAvatarIsInTile = aBumperSprite.AvatarIsInQuadrant;
+            //var aAvatarIsInTile = aBumperSprite.AvatarIsInQuadrant;
             var aAvatarDistanceToSurface = aBumperSprite.AvatarDistanceToSurface;
             var aVertexBufferIndex = this.MviAsteroidModel.GetSphereIdx(aAvatarDistanceToSurface);
             var aLineListVertexBuffer = this.SphereLineListVertexBuffers[aVertexBufferIndex]; // this.GetSphereLineListVertexBuffer(aAvatarDistanceToSurface);
             var aTriangleListVertexBuffer = this.SphereTriangleListVertexBuffers[aVertexBufferIndex];// this.GetSphereTriangleStripVertexBuffer(aAvatarDistanceToSurface);
 
-            var aIsNearest = aBumperSprite.IsNearest;
-            var aIsBelowSurface = aBumperSprite.IsBelowSurface;
+            //var aIsNearest = aBumperSprite.IsNearest;
+            //var aIsBelowSurface = aBumperSprite.IsBelowSurface;
 
             //if (((int)aBumperSprite.Color.x * 1000) == ((int)0.0577762010776327 * 1000))
             //{
             //    System.Diagnostics.Debug.Assert(true);
             //}
-            var aAsteroidColor = aBumperSprite.Color.ToColor().SetAlpha(aInvertedAlpha);
+            var aFillColor = aBumperSprite.Color.ToColor().SetAlpha(aInvertedAlpha);
+            var aLineColor = new Color(aFillColor.ToVector3() + new Vector3(0.1f));
             var aAsteroidColorWhite = Color.White.SetAlpha((float)aAlpha);
 
             var aGraphicsDevice = this.Game.GraphicsDevice;
@@ -145,7 +150,7 @@ namespace MviMono.Sprites.Asteroid
             var aOldBlendState = aGraphicsDevice.BlendState;
 
             aGraphicsDevice.BlendState = aBlendState;
-            aGraphicsDevice.BlendFactor = aAsteroidColor;
+            aGraphicsDevice.BlendFactor = aFillColor;
 
             //aGraphicsDevice.BlendState = Microsoft.Xna.Framework.Graphics.BlendState.AlphaBlend;
 
@@ -161,16 +166,29 @@ namespace MviMono.Sprites.Asteroid
                 aGraphicsDevice.RasterizerState = aOldRasterizerState;
             }
 
-            if(aIsNearest
-            || aIsBelowSurface)
+            //if(aIsNearest
+            //|| aIsBelowSurface)
             { // LineList
                // aBasicEffect.Alpha = 0.0f;
-                aGraphicsDevice.BlendFactor = aAsteroidColorWhite.SetAlpha(aInvertedAlpha);
+                aGraphicsDevice.BlendFactor = aLineColor.SetAlpha((float)aAlpha);
                 foreach (var aPass in aBasicEffect.CurrentTechnique.Passes)
                 {
                     aPass.Apply();
                     aLineListVertexBuffer.DrawLineList(aGraphicsDevice);
-                    //this.SphereLineListVertexBuffer.DrawLineList(this.Game.GraphicsDevice);
+                }
+
+                this.RotateBy90Degrees = Matrix.CreateRotationZ(MathHelper.ToRadians(90f));
+
+                { // DrawLinesRotatedBy90Degrees
+                    var aOldWorldMatrix2 = aBasicEffect.World;
+                    var aNewWorldMatrix = this.RotateBy90Degrees * aBasicEffect.World;
+                    aBasicEffect.World = aNewWorldMatrix;
+                    foreach (var aPass in aBasicEffect.CurrentTechnique.Passes)
+                    {
+                        aPass.Apply();
+                        aLineListVertexBuffer.DrawLineList(aGraphicsDevice);
+                    }
+                    aBasicEffect.World = aOldWorldMatrix2;
                 }
             }
             aBasicEffect.Alpha = aOldAlpha;

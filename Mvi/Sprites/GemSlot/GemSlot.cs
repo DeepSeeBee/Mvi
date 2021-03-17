@@ -15,29 +15,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using CharlyBeck.Mvi.XnaExtensions;
+using CharlyBeck.Mvi.Input;
 
 namespace CharlyBeck.Mvi.Sprites.GemSlot
 {
-    enum CGemButtonEnum
-    {
-        Side6_LO,
-        Side6_LM,
-        Side6_LU,
-        Side6_RO,
-        Side6_RM,
-        Side6_RU,
-
-        Top_LO,
-        Top_LU,
-        Top_RO,
-        Top_RU
-    }
-
-    internal abstract class CGemJoystickAdapter
-    {
-        internal abstract bool IsPressed(CGemButtonEnum aButton);
-    }
-
     enum CGemSideEnum
     {
         Left,
@@ -47,6 +28,8 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
     internal static class CConsts
     {
         internal const int GemClass_SlotCount = 7;
+        internal const int GemActiveBar_SlotCount = 15;
+
         public static readonly int GemClass_Count = typeof(CGemCategoryEnum).GetEnumMaxValue() + 1;
 
     }
@@ -65,7 +48,7 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
 
         internal int? Index;
         internal CGemCategory GemClass;
-        internal CGemSideEnum? GemSlotSideEnum;
+        internal CGemSideEnum? GemSideEnum;
 
         private CGemSprite GemSpriteNullableM;
         internal CGemSprite GemSpriteNullable
@@ -104,37 +87,165 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
 
     }
 
+    internal abstract class CGemSlots : CServiceLocatorNode
+    {
+        internal CGemSlots(CServiceLocatorNode aParent) : base(aParent)
+        {
+
+        }
+
+        internal void Allocate(int aCount, Action<CGemSlot> aSetup)
+        {
+            var aItems = new CGemSlot[aCount];
+            for(var i = 0; i < aCount; ++i)
+            {
+                var aGemSlot = new CGemSlot(this);
+                aGemSlot.Index = i;
+                aSetup(aGemSlot);
+                aItems[i] = aGemSlot;
+            }
+            this.Items = aItems;
+        }
+        internal int Count => this.Items.Length;
+        internal CGemSlot[] Items { get; private set; }
+        internal CGemSlot FindFreeSlotNullable()
+            => this.Items.Where(s => s.IsFree).FirstOrDefault();        
+        internal CGemSprite RemoveAt(int i)
+        {
+            var aGemSpriteNullable = default(CGemSprite);
+            bool aDone = false;
+            for (var aIdx = i; aIdx < this.Items.Length - 1 && !aDone; ++aIdx)
+            {
+                var aSrcSlot = this.Items[aIdx + 1];
+                var aDstSlot = this.Items[aIdx];
+                var aDstGem = aDstSlot.GemSpriteNullable;
+                //if (aDstGem is object)
+                {
+                    if (aIdx == i)
+                    {
+                        aGemSpriteNullable = aDstGem;
+                    }
+                    var aSrcGem = aSrcSlot.GemSpriteNullable;
+                    aSrcSlot.GemSpriteNullable = default;
+                    aDstSlot.GemSpriteNullable = aSrcGem;
+                    if (!(aSrcGem is object))
+                    {
+                        aDone = true;
+                    }
+                }
+                //else
+                //{
+                //    aDone = true;
+                //}
+            }
+            return aGemSpriteNullable;
+        }
+        internal int GetCount()
+            => this.Count.Range().Where(i => this.Items[i].IsFree).First();
+    }
+
+    internal sealed class CGemClassBarSlots : CGemSlots
+    {
+        internal CGemClassBarSlots(CServiceLocatorNode aParent) : base(aParent)
+        {
+        }
+    }
+
     internal sealed class CGemClassBar : CServiceLocatorNode
     {
-        
-
         internal CGemClassBar(CServiceLocatorNode aParent) : base(aParent)
         {
+            this.GemClassBarSlots = new CGemClassBarSlots(this);
+            this.JoystickState = this.ServiceContainer.GetService<CJoystickState>();
+
+            this.Init();
         }
         public override void Load()
         {
             base.Load();
-            var aCount = CConsts.GemClass_SlotCount;
-            var aGemSlots = new CGemSlot[aCount];
-            foreach (var aIdx in Enumerable.Range(0, aCount))
-            {
-                var aGemSlot = new CGemSlot(this)
+
+            this.GemClassBarSlots.Allocate(CConsts.GemClass_SlotCount,
+                delegate (CGemSlot aGemSlot)
                 {
-                    Index = aIdx,
-                    GemClass = this.GemClass,
-                    GemSlotSideEnum = this.GemSideEnum
-                };
-                aGemSlots[aIdx] = aGemSlot;
+                    aGemSlot.GemClass = this.GemClass;
+                    aGemSlot.GemSideEnum = this.GemSideEnum;
+                });
+
+            { // GetJoystickButton
+                CJoystickButtonEnum? aJoystickButtonEnum;
+                switch (this.GemSideEnum)
+                {
+                    case CGemSideEnum.Left:
+                        switch (this.GemClass.GemClassEnum)
+                        {
+                            case CGemCategoryEnum.Defense:
+                                aJoystickButtonEnum = CJoystickButtonEnum.SideMidLeft;
+                                break;
+                            case CGemCategoryEnum.Offense:
+                                aJoystickButtonEnum = CJoystickButtonEnum.SideBotLeft;
+                                break;
+                            case CGemCategoryEnum.Navigation:
+                                aJoystickButtonEnum = CJoystickButtonEnum.SideTopLeft;
+                                break;
+                            default:
+                                aJoystickButtonEnum = default;
+                                break;
+                        }
+                        break;
+
+                    case CGemSideEnum.Right:
+                        switch (this.GemClass.GemClassEnum)
+                        {
+                            case CGemCategoryEnum.Defense:
+                                aJoystickButtonEnum = CJoystickButtonEnum.SideMidRight;
+                                break;
+                            case CGemCategoryEnum.Offense:
+                                aJoystickButtonEnum = CJoystickButtonEnum.SideBotRight;
+                                break;
+                            case CGemCategoryEnum.Navigation:
+                                aJoystickButtonEnum = CJoystickButtonEnum.SideTopRight;
+                                break;
+                            default:
+                                aJoystickButtonEnum = default;
+                                break;
+                        }
+                        break;
+                    default:
+                        aJoystickButtonEnum = default;
+                        break;
+                }
+                this.JoystickButtonEnum = aJoystickButtonEnum;
             }
-            this.GemSlots = aGemSlots;
         }
 
-        internal CGemSlot[] GemSlots { get; private set; }
+        internal void Update(CFrameInfo aFrameInfo)
+        {
+            var aButtonPressed = this.JoystickState[this.JoystickButtonEnum.Value];
+            if(!aButtonPressed)
+            {
+                this.JoystickButtonPressed = false;
+            }
+            else if(!this.JoystickButtonPressed)
+            {
+                var aGemSpriteNullable = this.GemClassBarSlots.RemoveAt(0); 
+                if (aGemSpriteNullable is object)
+                {
+                    aGemSpriteNullable.Activate();
+                }
+                this.JoystickButtonPressed = true;
+            }
+        }
+
+        internal CGemClassBarSlots GemClassBarSlots { get; private set; }
         internal CGemCategory GemClass;
         internal CGemSideEnum? GemSideEnum;
+        internal CJoystickButtonEnum? JoystickButtonEnum;
+        private bool JoystickButtonPressed;
 
+        private readonly CJoystickState JoystickState;
         internal CGemSlot FindFreeSlotNullable()
-           =>this.GemSlots.Where(s => s.IsFree).FirstOrDefault();
+            => this.GemClassBarSlots.FindFreeSlotNullable();
+
     }
 
     internal sealed class CGemSideBar : CServiceLocatorNode
@@ -182,35 +293,140 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         #endregion
         #region GemSlots
         internal IEnumerable<CGemSlot> GemSlots => (from aGemClassBar in this.GemClassBars
-                                                    from aGemSlot in aGemClassBar.GemSlots
+                                                    from aGemSlot in aGemClassBar.GemClassBarSlots.Items
                                                     select aGemSlot);
         #endregion
         #region GemCategories
         private readonly CGemCategories GemCategories;
         #endregion
+        #region Update
+        internal void Update(CFrameInfo aFrameInfo)
+        {
+            var a = this.GemClassBars;
+            var c = a.Length;
+            for(var i = 0; i < c; ++i)
+            {
+                a[i].Update(aFrameInfo);
+            }
+        }
+        #endregion
     }
-    /*
-internal sealed class CHorizontalSlots
-{
 
-    internal CGemSlotSideEnum GemAlternateSlotEnum;
+    internal sealed class CGemActiveBarSlots : CGemSlots
+    {
+        internal CGemActiveBarSlots(CServiceLocatorNode aParent) : base(aParent)
+        {
 
-    private CClassSlot[] ClassSlots;         
-}
+        }
+        internal void Update(CFrameInfo aFrameInfo)
+        {
+            var aCount = this.Count;
+            var aItems = this.Items;
+            var i = 0;
+            while(i < aCount)
+            {
+                var aItem = aItems[i];
+                var aGem = aItem.GemSpriteNullable;
+                if(aGem is object
+                && !aGem.GemIsActive)
+                {
+                    this.RemoveAt(i);
+                }
+                else
+                {
+                    ++i;
+                }
+            }
+        }
+    }
+    internal sealed class CGemActiveBar : CServiceLocatorNode
+    {
+        internal CGemActiveBar(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.GemActiveBarSlots = new CGemActiveBarSlots(this);
+        }
+        public override void Load()
+        {
+            base.Load();
 
-internal sealed class CActiveGemSlot : CGemSlot
-{
-}
+            this.GemActiveBarSlots.Allocate(CConsts.GemActiveBar_SlotCount,
+                delegate(CGemSlot aGemSlot)
+                {
+                    aGemSlot.GemSideEnum = this.GemSideEnum;
+                });
+        }
+        internal CGemSideEnum GemSideEnum;
+        internal CGemActiveBarSlots GemActiveBarSlots; 
 
-internal sealed class CActiveGemsSlots : CGemSlot
-{
+        internal void Update(CFrameInfo aFrameInfo)
+        {
+            this.GemActiveBarSlots.Update(aFrameInfo);
+        }
+    }
 
-    private CActiveGemSlot[] Slots;
-}
+    internal sealed class CGemActiveBars : CServiceLocatorNode
+    {
+        internal CGemActiveBars(CServiceLocatorNode aParent) : base(aParent)
+        {
 
-internal abstract class CTmpActivatorSlot
-{
-}*/
+        }
+        public override void Load()
+        {
+            base.Load();
+
+            var aCount = typeof(CGemSideEnum).GetEnumMaxValue() + 1;
+            var aGemActiveBars = new CGemActiveBar[aCount];
+            for(var i = 0; i < aCount; ++i)
+            {
+                var aGemSideEnum = (CGemSideEnum)i;
+                var aGemActiveBar = new CGemActiveBar(this)
+                {
+                    GemSideEnum = aGemSideEnum
+                };
+                aGemActiveBars[i] = aGemActiveBar;
+            }
+            this.Items = aGemActiveBars;
+            this.Counts = new int[aCount];
+
+            foreach (var aGemActiveBar in this.Items)
+                aGemActiveBar.Load();
+        }
+
+        internal CGemActiveBar[] Items { get; private set; }
+        private int[] Counts;
+
+        public CGemSlot FindFreeSlot()
+        {
+            var minl = default(int?);
+            var mini = default(int?);
+            var c = this.Items.Length;
+            for (var i = 0; i < c; ++i)
+            {
+                var l = this.Items[i].GemActiveBarSlots.GetCount();
+                if (!minl.HasValue
+                || minl.Value > l)
+                {
+                    mini = i;
+                    minl = l;
+                }
+            }
+            if(mini.HasValue)
+            {
+                return this.Items[mini.Value].GemActiveBarSlots.FindFreeSlotNullable();
+            }
+            return default;
+        }
+
+        internal void Update(CFrameInfo aFrameInfo)
+        {
+            var aItems = this.Items;
+            var c = aItems.Length;
+            for (var i = 0; i < c; ++i)
+            {
+                aItems[i].Update(aFrameInfo);
+            }
+        }
+    }
 
     public sealed class CGemSlotModel : CModel
     {
@@ -284,7 +500,7 @@ internal abstract class CTmpActivatorSlot
             this.GemSlotModel = aGemSlotModel;
 
             var aIndex = aGemSlot.Index.Value;
-            var aSide = aGemSlot.GemSlotSideEnum.Value;
+            var aSide = aGemSlot.GemSideEnum.Value;
             var aGemClassEnum = aGemSlot.GemClass.GemClassEnum;
 
             var aMarginX = 0.01;
@@ -350,6 +566,7 @@ internal abstract class CTmpActivatorSlot
             this.HasDistanceToAvatar = false;
             this.RandomGenerator = new CRandomGenerator(this);
             this.RandomGenerator.Begin();
+            this.GemActiveBars = new CGemActiveBars(this);
 
             this.Init();
         }
@@ -360,6 +577,13 @@ internal abstract class CTmpActivatorSlot
             foreach(var aGemSideBar in this.GemSideBars)
             {
                 aGemSideBar.Load();
+            }
+
+            this.GemActiveBars.Load();
+
+            foreach(var aGemActiveBar in this.GemActiveBars.Items)
+            {
+                aGemActiveBar.Load();
             }
 
             this.GemSlots = (from aSideBar in this.GemSideBars
@@ -397,7 +621,7 @@ internal abstract class CTmpActivatorSlot
         #endregion
         internal readonly CRandomGenerator RandomGenerator;
         #region GemSlots
-        internal CGemSlot FindFreeSlotNullable(CGemCategoryEnum aGemClassEnum)
+        internal CGemSlot FindFreeSideBarSlotNullable(CGemCategoryEnum aGemClassEnum)
         {
             var aSideBars = this.RandomGenerator.NextShuffledSequence(this.GemSideBars);
             foreach(var aIdx in Enumerable.Range(0, aSideBars.Length))
@@ -410,6 +634,26 @@ internal abstract class CTmpActivatorSlot
         }
         internal CGemSlot[] GemSlots { get; private set; }
         #endregion
+        #region ActiveSlots
+        internal readonly CGemActiveBars GemActiveBars;
+        internal CGemSlot FindFreeActiveBarSlotNullable()
+            => this.GemActiveBars.FindFreeSlot();
+        #endregion
+        internal override void Update(CFrameInfo aFrameInfo)
+        {
+            base.Update(aFrameInfo);
+
+            { // TODO_OPT
+                var a = this.GemSideBars;
+                var l = a.Length;
+                for(var i = 0; i < l; ++i)
+                {
+                    a[i].Update(aFrameInfo);
+                }
+            }
+            this.GemActiveBars.Update(aFrameInfo); // TODO_OPT
+        }
+
         internal override void Draw()
         {
             base.Draw();
@@ -424,7 +668,15 @@ internal abstract class CTmpActivatorSlot
             this.AddOnAllocate = true;
             this.World.GemCollected += delegate (CGemSprite aGemSprite)
             {
-                var aFreeSlot = this.ControlsSprite.FindFreeSlotNullable(aGemSprite.GemCategoryEnum);
+                var aFreeSlot = this.ControlsSprite.FindFreeSideBarSlotNullable(aGemSprite.GemCategoryEnum);
+                if(aFreeSlot is object)
+                {
+                    aFreeSlot.GemSpriteNullable = aGemSprite;
+                }
+            };
+            this.World.GemActivated += delegate (CGemSprite aGemSprite)
+            {
+                var aFreeSlot = this.ControlsSprite.GemActiveBars.FindFreeSlot();
                 if(aFreeSlot is object)
                 {
                     aFreeSlot.GemSpriteNullable = aGemSprite;
@@ -448,6 +700,10 @@ internal abstract class CTmpActivatorSlot
         }
         internal CGemSlotControlsSprite ControlsSprite;
         #endregion
+        internal override void Update(CFrameInfo aFrameInfo)
+        {
+            base.Update(aFrameInfo);
+        }
     }
 
 

@@ -168,6 +168,8 @@ namespace CharlyBeck.Mvi.World
             this.SolarSystemSpriteManagers = this.Cube.Quadrants.Select(aQ => aQ.ServiceContainer.GetService<CQuadrantSpriteManager>()).ToArray();
             this.GemSpriteManager = new CGemSpriteManager(this);
             this.GemSlotControlsSpriteManager = new CGemSlotControlsSpriteManager(this);
+
+            this.Items = this.ItemsPr.ToArray();
             this.Init();
         }
         #endregion
@@ -212,7 +214,7 @@ namespace CharlyBeck.Mvi.World
         internal readonly CQuadrantSpriteManager[] SolarSystemSpriteManagers;
         #endregion
         #region Composite
-        internal IEnumerable<CSpriteManager> Items
+        private IEnumerable<CSpriteManager> ItemsPr
         {
             get
             {
@@ -226,6 +228,7 @@ namespace CharlyBeck.Mvi.World
                 yield return this.GemSlotControlsSpriteManager;
             }
         }
+        private CSpriteManager[] Items { get; set; }
         internal override IEnumerable<CSprite> BaseSprites
         {
             get
@@ -238,6 +241,19 @@ namespace CharlyBeck.Mvi.World
 
         internal CAvatarSprite AvatarSprite => this.AvatarManager.AvatarSprite;
         #endregion
+
+        internal override void Update(CFrameInfo aFrameInfo)
+        {
+            base.Update(aFrameInfo);
+
+            //var a = this.Items;
+            //var c = a.Length;
+            //for(var i = 0; i < c; ++i)
+            //{
+            //    var aSpriteManager = a[i];
+            //    aSpriteManager.Update(aFrameInfo);
+            //}
+        }
     }
 
     public sealed class CWorld : CServiceLocatorNode
@@ -255,7 +271,7 @@ namespace CharlyBeck.Mvi.World
             this.NearAsteroidSpeedMin = 0.0001;
             this.NearAsteroidSpeedForRadius0 = 0.001;
             this.SphereScaleCount = 25;
-            this.JoystickState = new CJoystick(this);
+            this.Joystick = new CJoystick(this);
             
         }
         public override void Load()
@@ -301,6 +317,7 @@ namespace CharlyBeck.Mvi.World
             aServiceContainer.AddService<CWormholeCubes>(() => this.WorldSpriteManagers.WormholeCubes);
             aServiceContainer.AddService<CNewQuadrantFunc>(() => new CNewQuadrantFunc(this.NewSpaceSwitchQuadrant));
             aServiceContainer.AddService<CCubePersistentData>(() => this.CubePersistentData);
+            aServiceContainer.AddService<CJoystickState>(() => this.Joystick.JoystickState);
             return aServiceContainer;
         }
         #endregion
@@ -323,7 +340,7 @@ namespace CharlyBeck.Mvi.World
         public double AvatarSpeed { get; set; }
         #endregion
         #region Joystick
-        internal readonly CJoystick JoystickState;
+        internal readonly CJoystick Joystick;
         #endregion
         public readonly double EdgeLen;
         internal readonly CVector3Dbl EdgeLenAsPos;
@@ -407,6 +424,14 @@ namespace CharlyBeck.Mvi.World
                 this.GemCollectedSoundStarting(aGemSprite, aAddFollowUp);
             }
         }
+        internal event Action<CGemSprite> GemActivated;
+        internal void OnGemActivated(CGemSprite aGemSprite)
+        {
+            if(this.GemActivated is object)
+            {
+                this.GemActivated(aGemSprite);
+            }
+        }
         #endregion
         internal bool InitFrame = true;
         #region Values
@@ -420,7 +445,7 @@ namespace CharlyBeck.Mvi.World
         {
             this.InitFrame = false;
             this.MoveVectorM = default;
-            this.JoystickState.Update();
+            this.Joystick.Update();
             this.Cube.MoveTo(this.GetCubePos(this.AvatarWorldPos), true);
             this.WorldSpriteManagers.UpdateAvatarPos();
             this.RefreshFrameInfo();

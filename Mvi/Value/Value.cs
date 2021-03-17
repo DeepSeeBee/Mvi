@@ -327,6 +327,7 @@ namespace CharlyBeck.Mvi.Value
         #endregion
 
 
+
     }
 
     public abstract class CValue<T> : CValue

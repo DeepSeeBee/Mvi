@@ -555,7 +555,8 @@ namespace CharlyBeck.Mvi.Sprites
         internal override void Update(CFrameInfo aFrameInfo)
         {
             var a = this.SpriteNullablesArray;
-            for (var i = 0; i < a.Length; ++i)
+            var c = a.Length;
+            for (var i = 0; i < c; ++i)
             {
                 var s = a[i];
                 if(s is object)
@@ -749,7 +750,15 @@ namespace CharlyBeck.Mvi.Sprites
         protected TSprite AllocateSpriteNullable(TClassEnum aClassEnum)
         {
             var aSprite = (TSprite)this.MultiSpritePool.Allocate((int)(object)aClassEnum);
-            return aSprite;
+            if(aSprite is object)
+            {
+                return aSprite;
+            }
+            else
+            {
+                System.Diagnostics.Debug.Print("OutOfMemory: " + typeof(TSprite) + ": " + aClassEnum.ToString());
+                return default;
+            }
         }
         
     }
@@ -776,7 +785,7 @@ namespace CharlyBeck.Mvi.Sprites
             var aSprite = this.SpritePool.Allocate();
             if(!(aSprite is object))
             {
-                Debug.Print("Sprite out of memory: " + typeof(TSprite).Name);
+                Debug.Print("OutOfMemory: " + typeof(TSprite).Name);
             }
             return aSprite;
         }

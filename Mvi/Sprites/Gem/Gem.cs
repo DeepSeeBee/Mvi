@@ -291,12 +291,6 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         internal readonly CGemCategoryEnum GemCategoryEnum;
         internal void Collect()
         {
-            if (this.ModifyTargetValueIsEnabled)
-            {
-                //throw new NotImplementedException();
-                //this.TargetValue.Add(this.SourceValue);
-            }
-
             this.World.OnGemCollected(this);
             if(this.IsReferenced)
             {
@@ -308,6 +302,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
                 this.DeallocateIsQueued = true;
             }
         }
+        internal TimeSpan? RemainingActiveTime;
+
         protected override void OnCollide(CSprite aCollideWith, double aDistance)
         {
             base.OnCollide(aCollideWith, aDistance);
@@ -331,12 +327,42 @@ namespace CharlyBeck.Mvi.Sprites.Gem
             base.Update(aFrameInfo);
 
             this.WorldMatrix = this.NewWorldMatrix();
+            if(this.RemainingActiveTime.HasValue)
+            {
+                var aRemainingActiveTime = this.RemainingActiveTime.Value.Subtract(aFrameInfo.GameTimeElapsed);
+                this.RemainingActiveTime = aRemainingActiveTime.TotalMilliseconds > 0
+                                        ?  aRemainingActiveTime
+                                        :  default(TimeSpan?)
+                                        ;
+            }
 
-            this.Reposition();
+            if(this.IsHiddenInWorld.Value
+            && !this.IsReferenced)
+            {
+                this.DeallocateIsQueued = true;
+            }
+            else
+            {
+                this.Reposition();
+            }
         }
+
+        internal void Activate()
+        {
+            this.World.OnGemActivated(this);
+
+            this.RemainingActiveTime = new TimeSpan(0, 0, 5); // TODO_PARAMETERS
+
+            if (!this.IsReferenced)
+            {
+                this.DeallocateIsQueued = true;
+            }
+        }
+
         internal CGemSlot GemSlotNullable;
         internal bool IsReferenced => this.GemSlotNullable is object;
         internal CGemCategory GemCategory { get; private set; }
+        internal bool GemIsActive => this.RemainingActiveTime.HasValue;
     }
 
     internal sealed class CGemSpriteManager : CMultiPoolSpriteManager<CGemSprite, CGemEnum>

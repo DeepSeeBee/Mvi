@@ -8,6 +8,8 @@ namespace CharlyBeck.Utils3.Enumerables
 {
     public static class Enumerables
     {
+        public static int? FirstOrNull(this IEnumerable<int> aItems)
+            => aItems.IsEmpty() ? default(int?) : aItems.First();
 
         public static IEnumerable<int> Range(this int i)
             => Enumerable.Range(0, i);

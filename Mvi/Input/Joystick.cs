@@ -68,7 +68,7 @@ namespace CharlyBeck.Mvi.Input
             this.JoystickState = new CJoystickState();
         }
         private readonly IJoystick Jostick;
-        private readonly CJoystickState JoystickState;
+        internal readonly CJoystickState JoystickState;
         public void Update()
         {
             this.Jostick.Update(this.JoystickState);

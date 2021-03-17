@@ -49,6 +49,14 @@ Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Airy_Synth_Spaceship
 Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Overdrive_Distorted_Saturated_1
 Audio\Flyby\PM_DSSP_Passby_Designed_Whoosh_Futuristic_Scifi_Overdrive_Distorted_Saturated_27
 Audio\Flyby\PM_FN_Whooshes_2
+Audio\GemActivate\PM_LFT_1 UI, HUD, Short, Terminal, Beep, Lofi, Reto, Scifi, Menu, Action, Cl
+Audio\GemActivate\PM_LFT_130 UI, HUD, Short, Terminal, Beep, Lofi, Reto, Scifi, Menu, Action,
+Audio\GemActivate\PM_LFT_162 UI, HUD, Long, Terminal, Beep, Lofi, Reto, Scifi, Menu, Action, C
+Audio\GemActivate\PM_LFT_195 UI, HUD, Long, Terminal, Beep, Lofi, Reto, Scifi, Menu, Action, C
+Audio\GemActivate\PM_LFT_27 UI, HUD, Short, Terminal, Beep, Lofi, Reto, Scifi, Menu, Action, C
+Audio\GemActivate\PM_LFT_49 UI, HUD, Short, Terminal, Beep, Lofi, Reto, Scifi, Menu, Action, C
+Audio\GemActivate\PM_LFT_71 UI, HUD, Short, Terminal, Beep, Lofi, Reto, Scifi, Menu, Action, C
+Audio\GemActivate\PM_LFT_98 UI, HUD, Short, Terminal, Beep, Lofi, Reto, Scifi, Menu, Action, C
 Audio\GemCollected\PM_CSPH_Alarms_2_Cb
 Audio\GemCollected\PM_CSPH_Beeps_67
 Audio\GemCollected\PM_CSPH_Beeps_83
