@@ -1,0 +1,32 @@
+﻿- gems collected in order: first offense category gems need to be full to collect defense gems, finally navi gems.
+- Secondary weapon can be fired using right mouse button
+- Missile-Explosion appears and destroys orbs 
+- Selecting secondary weapon using mouse wheel
+- InventorStatus shows number of Missiles etc.
+- collision with matter while shield active destroys orbs and decrements shield.
+- collision with matter while shield down damages shell.
+- Chaos slider to increase orb radius 
+- Chaos slider to increase orbit plane slope.
+- player dies when shell is at 0%. 
+- Commenting GamePlay "You die."
+- Life Counter
+- Commenting GamePlay "Game over."
+- Commenting gameplay "Dont attack orbit centers before destroying trabants"
+- "kamikaze-orbs" attack player when orbit center is destroyed (player needs to first destroy moons, planets and finally sun)
+- In arcade mode speed is regulated automatically.
+- Game goes faster in relation to collected ?and/or? activated gems. (arcade mode)
+- Adjust gravity to values that make sense...
+- Movement Physics and inertia
+- guided missiles targets kamikaze orbs priorized to nearest target.
+- guided missiles target nearest target.
+- Viewport bug
+- Joystick support
+- Commenting gameplay when hitting several orbs with one shot
+- Points counter
+- Inventory status of shield 
+- Inventory status of shield 
+- Landing on planets now possible using thermal shield.
+- Warping through wormholes now possible using kruscal detector.
+- "New world" soundtrack played after finishing level.
+- Scheduler for update(FrameInfo). Improved performance
+

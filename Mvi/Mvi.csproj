@@ -150,7 +150,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Bugs.txt" />
+    <Content Include="Todo.txt" />
     <EmbeddedResource Include="Content\Content.txt" />
+    <Content Include="History.txt" />
     <Content Include="Models\COctaeder.png" />
   </ItemGroup>
   <ItemGroup />

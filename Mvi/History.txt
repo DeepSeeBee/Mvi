@@ -1,0 +1,3 @@
+20200318: Activated Gems affect Ship Values, effects of certain gems disappear after 90 seconds.
+20200317: Gems can be activated
+20200316: Collected gems appear in the gem side bars. 
