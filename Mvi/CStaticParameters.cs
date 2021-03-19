@@ -54,7 +54,12 @@ namespace CharlyBeck.Mvi
         public const bool Sound_Loading_Enabled = true;
 
         public const int ExplosionCountMax = 10; // TODO-Not deterministic.
-        public const int Shot_Count_Max = 20;
+        public const int Shot_Canon_Count_Max = 20;
+        public const int Shot_GuidedMissile_Count_Max = 5;
+        public const int Shot_NuclearMissile_Count_Max = 3;
+        public const int Shot_Drill_Count_Max = 3;
+        public const int Shot_KruscalScanner_Count_Max = 3;
+
         public const int Gem_Class_InstanceCount = 10;
 
         public const double Gem_ShellRepair_ModifierValue = 0.1d;

@@ -731,10 +731,32 @@ namespace CharlyBeck.Mvi.Mono.GameCore
             || this.Mouse.IsLeftButtonDown
             || aMouseState.LeftButton == ButtonState.Pressed)
             {
-                this.World.Shoot();
+                this.World.Shoot(CShotEnum.Canon);
+            }
+            
+            if(aKeyboardState.IsKeyDown(Keys.Space)
+            || this.Mouse.IsRightButtonDown
+            || aMouseState.RightButton == ButtonState.Pressed)
+            {
+                this.World.Shoot(CShotEnum.GuidedMissile);
             }
 
-            if(aKeyboardState.IsKeyDown(Keys.L))
+            if (aKeyboardState.IsKeyDown(Keys.D1))
+            {
+                this.World.Shoot(CShotEnum.NuclearMissile);
+            }
+
+            if (aKeyboardState.IsKeyDown(Keys.D2))
+            {
+                this.World.Shoot(CShotEnum.Drill);
+            }
+
+            if (aKeyboardState.IsKeyDown(Keys.D3))
+            {
+                this.World.Shoot(CShotEnum.KruscalScanner);
+            }
+
+            if (aKeyboardState.IsKeyDown(Keys.L))
             {
                 if(!this.DidL)
                 {

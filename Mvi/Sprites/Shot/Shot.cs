@@ -15,7 +15,6 @@ namespace CharlyBeck.Mvi.Sprites.Shot
     using CharlyBeck.Mvi.Extensions;
     using CharlyBeck.Mvi.Sprites.Avatar;
     using CharlyBeck.Mvi.XnaExtensions;
-    using Microsoft.Xna.Framework;
 
     public sealed class CShotModel : CModel
     {
@@ -27,8 +26,17 @@ namespace CharlyBeck.Mvi.Sprites.Shot
         }
     }
 
+    public enum CShotEnum
+    {
+        Canon,
+        GuidedMissile,
+        NuclearMissile,
+        Drill,
+        KruscalScanner
+    }
 
-    public sealed class CShotSprite
+
+    public abstract class CShotSprite
     :
         CSprite
     {
@@ -36,8 +44,6 @@ namespace CharlyBeck.Mvi.Sprites.Shot
         {
             this.CollisionSourceEnum = CCollisionSourceEnum.Shot;
             this.PlattformSpriteEnum = CPlatformSpriteEnum.Shot;
-
-
             this.Init();
         }
         protected override void OnBeginUse()
@@ -56,7 +62,7 @@ namespace CharlyBeck.Mvi.Sprites.Shot
         internal CVector3Dbl? MoveVector;
         internal double? Speed;
         internal bool DellocateIsQueued;
-
+        public CVector3Dbl? Color { get; internal set; }
 
         internal override void Update(CFrameInfo aFrameInfo)
         {
@@ -83,8 +89,43 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             ;
     }
 
+    internal sealed class CCanonShotSprite : CShotSprite
+    {
+        internal CCanonShotSprite(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.Color = CColors.Shot_Canon;
+        }
+    }
+    internal sealed class CGuidedMissileShotSprite : CShotSprite
+    {
+        internal CGuidedMissileShotSprite(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.Color = CColors.Shot_GuidedMissile;
+        }
+    }
+    internal sealed class CNuclearMissileShotSprite : CShotSprite
+    {
+        internal CNuclearMissileShotSprite(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.Color = CColors.Shot_NuclearMissile;
+        }
+    }
+    internal sealed class CDrillShotSprite : CShotSprite
+    {
+        internal CDrillShotSprite(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.Color = CColors.Shot_Drill;
+        }
+    }   
+    internal sealed class CKruscalScannerShotSprite : CShotSprite
+    {
+        internal CKruscalScannerShotSprite(CServiceLocatorNode aParent) : base(aParent)
+        {
+            this.Color = CColors.Shot_KruskalScanner;
+        }
+    }
 
-    internal sealed class CShotManager : CSinglePoolSpriteManager<CShotSprite>
+    internal sealed class CShotManager : CMultiPoolSpriteManager<CShotSprite, CShotEnum>
     {
         internal CShotManager(CServiceLocatorNode aParent) : base(aParent)
         {
@@ -96,11 +137,25 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             base.Init();
 
             var aLock = true;
-            this.Reserve(CStaticParameters.Shot_Count_Max, aLock);
+            this.Reserve(CShotEnum.Canon, CStaticParameters.Shot_Canon_Count_Max, aLock);
+            this.Reserve(CShotEnum.GuidedMissile, CStaticParameters.Shot_Canon_Count_Max, aLock);
+            this.Reserve(CShotEnum.NuclearMissile, CStaticParameters.Shot_Canon_Count_Max, aLock);
+            this.Reserve(CShotEnum.Drill, CStaticParameters.Shot_Canon_Count_Max, aLock);
+            this.Reserve(CShotEnum.KruscalScanner, CStaticParameters.Shot_Canon_Count_Max, aLock);
         }
-        protected override CShotSprite NewSprite()
-            => new CShotSprite(this);
-
+        internal override CNewFunc GetNewFunc(CShotEnum aClassEnum)
+        {
+            switch(aClassEnum)
+            {
+                case CShotEnum.Canon: return new CNewFunc(() => new CCanonShotSprite(this));
+                case CShotEnum.Drill: return new CNewFunc(() => new CDrillShotSprite(this));
+                case CShotEnum.GuidedMissile: return new CNewFunc(() => new CGuidedMissileShotSprite(this));
+                case CShotEnum.KruscalScanner: return new CNewFunc(() => new CKruscalScannerShotSprite(this));
+                case CShotEnum.NuclearMissile: return new CNewFunc(() => new CNuclearMissileShotSprite(this));
+                default:
+                    throw new ArgumentException();
+            }
+        }
         internal event Action ShotFired;
         private void OnShotFired()
         {
@@ -136,33 +191,50 @@ namespace CharlyBeck.Mvi.Sprites.Shot
             return aShot;
         }
 
-        internal void Shoot()
+        internal void Shoot(CShotEnum aShotEnum)
         {
             if(this.FireRateChoke())
             {
-                var aShot = this.AllocateSpriteNullable();
-                if (aShot is object)
+                var aValues = this.AvatarSprite.AvatarValues;
+                var aRemainingShotsValueNullable = aValues.GetValueNullable(aShotEnum);
+                var aCanShoot = aRemainingShotsValueNullable is object
+                              ? aRemainingShotsValueNullable.Value > 0
+                              : true
+                              ;
+                if (aCanShoot)
                 {
-                    var aAvatarPos = this.World.AvatarWorldPos;
-                    var aAvatarSpeed = this.World.AvatarSpeed;
-                    var aAvatarShootDirection = this.World.AvatarShootDirection;
-                    var aShotPosition = aAvatarPos;
-                    var aShotSpeed1 = CStaticParameters.Shot_SpeedRange.GetInRangeDouble(this.AvatarSprite.AvatarValues.AmmoSpeedValue.Value);
-                    var aShotSpeed = aShotSpeed1 + aAvatarSpeed;
-                    var aShotMoveVector = aAvatarShootDirection;
-                    var aRadius = CStaticParameters.Shot_RadiusRange.GetInRangeDouble(this.AvatarSprite.AvatarValues.AmmoThicknessValue.Value);
-                    var aTimeToLive = CStaticParameters.Shot_TimeToLive.GetInRangeTimespan(this.AvatarSprite.AvatarValues.AmmoEnergyValue.Value);
-                    aShot.WorldPos = aShotPosition;
-                    aShot.MoveVector = aShotMoveVector;
-                    aShot.Speed = aShotSpeed;
-                    aShot.Radius = aRadius;
-                    aShot.Scale = aRadius;
-                    aShot.TimeToLive = aTimeToLive;
-                    this.OnShotFired();
+                    var aShot = this.AllocateSpriteNullable(aShotEnum);
+                    if (aShot is object)
+                    {
+                        var aAvatarPos = this.World.AvatarWorldPos;
+                        var aAvatarSpeed = this.World.AvatarSpeed;
+                        var aAvatarShootDirection = this.World.AvatarShootDirection;
+                        var aShotPosition = aAvatarPos;
+                        var aShotSpeed1 = CStaticParameters.Shot_SpeedRange.GetInRangeDouble(this.AvatarSprite.AvatarValues.AmmoSpeedValue.Value);
+                        var aShotSpeed = aShotSpeed1 + aAvatarSpeed;
+                        var aShotMoveVector = aAvatarShootDirection;
+                        var aRadius = CStaticParameters.Shot_RadiusRange.GetInRangeDouble(this.AvatarSprite.AvatarValues.AmmoThicknessValue.Value);
+                        var aTimeToLive = CStaticParameters.Shot_TimeToLive.GetInRangeTimespan(this.AvatarSprite.AvatarValues.AmmoEnergyValue.Value);
+                        aShot.WorldPos = aShotPosition;
+                        aShot.MoveVector = aShotMoveVector;
+                        aShot.Speed = aShotSpeed;
+                        aShot.Radius = aRadius;
+                        aShot.Scale = aRadius;
+                        aShot.TimeToLive = aTimeToLive;
+                        if(aRemainingShotsValueNullable is object)
+                        {
+                            aRemainingShotsValueNullable.Value -= 1;
+                        }
+                        this.OnShotFired();
+                    }
+                    else
+                    {
+                        // TODO-Fehlzündungssound
+                    }
                 }
                 else
                 {
-                    // TODO-Fehlzündungssound
+                    // TODO-OutOfAmmoSound
                 }
             }
         }

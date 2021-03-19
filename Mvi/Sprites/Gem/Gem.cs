@@ -232,7 +232,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         internal CDefenseGemClass(CServiceLocatorNode aParent):base(aParent, CGemCategoryEnum.Defense)
         {
             this.GemClassEnum = CGemCategoryEnum.Defense;
-            this.Color = CColors.Green;
+            this.Color = CColors.C_Green;
         }
     }
 
@@ -241,7 +241,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         internal CNavigationGemClass(CServiceLocatorNode aParent):base(aParent, CGemCategoryEnum.Navigation)
         {
             this.GemClassEnum = CGemCategoryEnum.Navigation;
-            this.Color = CColors.Blue;
+            this.Color = CColors.C_Blue;
         }
     }
 
@@ -250,7 +250,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         internal COffenseGemClass(CServiceLocatorNode aParent):base(aParent, CGemCategoryEnum.Offense)
         {
             this.GemClassEnum = CGemCategoryEnum.Offense;
-            this.Color = CColors.Red;
+            this.Color = CColors.C_Red;
         }
     }
 

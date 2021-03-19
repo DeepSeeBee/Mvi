@@ -18,14 +18,29 @@ using System.Threading.Tasks;
 
 namespace Mvi.Models
 {
-    internal static class CColors
+    public static class CColors
     {
-        internal static readonly CVector3Dbl White = new CVector3Dbl(1, 1, 1);
-        internal static readonly CVector3Dbl Black = new CVector3Dbl(0, 0, 0);
-        internal static readonly CVector3Dbl Red = new CVector3Dbl(1, 0, 0);
-        internal static readonly CVector3Dbl Green = new CVector3Dbl(0, 1, 0);
-        internal static readonly CVector3Dbl Blue = new CVector3Dbl(0, 0, 1);
-        internal static readonly CVector3Dbl Yellow = new CVector3Dbl(1, 1, 0);
+        internal static readonly CVector3Dbl C_White = new CVector3Dbl(1, 1, 1);
+        internal static readonly CVector3Dbl C_Black = new CVector3Dbl(0, 0, 0);
+        internal static readonly CVector3Dbl C_Red = new CVector3Dbl(1, 0, 0);
+        internal static readonly CVector3Dbl C_Green = new CVector3Dbl(0, 1, 0);
+        internal static readonly CVector3Dbl C_Blue = new CVector3Dbl(0, 0, 1);
+        internal static readonly CVector3Dbl C_Yellow = new CVector3Dbl(1, 1, 0);
+        internal static readonly CVector3Dbl C_Orange = new CVector3Dbl(1d, 0.5d, 0.25d);
+        internal static readonly CVector3Dbl C_LightBlue = new CVector3Dbl(0.25d, 1d, 1d);
+        internal static readonly CVector3Dbl C_Purple = new CVector3Dbl(1d, 0.25d, 1d);
+        internal static readonly CVector3Dbl C_DarkGrey = new CVector3Dbl(0.4d, 0.4d, 0.4d);
+        internal static readonly CVector3Dbl C_DarkestGrey = new CVector3Dbl(0.1d, 0.1d, 0.1d);
+        
+        public static CVector3Dbl Shot_Canon => C_Yellow;
+        public static CVector3Dbl Shot_GuidedMissile => C_Orange;
+        public static CVector3Dbl Shot_NuclearMissile => C_Red;
+        public static CVector3Dbl Shot_Drill => C_LightBlue;
+        public static CVector3Dbl Shot_KruskalScanner => C_Purple;
+
+        public static CVector3Dbl QuadrantGridGray => C_DarkestGrey;
+        public static CVector3Dbl OrbitGray => C_DarkGrey;
+        public static CVector3Dbl Crosshair => C_White;
     }
 
 

@@ -17,7 +17,7 @@ namespace CharlyBeck.Mvi.Mono.Sprites.Crosshair
         internal CMonoCrosshairModel(CServiceLocatorNode aParent) : base(aParent)
         {
             this.CrosshairModel = this.Models.CrosshairModel;
-            this.LineListVertexBuffer = this.CrosshairModel.LineList.ToVector3s().ToVertexPositionColor(CColors.Crosshair).ToVertexBuffer(this.GraphicsDevice);
+            this.LineListVertexBuffer = this.CrosshairModel.LineList.ToVector3s().ToVertexPositionColor(CMonoColors.Crosshair).ToVertexBuffer(this.GraphicsDevice);
         }
 
         internal readonly CCrosshairModel CrosshairModel;

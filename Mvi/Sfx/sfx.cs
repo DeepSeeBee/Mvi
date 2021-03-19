@@ -757,11 +757,18 @@ namespace CharlyBeck.Mvi.Sfx
 
             this.World.GemActivated += delegate (CInventoryGemSprite aGemSprite)
             {
-                var aGemEnum = aGemSprite.GemEnum;
-                var aSoundFile = this.GetSoundFile(aGemEnum);
-                if(aSoundFile is object)
+                if (!aGemSprite.ActivateOnCollect)
                 {
-                    this.SoundSequence.Add(aSoundFile);
+                    var aGemEnum = aGemSprite.GemEnum;
+                    var aSoundFile = this.GetSoundFile(aGemEnum);
+                    if (aSoundFile is object)
+                    {
+                        this.SoundSequence.Add(aSoundFile);
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.Assert(true);
                 }
             };
 

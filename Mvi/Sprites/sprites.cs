@@ -368,6 +368,7 @@ namespace CharlyBeck.Mvi.Sprites
             foreach (var aCollideWith in aSprites)
             {
                 if (aCollideWith.IsInUse
+                && !this.DeallocateIsQueued
                 )
                 {
                     var aOtherPos = aCollideWith.WorldPos.Value;

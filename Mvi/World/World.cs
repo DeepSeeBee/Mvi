@@ -182,8 +182,8 @@ namespace CharlyBeck.Mvi.World
         #endregion
         #region ShotSprites
         internal readonly CShotManager ShotManager;
-        internal void Shoot()
-            => this.ShotManager.Shoot();
+        internal void Shoot(CShotEnum aShotEnum)
+            => this.ShotManager.Shoot(aShotEnum);
         #endregion
         #region Crosshair
         private readonly CCrosshairManager CrosshairManager;
@@ -304,8 +304,8 @@ namespace CharlyBeck.Mvi.World
         }
         #endregion
         #region Shot
-        public void Shoot()
-            => this.WorldSpriteManagers.Shoot();
+        public void Shoot(CShotEnum aShotEnum)
+            => this.WorldSpriteManagers.Shoot(aShotEnum);
         #endregion
         #region SpaceSwitchQuadrantObjectPool
         private CObjectPool<CSpaceSwitchQuadrant> SpaceSwitchQuadrantObjectPool;

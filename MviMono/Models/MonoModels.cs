@@ -22,16 +22,16 @@ using System.Text;
 using System.Threading.Tasks;
 using CharlyBeck.Mvi.Extensions;
 using CharlyBeck.Utils3.Faktor01;
+using CharlyBeck.Mvi.XnaExtensions;
 
 namespace MviMono.Models
 {
  
-    internal sealed class CColors
+    internal sealed class CMonoColors
     {
-        internal static readonly Color QuadrantGridGray = new Color(0.1f, 0.1f, 0.1f, 1f);
-        internal static readonly Color OrbitGray = new Color(0.4f, 0.4f, 0.4f, 1f);
-        internal static readonly Color Shot = new Color(1f, 0f, 0f, 1f);
-        internal static readonly Color Crosshair = new Color(1f, 1f, 1f, 1f);
+        internal static readonly Color QuadrantGridGray = CColors.QuadrantGridGray.ToVector3().ToColor();
+        internal static readonly Color OrbitGray = CColors.OrbitGray.ToColor();
+        internal static readonly Color Crosshair = CColors.Crosshair.ToColor();
     }
     internal sealed class CMonoModels : CServiceLocatorNode
     {

@@ -16,12 +16,25 @@ namespace CharlyBeck.Mvi.Mono.Sprites.Shot
     {
         internal CMonoShotModel(CServiceLocatorNode aParent) : base(aParent)
         {
-            this.TriangleStripsVertexBuffer = this.Models.ShotModel.Sphere.TriangleStrips.ToVector3s().ToVertexPositionColor(CColors.Shot).ToVertexBuffer(this.GraphicsDevice);
+            this.TriangleStripsVertexBuffer = this.Models.ShotModel.Sphere.TriangleStrips.ToVector3s().ToVertexPositionColor(Color.White).ToVertexBuffer(this.GraphicsDevice);
+            this.BlendState = new BlendState
+            {
+                ColorSourceBlend = Blend.BlendFactor
+            };
+
         }
         private readonly VertexBuffer TriangleStripsVertexBuffer;
-        internal void Draw()
+        private readonly BlendState BlendState;
+        internal void Draw(CMonoShotSprite aMonoShotSprite)
         {
-            this.TriangleStripsVertexBuffer.DrawTriangleStrip(this.GraphicsDevice); 
+            var aGraphicsDevice = this.GraphicsDevice;
+            var aOldBlendState = aGraphicsDevice.BlendState;
+            var aOldBlendFactor = aGraphicsDevice.BlendFactor;
+            aGraphicsDevice.BlendState = this.BlendState;
+            aGraphicsDevice.BlendFactor = aMonoShotSprite.Sprite.Color.Value.ToVector3().ToColor();
+            this.TriangleStripsVertexBuffer.DrawTriangleStrip(this.GraphicsDevice);
+            aGraphicsDevice.BlendState = aOldBlendState;
+            aGraphicsDevice.BlendFactor = aOldBlendFactor;
         }
     }
 
@@ -41,7 +54,7 @@ namespace CharlyBeck.Mvi.Mono.Sprites.Shot
             foreach(var aPass in this.BasicEffect.CurrentTechnique.Passes)
             {
                 aPass.Apply();
-                this.MonoModel.Draw();
+                this.MonoModel.Draw(this);
             }
         }
     }

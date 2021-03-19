@@ -58,7 +58,7 @@ namespace MviMono.Sprites.Asteroid
             this.SphereTriangleListVertexBuffers = (from aSphere in aAsteroidModel.Spheres 
                                                     select aSphere.TriangleStrips.ToVector3s().ToVertexPositionColor(Color.White)
                                                     .ToVertexBuffer(aGraphicsDevice)).ToArray();
-            this.CircleVertexBuffers = new CCircleVertexBuffers(aGraphicsDevice, aAsteroidModel.Circles, CColors.OrbitGray);
+            this.CircleVertexBuffers = new CCircleVertexBuffers(aGraphicsDevice, aAsteroidModel.Circles, CMonoColors.OrbitGray);
             
             
             this.MviAsteroidModel = aAsteroidModel;

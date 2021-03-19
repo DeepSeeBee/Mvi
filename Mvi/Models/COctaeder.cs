@@ -24,12 +24,12 @@ namespace CharlyBeck.Mvi.Models
             P4 = new CVector3Dbl(Xl, Yc, Zb);
             P5 = new CVector3Dbl(Xc, Yt, Zc);
             Ps= new CVector3Dbl[] { P0, P1, P2, P3, P4, P5 };
-            P0C = CColors.Red;
-            P1C = CColors.Blue;
-            P2C = CColors.Yellow;
-            P3C = CColors.Blue;
-            P4C = CColors.Yellow;
-            P5C = CColors.Green;
+            P0C = CColors.C_Red;
+            P1C = CColors.C_Blue;
+            P2C = CColors.C_Yellow;
+            P3C = CColors.C_Blue;
+            P4C = CColors.C_Yellow;
+            P5C = CColors.C_Green;
             Colors = new CColor[] { P0C, P1C, P2C, P3C, P4C, P5C };
             Tis = new int[] { 0, 1, 2,
                                       0,2,3,

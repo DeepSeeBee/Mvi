@@ -82,5 +82,6 @@ namespace CharlyBeck.Mvi.Mono.Input.Mouse
 
         public bool IsLeftButtonDown => System.Windows.Input.Mouse.LeftButton == System.Windows.Input.MouseButtonState.Pressed;
 
+        public bool IsRightButtonDown => System.Windows.Input.Mouse.RightButton == System.Windows.Input.MouseButtonState.Pressed;
     }
 }

@@ -1,5 +1,6 @@
 ﻿- InventorStatus shows number of Missiles etc.
-- Secondary weapon can be fired using right mouse button
+- RandomGenerotor lets collect also items of allready filled categories
+
 - Missile-Explosion appears and destroys orbs 
 - Selecting secondary weapon using mouse wheel
 - collision with matter while shield active destroys orbs and decrements shield.

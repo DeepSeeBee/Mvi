@@ -155,6 +155,9 @@ namespace CharlyBeck.Mvi.XnaExtensions
 
     public static class CExtensions
     {
+        public static Color ToColor(this Vector3 v)
+            => new Color(v);
+
         public static IEnumerable<VertexPositionColor> ToVertexPositionColor(this IEnumerable<Vector3> aVector3s, Color aColor)
             => from aVector3 in aVector3s select new VertexPositionColor(aVector3, aColor);
         public static Vector3 ToVector3(this CVector3Dbl aVector)

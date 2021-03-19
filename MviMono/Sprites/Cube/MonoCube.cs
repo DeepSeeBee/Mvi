@@ -20,7 +20,7 @@ namespace CharlyBeck.Mvi.Mono.Sprites.Cube
         internal CMonoCubeModel(CServiceLocatorNode aParent) :base(aParent)
         {
             this.CubeModel = this.Models.GridLinesModel;
-            this.LineListVertexBuffer = this.CubeModel.LineList.ToVector3s().ToVertexPositionColor(CColors.QuadrantGridGray).ToVertexBuffer(this.GraphicsDevice);
+            this.LineListVertexBuffer = this.CubeModel.LineList.ToVector3s().ToVertexPositionColor(CMonoColors.QuadrantGridGray).ToVertexBuffer(this.GraphicsDevice);
         }
 
         internal readonly CGridLinesModel CubeModel;

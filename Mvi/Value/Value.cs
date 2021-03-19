@@ -16,6 +16,7 @@ using CharlyBeck.Utils3.Strings;
 using CharlyBeck.Utils3.DateTimes;
 using CharlyBeck.Utils3.Reflection;
 using CharlyBeck.Mvi.Texts;
+using CharlyBeck.Mvi.Sprites.Shot;
 
 namespace CharlyBeck.Mvi.Value
 {
@@ -82,18 +83,22 @@ namespace CharlyBeck.Mvi.Value
 
         [CSecondaryWeaponValue(true)]
         [CValueAbbreviationAttribute(CTextConstants.Value_Avatar_DrillCount_Abbreviation)]
+        [CValueShotEnum(CShotEnum.Drill)]
         Object_Avatar_DrillCount,
         
         [CSecondaryWeaponValue(true)]
         [CValueAbbreviationAttribute(CTextConstants.Value_Avatar_GuidedMissileCount_Abbreviation)]
+        [CValueShotEnum(CShotEnum.GuidedMissile)]
         Object_Avatar_GuidedMissileCount,
         
         [CSecondaryWeaponValue(true)]
         [CValueAbbreviationAttribute(CTextConstants.Value_Avatar_KruskalScannerCount_Abbreviation)]
+        [CValueShotEnum(CShotEnum.KruscalScanner)]
         Object_Avatar_KruskalScannerCount,
  
         [CSecondaryWeaponValue(true)]
         [CValueAbbreviationAttribute(CTextConstants.Value_Avatar_NuclearMissileCount_Abbreviation)]
+        [CValueShotEnum(CShotEnum.NuclearMissile)]
         Object_Avatar_NuclearMissileCount,
 
         Object_Avatar_Shell,
@@ -103,8 +108,15 @@ namespace CharlyBeck.Mvi.Value
         Object_Avatar_ThermalShield,
     }
 
-
-    public sealed class CValueAbbreviationAttribute: Attribute
+    internal sealed class CValueShotEnumAttribute : Attribute
+    {
+        internal CValueShotEnumAttribute(CShotEnum aShotEnum)
+        {
+            this.ShotEnum = aShotEnum;
+        }
+        internal readonly CShotEnum ShotEnum;
+    }
+    internal sealed class CValueAbbreviationAttribute: Attribute
     {
         internal CValueAbbreviationAttribute(string aAbbreviation)
         {
@@ -112,7 +124,7 @@ namespace CharlyBeck.Mvi.Value
         }
         internal readonly string Abbreviation;
     }
-    public sealed class CSecondaryWeaponValueAttribute : Attribute
+    internal sealed class CSecondaryWeaponValueAttribute : Attribute
     {
         public CSecondaryWeaponValueAttribute(bool aIsSecondaryWeaponValue)
         {
@@ -159,6 +171,10 @@ namespace CharlyBeck.Mvi.Value
             this.Abbreviation = this.ValueEnum.GetCustomAttributeIsDefined<CValueAbbreviationAttribute>()
                               ? this.ValueEnum.GetCustomAttribute<CValueAbbreviationAttribute>().Abbreviation
                               : string.Empty;
+            this.ShotEnum = this.ValueEnum.GetCustomAttributeIsDefined<CValueShotEnumAttribute>()
+                          ? this.ValueEnum.GetCustomAttribute<CValueShotEnumAttribute>().ShotEnum
+                          : default(CShotEnum?)
+                          ;
         }
 
         internal CValueEnum ValueEnum;
@@ -170,6 +186,7 @@ namespace CharlyBeck.Mvi.Value
         internal abstract CValueTypeEnum ValueTypeEnum { get; }
         public CGuiEnum GuiEnum { get; private set; }
         internal string Abbreviation { get; set; }
+        internal readonly CShotEnum? ShotEnum;
 
         internal abstract CValue NewValue(CServiceLocatorNode aParent);
     }
@@ -532,7 +549,6 @@ namespace CharlyBeck.Mvi.Value
         #region ctor
         public CValues(CServiceLocatorNode aParent) : base(aParent)
         {
-
         }
         #endregion
         #region Values
@@ -612,7 +628,14 @@ namespace CharlyBeck.Mvi.Value
 
         }
         #endregion
-
+        #region ValueByShotEnum
+        private CInt64Value[] ValueByShotEnumM;
+        private CInt64Value[] ValueByShotEnum => CLazyLoad.Get(ref this.ValueByShotEnumM, this.NewValueByShotEnum);
+        private CInt64Value[] NewValueByShotEnum()
+            => typeof(CShotEnum).GetEnumValues().Cast<CShotEnum>().Select(se => this.OfType<CInt64Value>().Where(v => v.ValueDeclaration.ShotEnum == se).SingleOrDefault()).ToArray();
+        internal CInt64Value GetValueNullable(CShotEnum aShotEnum)
+            => this.ValueByShotEnum[(int)aShotEnum];
+        #endregion
     }
 
     internal abstract class CValueObject : CValues
