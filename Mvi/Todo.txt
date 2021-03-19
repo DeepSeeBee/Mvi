@@ -1,13 +1,12 @@
-﻿
+﻿- InventorStatus shows number of Missiles etc.
 - Secondary weapon can be fired using right mouse button
 - Missile-Explosion appears and destroys orbs 
 - Selecting secondary weapon using mouse wheel
-- InventorStatus shows number of Missiles etc.
 - collision with matter while shield active destroys orbs and decrements shield.
 - collision with matter while shield down damages shell.
 - Chaos slider to increase orb radius 
 - Chaos slider to increase orbit plane slope.
-- laser temperature is displayed, no shoots appear when overheat 
+- laser temperature is displayed, no shoots appear when overheat	
 - player dies when shell is at 0%. 
 - Commenting GamePlay "You die."
 - Life Counter

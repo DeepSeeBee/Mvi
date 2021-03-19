@@ -49,7 +49,8 @@ namespace CharlyBeck.Mvi.Facade
         Crosshair,
         Explosion,
         Gem,
-        GemSlotControls
+        GemSlotControls,
+        Value,
     }
     public delegate CPlatformSprite CNewPlatformSpriteFunc(Tuple<CServiceLocatorNode, CSprite> aParentAndSprite);
 

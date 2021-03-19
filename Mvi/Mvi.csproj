@@ -105,8 +105,9 @@
     <Compile Include="Sprites\Quadrant\Quadrant.cs" />
     <Compile Include="Cube\Cube.cs" />
     <Compile Include="Extensions\ext.cs" />
-    <Compile Include="Extensions\Faktor01.cs" />
     <Compile Include="Facade\CFacade.cs" />
+    <Compile Include="Sprites\Value\ValueSprite.cs" />
+    <Compile Include="Texts\Texts.cs" />
     <Compile Include="Value\Value.cs" />
     <Compile Include="Internal\Internal.cs" />
     <Compile Include="Models\CCircles.cs" />

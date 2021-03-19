@@ -17,6 +17,7 @@ using CharlyBeck.Mvi.Sprites.GemSlot;
 using System.Diagnostics;
 using CharlyBeck.Mvi.Propability;
 using CharlyBeck.Mvi.Sprites.Avatar;
+using CharlyBeck.Mvi.Texts;
 
 namespace CharlyBeck.Mvi.Sprites.Gem
 {
@@ -27,6 +28,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         Defense,
         Navigation,
     }
+
+
 
     internal enum CGemEnum
     {
@@ -96,7 +99,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         AmmoEnergy,
 
         [CPropability(0.25)]
-        [CGemShortName("NUKE")]
+        [CGemShortName(CTextConstants.Value_Avatar_NuclearMissileCount_Abbreviation)]
         [CGemName("Nuclear missile")]
         [CGemCategoryEnum(CGemCategoryEnum.Offense)]
         [CGemDescription("Produces a huge explosion.")]
@@ -105,7 +108,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         NuclearMissile,
 
         [CPropability(0.4d)]
-        [CGemShortName("GDMS")]
+        [CGemShortName(CTextConstants.Value_Avatar_GuidedMissileCount_Abbreviation)]
         [CGemName("Guided Missile")]
         [CGemCategoryEnum(CGemCategoryEnum.Offense)]
         [CGemDescription("Target seeking missile.")]
@@ -123,7 +126,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         ThermalShield,
 
         [CPropability(0.15d)]
-        [CGemShortName("KRSK")]
+        [CGemShortName(CTextConstants.Value_Avatar_KruskalScannerCount_Abbreviation)]
         [CGemName("Kruskal scanner")]
         [CGemCategoryEnum(CGemCategoryEnum.Navigation)]
         [CGemDescription("Produce wormholes upon planet hit.")]
@@ -159,7 +162,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         SpaceGrip, // Trägheit auf minimum.
 
         [CPropability(0.2d)]
-        [CGemShortName("DRLL")]
+        [CGemShortName(CTextConstants.Value_Avatar_DrillCount_Abbreviation)]
         [CGemName("Earth Drill")]
         [CGemCategoryEnum(CGemCategoryEnum.Offense)]
         [CGemDescription("Drill holes into planets.")]

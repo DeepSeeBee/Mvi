@@ -30,6 +30,7 @@ using System.Threading.Tasks;
 using CharlyBeck.Utils3.Asap;
 using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.Sprites.Gem;
+using CharlyBeck.Utils3.Faktor01;
 
 namespace CharlyBeck.Mvi.Sprites
 {
@@ -752,7 +753,7 @@ namespace CharlyBeck.Mvi.Sprites
 
         internal abstract CNewFunc GetNewFunc(TClassEnum aClassEnum);
 
-        internal abstract int SpriteClassCount { get; }
+        internal virtual int SpriteClassCount => typeof(TClassEnum).GetEnumMaxValue() + 1;
         private readonly CMultiSpritePool MultiSpritePool;
 
         protected TSprite AllocateSpriteNullable(TClassEnum aClassEnum)

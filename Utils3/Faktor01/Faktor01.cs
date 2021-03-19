@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CharlyBeck.Mvi.Extensions
+namespace CharlyBeck.Utils3.Faktor01
 {
     public static class CFaktor01
     {

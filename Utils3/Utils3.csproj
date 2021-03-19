@@ -45,6 +45,7 @@
     <Compile Include="DateTimes\DateTimes.cs" />
     <Compile Include="Enumerables\Enumerables.cs" />
     <Compile Include="Exceptions\CEception.cs" />
+    <Compile Include="Faktor01\Faktor01.cs" />
     <Compile Include="LazyLoad\CLazyLoad.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reflection\Reflection.cs" />

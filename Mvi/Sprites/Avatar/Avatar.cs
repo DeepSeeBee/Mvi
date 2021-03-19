@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace CharlyBeck.Mvi.Sprites.Avatar
 {
+
     internal sealed class CAvatarValues : CValueObject
     {
         #region ctor
@@ -47,6 +48,15 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             this.Add(this.SpaceGripValue);
             this.Add(this.ThermalShieldValue);
 
+            this.InventoryValues = new CValue[]
+            {
+                this.GuidedMissileCountValue,
+                this.NuclearMissileCountValue,
+                this.KruskalScannerCountValue,
+                this.DrillCountValue,
+                this.LifeCountValue,
+            };
+
             this.Init();
         }
         #endregion
@@ -54,7 +64,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
         private const Int64 MaxItemCount = 10; // TODO
         private static readonly CDoubleDeclaration AmmoEnergyDecl = new CDoubleDeclaration
             (
-                Value.CValueEnum.Object_Avatar_AmmoEnergy,
+                CValueEnum.Object_Avatar_AmmoEnergy,
                 new Guid("82b3a59b-44c3-4a0b-abf5-bb57171b574c"), // Guid
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
@@ -68,7 +78,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             );
         private static readonly CDoubleDeclaration AmmoFireRateDecl = new CDoubleDeclaration
             (
-                Value.CValueEnum.Object_Avatar_AmmoFireRate,
+                CValueEnum.Object_Avatar_AmmoFireRate,
                 new Guid("103a26fc-12c8-4f04-a7a6-f3a16e420504"), // Guid
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
@@ -83,7 +93,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
 
         private static readonly CDoubleDeclaration AmmoSpeedDecl = new CDoubleDeclaration
             (
-                Value.CValueEnum.Object_Avatar_AmmoSpeed,
+                CValueEnum.Object_Avatar_AmmoSpeed,
                 new Guid("739ad609-fe56-434f-aed0-acc201c18d2c"), // Guid
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
@@ -98,7 +108,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
 
         private static readonly CDoubleDeclaration AmmoThicknessDecl = new CDoubleDeclaration
             (
-                Value.CValueEnum.Object_Avatar_AmmoThickness,
+                CValueEnum.Object_Avatar_AmmoThickness,
                 new Guid("4380c7af-bbef-490d-acb0-366810cc6d74"), // Guid
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
@@ -113,7 +123,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
 
         private static readonly CDoubleDeclaration AntiGravityDecl = new CDoubleDeclaration
             (
-                Value.CValueEnum.Object_Avatar_AntiGravity,
+                CValueEnum.Object_Avatar_AntiGravity,
                 new Guid("a03d6d84-97b8-4256-9b3e-e6ff3db9a2ed"), // Guid
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
@@ -127,7 +137,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             );
         private static readonly CInt64Declaration DrillCountDecl = new CInt64Declaration
             (
-                Value.CValueEnum.Object_Avatar_Drill,
+                CValueEnum.Object_Avatar_DrillCount,
                 new Guid("dc1a2ccc-5f27-49af-b00c-8791b1c0a382"),
                 true, // aIsPersistent
                 CUnitEnum.Count, // UnitEnum
@@ -139,7 +149,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             );
         private static readonly CInt64Declaration LifeCountDecl = new CInt64Declaration
             (
-                Value.CValueEnum.Object_Avatar_LifeCount,
+                CValueEnum.Object_Avatar_LifeCount,
                 new Guid("41515983-ad37-4bb7-8021-a70833d8d17d"),
                 true, // aIsPersistent
                 CUnitEnum.Count, // UnitEnum
@@ -151,7 +161,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             );
         private static readonly CInt64Declaration GuidedMissileCountDecl = new CInt64Declaration
             (
-                Value.CValueEnum.Object_Avatar_GuidedMissileCount,
+                CValueEnum.Object_Avatar_GuidedMissileCount,
                 new Guid("41f01b21-d810-44fc-8de4-d4ed739114a2"),
                 true, // aIsPersistent
                 CUnitEnum.Count, // UnitEnum
@@ -163,7 +173,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             );
         private static readonly CInt64Declaration KruskalScannerCountDecl = new CInt64Declaration
             (
-                Value.CValueEnum.Object_Avatar_NuclearMissileCount,
+                CValueEnum.Object_Avatar_KruskalScannerCount,
                 new Guid("65a21bbc-1895-4ee1-a4fb-fb3a3076a66a"),
                 true, // aIsPersistent
                 CUnitEnum.Count, // UnitEnum
@@ -175,7 +185,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             );
         private static readonly CInt64Declaration NuclearMissileCountDecl = new CInt64Declaration
             (
-                Value.CValueEnum.Object_Avatar_NuclearMissileCount,
+                CValueEnum.Object_Avatar_NuclearMissileCount,
                 new Guid("0194fdf9-75f7-470d-97e7-17a4f46b38a5"),
                 true, // aIsPersistent
                 CUnitEnum.Count, // UnitEnum
@@ -187,7 +197,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             );
         private static readonly CDoubleDeclaration ShellDecl = new CDoubleDeclaration
             (
-                Value.CValueEnum.Object_Avatar_Shell,
+                CValueEnum.Object_Avatar_Shell,
                 new Guid("da244ae6-aa75-40a8-ada6-1b8da98b7666"), // Guid
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
@@ -201,7 +211,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             );
         private static readonly CDoubleDeclaration ShieldDecl = new CDoubleDeclaration
         (
-            Value.CValueEnum.Object_Avatar_Shield,
+            CValueEnum.Object_Avatar_Shield,
             new Guid("132c1c5b-f1bf-49b2-8edb-c299c6b21776"), // Guid
             true, // IsPersistent
             CGuiEnum.Slider, // GuiEnum
@@ -215,7 +225,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
         );
         private static readonly CDoubleDeclaration SlowMotionDecl = new CDoubleDeclaration
             (
-                Value.CValueEnum.Object_Avatar_SlowMotion,
+                CValueEnum.Object_Avatar_SlowMotion,
                 new Guid("1478d3a6-2d4e-4508-914b-cbbc33e61f10"), // Guid
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
@@ -229,7 +239,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             );
         private static readonly CDoubleDeclaration SpaceGripDecl = new CDoubleDeclaration
             (
-                Value.CValueEnum.Object_Avatar_SpaceGrip,
+                CValueEnum.Object_Avatar_SpaceGrip,
                 new Guid("3fa5b351-72c1-46e6-850f-b81c4f4e34ec"), // Guid
                 true, // IsPersistent
                 CGuiEnum.Slider, // GuiEnum
@@ -243,7 +253,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             );
         private static readonly CTimeSpanDeclaration ThermalShieldDecl = new CTimeSpanDeclaration
             (
-                Value.CValueEnum.Object_Avatar_ThermalShield,
+                CValueEnum.Object_Avatar_ThermalShield,
                 new Guid("b9f26f5c-bc3c-4eb0-914d-eff40647adbd"), // Guid
                 true, // IsPersistent
                 new TimeSpan(),    // Default
@@ -269,6 +279,9 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
         internal readonly CDoubleValue SlowMotionValue;
         internal readonly CDoubleValue SpaceGripValue;
         internal readonly CTimeSpanValue ThermalShieldValue;
+        #endregion
+        #region InventoryValues
+        internal readonly CValue[] InventoryValues;
         #endregion
     }
 

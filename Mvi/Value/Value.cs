@@ -14,6 +14,8 @@ using System.Text;
 using System.Threading.Tasks;
 using CharlyBeck.Utils3.Strings;
 using CharlyBeck.Utils3.DateTimes;
+using CharlyBeck.Utils3.Reflection;
+using CharlyBeck.Mvi.Texts;
 
 namespace CharlyBeck.Mvi.Value
 {
@@ -76,16 +78,47 @@ namespace CharlyBeck.Mvi.Value
         Object_Avatar_AmmoSpeed,
         Object_Avatar_AmmoThickness,
         Object_Avatar_AntiGravity,
-        Object_Avatar_Drill,
         Object_Avatar_LifeCount,
+
+        [CSecondaryWeaponValue(true)]
+        [CValueAbbreviationAttribute(CTextConstants.Value_Avatar_DrillCount_Abbreviation)]
+        Object_Avatar_DrillCount,
+        
+        [CSecondaryWeaponValue(true)]
+        [CValueAbbreviationAttribute(CTextConstants.Value_Avatar_GuidedMissileCount_Abbreviation)]
         Object_Avatar_GuidedMissileCount,
+        
+        [CSecondaryWeaponValue(true)]
+        [CValueAbbreviationAttribute(CTextConstants.Value_Avatar_KruskalScannerCount_Abbreviation)]
         Object_Avatar_KruskalScannerCount,
+ 
+        [CSecondaryWeaponValue(true)]
+        [CValueAbbreviationAttribute(CTextConstants.Value_Avatar_NuclearMissileCount_Abbreviation)]
         Object_Avatar_NuclearMissileCount,
+
         Object_Avatar_Shell,
         Object_Avatar_Shield,
         Object_Avatar_SlowMotion,
         Object_Avatar_SpaceGrip,
         Object_Avatar_ThermalShield,
+    }
+
+
+    public sealed class CValueAbbreviationAttribute: Attribute
+    {
+        internal CValueAbbreviationAttribute(string aAbbreviation)
+        {
+            this.Abbreviation = aAbbreviation;
+        }
+        internal readonly string Abbreviation;
+    }
+    public sealed class CSecondaryWeaponValueAttribute : Attribute
+    {
+        public CSecondaryWeaponValueAttribute(bool aIsSecondaryWeaponValue)
+        {
+            this.IsSeconaryWeaponValue = aIsSecondaryWeaponValue;
+        }
+        internal bool IsSeconaryWeaponValue;
     }
 
     public sealed class CMemberDeclarationAttribute : Attribute
@@ -123,6 +156,9 @@ namespace CharlyBeck.Mvi.Value
             this.Guid = aGuid;
             this.GuiEnum = aGuiEnum;
             this.UnitEnum = aUnitEnum;
+            this.Abbreviation = this.ValueEnum.GetCustomAttributeIsDefined<CValueAbbreviationAttribute>()
+                              ? this.ValueEnum.GetCustomAttribute<CValueAbbreviationAttribute>().Abbreviation
+                              : string.Empty;
         }
 
         internal CValueEnum ValueEnum;
@@ -133,6 +169,8 @@ namespace CharlyBeck.Mvi.Value
 
         internal abstract CValueTypeEnum ValueTypeEnum { get; }
         public CGuiEnum GuiEnum { get; private set; }
+        internal string Abbreviation { get; set; }
+
         internal abstract CValue NewValue(CServiceLocatorNode aParent);
     }
 
@@ -532,20 +570,25 @@ namespace CharlyBeck.Mvi.Value
         public void Add(CValueDeclaration aValueDeclaation)
             => this.Add(aValueDeclaation.NewValue(this));
         public void Add(CValue aValue)
-            => this.ValueDic.Add(aValue.ValueDeclaration, aValue);
-
-        private Dictionary<CValueDeclaration, CValue> ValueDic = new Dictionary<CValueDeclaration, CValue>();
-        public IEnumerator<CValue> GetEnumerator() => this.ValueDic.Values.OrderBy(aValue=>aValue.ValueDeclaration.Name).GetEnumerator();
+        {
+            this.ValueByDeclDic.Add(aValue.ValueDeclaration, aValue);
+            this.ValueByEnumDic.Add(aValue.ValueDeclaration.ValueEnum, aValue);
+        }
+        private readonly Dictionary<CValueDeclaration, CValue> ValueByDeclDic = new Dictionary<CValueDeclaration, CValue>();
+        public IEnumerator<CValue> GetEnumerator() => this.ValueByDeclDic.Values.OrderBy(aValue=>aValue.ValueDeclaration.Name).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
         public CValue GetValue(CValueDeclaration aValueDeclaration)
-            => this.ValueDic[aValueDeclaration];
+            => this.ValueByDeclDic[aValueDeclaration];
+        private readonly Dictionary<CValueEnum, CValue> ValueByEnumDic = new Dictionary<CValueEnum, CValue>();
+        public CValue GetValue(CValueEnum aValueEnum)
+            => this.ValueByEnumDic[aValueEnum];
         #endregion
         #region NamePrefix
         private string NamePrefixM;
         internal string NamePrefix => CLazyLoad.Get(ref this.NamePrefixM, this.NewNamePrefix);
         private string NewNamePrefix()
         {
-            var aValues = this.ValueDic.Keys;
+            var aValues = this.ValueByDeclDic.Keys;
             var aEnums = aValues.Select(v => v.ValueEnum);
             var aTexts = aEnums.Select(e => e.ToString()).ToArray();
             if (aTexts.Length > 1)
