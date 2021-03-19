@@ -56,8 +56,8 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         internal CGemCategory GemClass;
         internal CGemSideEnum? GemSideEnum;
 
-        private CGemSprite GemSpriteNullableM;
-        internal CGemSprite GemSpriteNullable
+        private CInventoryGemSprite GemSpriteNullableM;
+        internal CInventoryGemSprite GemSpriteNullable
         {
             get => this.GemSpriteNullableM;
             set
@@ -120,9 +120,9 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         internal CGemSlot[] Items { get; private set; }
         internal CGemSlot FindFreeSlotNullable()
             => this.Items.Where(s => s.IsFree).FirstOrDefault();        
-        internal CGemSprite RemoveAt(int i)
+        internal CInventoryGemSprite RemoveAt(int i)
         {
-            var aGemSpriteNullable = default(CGemSprite);
+            var aGemSpriteNullable = default(CInventoryGemSprite);
             bool aDone = false;
             for (var aIdx = i; aIdx < this.Items.Length - 1 && !aDone; ++aIdx)
             {
@@ -152,13 +152,15 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         }
         internal int GetCount()
             => this.Count.Range().Where(i => this.Items[i].IsFree).First();
-        internal virtual void OnAttachGem(CGemSprite aGemSprite)
+        internal virtual void OnAttachGem(CInventoryGemSprite aGemSprite)
         {
         }
-        internal virtual void OnDetachGem(CGemSprite aGemSprite)
+        internal virtual void OnDetachGem(CInventoryGemSprite aGemSprite)
         {
         }
+        internal bool IsFull => !this.Items[this.Items.Length - 1].IsFree;
         #endregion
+
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
@@ -176,6 +178,7 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         internal CGemClassBarSlots(CServiceLocatorNode aParent) : base(aParent)
         {
         }
+
     }
 
     internal sealed class CGemClassBar : CServiceLocatorNode
@@ -273,6 +276,7 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         internal CGemSlot FindFreeSlotNullable()
             => this.GemClassBarSlots.FindFreeSlotNullable();
 
+        internal bool IsFull => this.GemClassBarSlots.IsFull;
     }
 
     internal sealed class CGemSideBar : CServiceLocatorNode
@@ -314,7 +318,6 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         }
         internal CGemClassBar GetGemClassBar(CGemCategoryEnum aGemClassEnum)
             => this.GemClassBars[(int)aGemClassEnum];
-
         internal CGemSlot FindFreeSlotNullable(CGemCategoryEnum aGemClassEnum)
             => this.GetGemClassBar(aGemClassEnum).FindFreeSlotNullable();
         #endregion
@@ -325,6 +328,8 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         #endregion
         #region GemCategories
         private readonly CGemCategories GemCategories;
+        internal bool GetCategoryIsFilled(CGemCategoryEnum aGemCategoryEnum)
+            => this.GetGemClassBar(aGemCategoryEnum).IsFull;        
         #endregion
         #region Update
         internal void Update(CFrameInfo aFrameInfo)
@@ -370,12 +375,12 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         }
         #endregion
         #region GemSprite
-        internal override void OnAttachGem(CGemSprite aGemSprite)
+        internal override void OnAttachGem(CInventoryGemSprite aGemSprite)
         {
             base.OnAttachGem(aGemSprite);
             aGemSprite.ApplyModifiers();
         }
-        internal override void OnDetachGem(CGemSprite aGemSprite)
+        internal override void OnDetachGem(CInventoryGemSprite aGemSprite)
         {
             base.OnDetachGem(aGemSprite);
             aGemSprite.UnapplyValues();
@@ -617,7 +622,7 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         {
             base.Load();
 
-            foreach(var aGemSideBar in this.GemSideBars)
+            foreach(var aGemSideBar in this.GemSidebars)
             {
                 aGemSideBar.Load();
             }
@@ -629,7 +634,7 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
                 aGemActiveBar.Load();
             }
 
-            this.GemSlots = (from aSideBar in this.GemSideBars
+            this.GemSlots = (from aSideBar in this.GemSidebars
                              from aSlot in aSideBar.GemSlots
                              select aSlot).ToArray();
         }
@@ -643,7 +648,7 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         #endregion
         #region GemSideBars
         private CGemSideBar[] GemSideBarsM;
-        private CGemSideBar[] GemSideBars => CLazyLoad.Get(ref this.GemSideBarsM, this.NewGemSideBars);
+        private CGemSideBar[] GemSidebars => CLazyLoad.Get(ref this.GemSideBarsM, this.NewGemSideBars);
         private CGemSideBar[] NewGemSideBars()
         {
             var aGemSideEnums = typeof(CGemSideEnum).GetEnumValues().Cast<CGemSideEnum>().ToArray();
@@ -660,13 +665,13 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
             return aGemSideBars;
         }
         private CGemSideBar GetGemSideBar(CGemSideEnum aSide)
-            => this.GemSideBars[(int)aSide];
+            => this.GemSidebars[(int)aSide];
         #endregion
         internal readonly CRandomGenerator RandomGenerator;
         #region GemSlots
         internal CGemSlot FindFreeSideBarSlotNullable(CGemCategoryEnum aGemClassEnum)
         {
-            var aSideBars = this.RandomGenerator.NextShuffledSequence(this.GemSideBars);
+            var aSideBars = this.RandomGenerator.NextShuffledSequence(this.GemSidebars);
             foreach(var aIdx in Enumerable.Range(0, aSideBars.Length))
             {
                 var aGemSlotNullable = aSideBars[aIdx].FindFreeSlotNullable(aGemClassEnum);
@@ -687,7 +692,7 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
             base.Update(aFrameInfo);
 
             { // TODO_OPT
-                var a = this.GemSideBars;
+                var a = this.GemSidebars;
                 var l = a.Length;
                 for(var i = 0; i < l; ++i)
                 {
@@ -701,6 +706,11 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         {
             base.Draw();
         }
+        private readonly CGemCategoryEnum[] GemCategoryEnums = typeof(CGemCategoryEnum).GetEnumValues().Cast<CGemCategoryEnum>().ToArray();
+        internal CGemCategoryEnum? GetUnfilledCategory()
+            => this.GemCategoryEnums.Select(c=> 
+            this.GemSidebars.Where(sb => !sb.GetCategoryIsFilled(c)).IsEmpty() 
+            ?  default(CGemCategoryEnum?) : c).Where(c=>c.HasValue).FirstOrDefault();
     }
 
     internal sealed class CGemSlotControlsSpriteManager : CSinglePoolSpriteManager<CGemSlotControlsSprite>
@@ -709,22 +719,22 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         internal CGemSlotControlsSpriteManager(CServiceLocatorNode aParent): base(aParent)
         {
             this.AddOnAllocate = true;
-            this.World.GemCollected += delegate (CGemSprite aGemSprite)
+            this.World.GemCollected += delegate (CInventoryGemSprite aGemSprite)
             {
                 if (!aGemSprite.ActivateOnCollect)
                 {
-                    var aFreeSlot = this.ControlsSprite.FindFreeSideBarSlotNullable(aGemSprite.GemCategoryEnum);
+                    var aFreeSlot = this.GemSlotControlsSprite.FindFreeSideBarSlotNullable(aGemSprite.GemCategoryEnum);
                     if (aFreeSlot is object)
                     {
                         aFreeSlot.GemSpriteNullable = aGemSprite;
                     }
                 }
             };
-            this.World.GemActivated += delegate (CGemSprite aGemSprite)
+            this.World.GemActivated += delegate (CInventoryGemSprite aGemSprite)
             {
                 if(aGemSprite.ActiveDurationIsEnabled)
                 {
-                    var aFreeSlot = this.ControlsSprite.GemActiveBars.FindFreeSlot();
+                    var aFreeSlot = this.GemSlotControlsSprite.GemActiveBars.FindFreeSlot();
                     if (aFreeSlot is object)
                     {
                         aFreeSlot.GemSpriteNullable = aGemSprite;
@@ -749,9 +759,9 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         internal override void InitialAllocate()
         {
             base.InitialAllocate();
-            this.ControlsSprite = this.AllocateSpriteNullable();
+            this.GemSlotControlsSprite = this.AllocateSpriteNullable();
         }
-        internal CGemSlotControlsSprite ControlsSprite;
+        internal CGemSlotControlsSprite GemSlotControlsSprite { get; private set; }
         #endregion
         internal override void Update(CFrameInfo aFrameInfo)
         {

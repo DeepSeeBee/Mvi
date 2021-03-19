@@ -172,6 +172,13 @@ namespace CharlyBeck.Mvi.World
             this.Items = this.ItemsPr.ToArray();
             this.Init();
         }
+        public override void Load()
+        {
+            base.Load();
+
+            foreach (var aSpriteManager in this.LeafSpriteManagers)
+                aSpriteManager.Load();
+        }
         #endregion
         #region ShotSprites
         internal readonly CShotManager ShotManager;
@@ -206,9 +213,9 @@ namespace CharlyBeck.Mvi.World
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CWorldSpriteManagers>(() => this);
+            aServiceContainer.AddService<CGemSlotControlsSpriteManager>(() => this.GemSlotControlsSpriteManager);
             return aServiceContainer;
         }
-
         #endregion
         #region SolarSystemSpriteManagers
         internal readonly CQuadrantSpriteManager[] SolarSystemSpriteManagers;
@@ -241,7 +248,7 @@ namespace CharlyBeck.Mvi.World
 
         internal CAvatarSprite AvatarSprite => this.AvatarManager.AvatarSprite;
         #endregion
-
+        #region Update
         internal override void Update(CFrameInfo aFrameInfo)
         {
             base.Update(aFrameInfo);
@@ -254,6 +261,7 @@ namespace CharlyBeck.Mvi.World
             //    aSpriteManager.Update(aFrameInfo);
             //}
         }
+        #endregion
     }
 
     public sealed class CWorld : CServiceLocatorNode
@@ -409,24 +417,24 @@ namespace CharlyBeck.Mvi.World
                 this.ShootFired();
             }    
         }
-        internal event Action<CGemSprite> GemCollected;
-        internal void OnGemCollected(CGemSprite aGemSprite)
+        internal event Action<CInventoryGemSprite> GemCollected;
+        internal void OnGemCollected(CInventoryGemSprite aGemSprite)
         {
             if(this.GemCollected is object)
             {
                 this.GemCollected(aGemSprite);
             }    
         }
-        internal event Action<CGemSprite, Action<CSoundFile>> GemCollectedSoundStarting;
-        internal void OnGemCollectedSoundStarting(CGemSprite aGemSprite, Action<CSoundFile> aAddFollowUp)
+        internal event Action<CInventoryGemSprite, Action<CSoundFile>> GemCollectedSoundStarting;
+        internal void OnGemCollectedSoundStarting(CInventoryGemSprite aGemSprite, Action<CSoundFile> aAddFollowUp)
         {
             if (this.GemCollectedSoundStarting is object)
             {
                 this.GemCollectedSoundStarting(aGemSprite, aAddFollowUp);
             }
         }
-        internal event Action<CGemSprite> GemActivated;
-        internal void OnGemActivated(CGemSprite aGemSprite)
+        internal event Action<CInventoryGemSprite> GemActivated;
+        internal void OnGemActivated(CInventoryGemSprite aGemSprite)
         {
             if(this.GemActivated is object)
             {

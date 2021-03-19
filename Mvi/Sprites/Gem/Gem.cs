@@ -30,6 +30,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
     internal enum CGemEnum
     {
+        Collectable,
+
         [CPropability(0.1)]
         [CGemShortName("EXLF")]
         [CGemName("Extra Life")]
@@ -165,6 +167,9 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemAffectSurface(true)]
         Drill, // Trägheit auf minimum.
 
+
+
+
         //
         //FuelGem,
         //QuestGem,
@@ -186,10 +191,11 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
     internal abstract class CGemCategory : CServiceLocatorNode
     {
-        internal CGemCategory(CServiceLocatorNode aParent)
+        internal CGemCategory(CServiceLocatorNode aParent, CGemCategoryEnum aGemCategoryEnum)
         {
-
+            this.GemCategoryEnum = aGemCategoryEnum;
         }
+        internal readonly CGemCategoryEnum GemCategoryEnum;
         internal CGemCategoryEnum GemClassEnum;
         internal CVector3Dbl Color;
     }
@@ -199,11 +205,11 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         #region ctor
         internal CGemCategories(CServiceLocatorNode aParent): base(aParent)
         {
-            this.Array = this.NewGemClasses();
+            this.Array = this.NewGemCategories();
         }
         #endregion
         #region GemClasses
-        private CGemCategory[] NewGemClasses()
+        private CGemCategory[] NewGemCategories()
         {
             var aCount = typeof(CGemCategoryEnum).GetEnumMaxValue() + 1;
             var aGemCategories = new CGemCategory[aCount];
@@ -220,7 +226,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
     internal sealed class CDefenseGemClass : CGemCategory
     {
-        internal CDefenseGemClass(CServiceLocatorNode aParent):base(aParent)
+        internal CDefenseGemClass(CServiceLocatorNode aParent):base(aParent, CGemCategoryEnum.Defense)
         {
             this.GemClassEnum = CGemCategoryEnum.Defense;
             this.Color = CColors.Green;
@@ -229,7 +235,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
     internal sealed class CNavigationGemClass : CGemCategory
     {
-        internal CNavigationGemClass(CServiceLocatorNode aParent):base(aParent)
+        internal CNavigationGemClass(CServiceLocatorNode aParent):base(aParent, CGemCategoryEnum.Navigation)
         {
             this.GemClassEnum = CGemCategoryEnum.Navigation;
             this.Color = CColors.Blue;
@@ -238,32 +244,73 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
     internal sealed class COffenseGemClass : CGemCategory
     {
-        internal COffenseGemClass(CServiceLocatorNode aParent):base(aParent)
+        internal COffenseGemClass(CServiceLocatorNode aParent):base(aParent, CGemCategoryEnum.Offense)
         {
             this.GemClassEnum = CGemCategoryEnum.Offense;
             this.Color = CColors.Red;
         }
     }
 
-    /// <summary>
-    /// Item to collect, grants special abilites.
-    /// </summary>
     public abstract class CGemSprite : CSprite
     {
         #region ctor
         internal CGemSprite(CServiceLocatorNode aParent, CGemEnum aGemEnum) : base(aParent)
         {
             this.GemEnum = aGemEnum;
-            this.GemCategories = this.ServiceContainer.GetService<CGemCategories>();
+            this.PlattformSpriteEnum = CPlatformSpriteEnum.Gem; // TODO-Kann man nach collectableSprite verschieben.
+            this.CollisionSourceEnum = CCollisionSourceEnum.Gem; // TODO-Kann man nach collectableSprite verschieben.
+        }
+        #endregion
+        #region GemEnum
+        internal readonly CGemEnum GemEnum;
+        #endregion
+        #region BuildGem
+        internal void BuildGem(CVector3Dbl aWorldPos)
+        {
+            this.WorldPos = aWorldPos;
+            this.TimeToLive = new TimeSpan(0, 0, 10);
+            this.Scale = 0.05d;
+            this.Radius = 0.05d;
+        }
+        #endregion
+        #region Collect
+        internal virtual void Collect()
+        {
+        }
+        protected override void OnCollide(CSprite aCollideWith, double aDistance)
+        {
+            base.OnCollide(aCollideWith, aDistance);
+            this.Collect();
+        }
+        #endregion
+        #region Update
+        internal override void Update(CFrameInfo aFrameInfo)
+        {
+            base.Update(aFrameInfo);
 
+            this.WorldMatrix = this.NewWorldMatrix();
+            this.Reposition();
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// Item to collect, grants special abilites.
+    /// TODO: Does not need to be a CSprite. 
+    ///       (Later) never appears in world, 
+    ///       only the CCollectableGem is used for that.
+    /// </summary>
+    public abstract class CInventoryGemSprite : CGemSprite
+    {
+        #region ctor
+        internal CInventoryGemSprite(CServiceLocatorNode aParent, CGemEnum aGemEnum) : base(aParent, aGemEnum)
+        {
+            this.GemCategories = this.ServiceContainer.GetService<CGemCategories>();
             this.GemCategoryEnum = aGemEnum.GetCustomAttribute<CGemCategoryEnumAttribute>().GemCategoryEnum;
             this.GemCategory = this.GemCategories.Get(this.GemCategoryEnum);
             this.Name = aGemEnum.GetCustomAttribute<CGemNameAttribute>().Name;
             this.ShortName = aGemEnum.GetCustomAttribute<CGemShortNameAttribute>().ShortName;
-
-            this.PlattformSpriteEnum = CPlatformSpriteEnum.Gem;
-            this.CollisionSourceEnum = CCollisionSourceEnum.Gem;
-
+  
             this.Init();
         }
         protected override void Init()
@@ -281,21 +328,13 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
             Debug.Assert(!(this.GemSlotNullable is object));
         }
-        internal virtual void BuildGem(CSprite aDestroyed, CShotSprite aDestroying, CRandomGenerator aRandomGenerator)
-        {
-            this.WorldPos = aDestroyed.WorldPos.Value;
-            this.TimeToLive = new TimeSpan(0, 0, 10);
-            this.Scale = 0.05d;
-            this.Radius = 0.05d;
-        }
+
         #endregion
         #region Avatar
         private CAvatarSprite AvatarSprite => this.World.AvatarSprite;
         internal CAvatarValues AvatarValues => this.AvatarSprite.AvatarValues;
         #endregion
-        #region GemEnum
-        internal readonly CGemEnum GemEnum;
-        #endregion
+
         #region GemCategories
         private readonly CGemCategories GemCategories;
 
@@ -309,16 +348,17 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         internal CGemCategory GemCategory { get; private set; }
         #endregion
         #region Collect
-        internal void Collect()
+        internal override void Collect()
         {
+            base.Collect();
             this.World.OnGemCollected(this);
 
-            if(this.ActivateOnCollect)
+            if (this.ActivateOnCollect)
             {
                 this.Activate();
             }
 
-            if(this.IsReferenced)
+            if (this.IsReferenced)
             {
                 this.IsHiddenInWorld = true;
                 this.TimeToLive = default;
@@ -328,37 +368,22 @@ namespace CharlyBeck.Mvi.Sprites.Gem
                 this.DeallocateIsQueued = true;
             }
         }
-
-        protected override void OnCollide(CSprite aCollideWith, double aDistance)
-        {
-            base.OnCollide(aCollideWith, aDistance);
-
-            this.Collect();
-        }
-        #endregion
-        #region Update
         internal override void Update(CFrameInfo aFrameInfo)
         {
             base.Update(aFrameInfo);
-
-            this.WorldMatrix = this.NewWorldMatrix();
-            if(this.RemainingActiveTime.HasValue)
+            if (this.RemainingActiveTime.HasValue)
             {
                 var aRemainingActiveTime = this.RemainingActiveTime.Value.Subtract(aFrameInfo.GameTimeElapsed);
                 this.RemainingActiveTime = aRemainingActiveTime.TotalMilliseconds > 0
-                                        ?  aRemainingActiveTime
-                                        :  default(TimeSpan?)
+                                        ? aRemainingActiveTime
+                                        : default(TimeSpan?)
                                         ;
             }
 
-            if(this.IsHiddenInWorld.Value
+            if (this.IsHiddenInWorld.Value
             && !this.IsReferenced)
             {
                 this.DeallocateIsQueued = true;
-            }
-            else
-            {
-                this.Reposition();
             }
         }
         #endregion
@@ -425,7 +450,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
             this.RandomGenerator = new CRandomGenerator(this);
             this.RandomGenerator.Begin();
-            this.GemPropability = CGemPropability.NewFromEnum(this);
+            this.GemPropability = CGemPropability.NewFromEnum<CGemEnum>(this);
+            this.CategoryToPropabilityMap = this.NewCategoryToPropabilityMap();
             this.World.SpriteDestroyedByShot += this.OnSpriteDestroyedByShot;
 
             this.Init();
@@ -435,14 +461,18 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         {
             base.Init();
 
-            { // Reserve
-                var aLock = true;
-                foreach (var aGemClass in typeof(CGemEnum).GetEnumValues().Cast<CGemEnum>())
-                {
-                    this.Reserve(aGemClass, CStaticParameters.Gem_Class_InstanceCount, aLock);
-                }
+            this.Reserve();
+        }
+
+        private void Reserve()
+        {
+            var aLock = true;
+            foreach (var aGemClass in typeof(CGemEnum).GetEnumValues().Cast<CGemEnum>())
+            {
+                this.Reserve(aGemClass, CStaticParameters.Gem_Class_InstanceCount, aLock);
             }
         }
+
 
         private readonly CGemPropability GemPropability;
         internal override int SpriteClassCount => typeof(CGemEnum).GetEnumMaxValue() + 1;
@@ -465,6 +495,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
                 case CGemEnum.SpaceGrip: return new CNewFunc(() => new CSpaceGripGem(this));
                 case CGemEnum.Drill: return new CNewFunc(() => new CDrillGem(this));
                 case CGemEnum.AmmoThickness: return new CNewFunc(() => new CAmmoThicknessGem(this));
+                case CGemEnum.Collectable: return new CNewFunc(() => new CCollectableGemSprite(this));
                 default:
                     throw new NotImplementedException();
             }
@@ -473,15 +504,45 @@ namespace CharlyBeck.Mvi.Sprites.Gem
 
         private void OnSpriteDestroyedByShot(CSprite aDestroyed, CShotSprite aDestroying)
         {
-            var aGemClass = this.GemPropability.Next();
-            var aGem = this.AllocateSpriteNullable(aGemClass);
-            if(aGem is object)
-            {
-                aGem.BuildGem(aDestroyed, aDestroying, this.RandomGenerator);
-                aGem.Update(this.World.FrameInfo);
-            }
+            //var aGemEnum = this.GemPropability.Next();
+            var aGemEnum = CGemEnum.Collectable; 
+            this.CreateGemNullable(aGemEnum, aDestroyed.WorldPos.Value);
         }
 
+        internal CGemSprite CreateGemNullable(CGemEnum aGemEnum, CVector3Dbl aWorldPos)
+        {
+            var aGem = this.AllocateSpriteNullable(aGemEnum);
+            if (aGem is object)
+            {
+                aGem.BuildGem(aWorldPos);
+                aGem.Update(this.World.FrameInfo);
+            }
+            return aGem;
+        }
+
+
+        internal CInventoryGemSprite CreateGemNullable(CGemCategoryEnum aCategory, CVector3Dbl aWorldPos)
+        {
+            var aPropability = this.GetGemPropability(aCategory);
+            var aGemEnum = aPropability.Next();
+            var aGemSprite = this.CreateGemNullable(aGemEnum, aWorldPos);
+            var aCollectableGemSprite = (CInventoryGemSprite)aGemSprite;
+            return aCollectableGemSprite;
+        }
+        #region CategoryToGemMap
+        private readonly CGemPropability[] CategoryToPropabilityMap;
+        private CGemEnum[][] NewCategoryToGemMap()
+            => typeof(CGemCategoryEnum).NewEnumLookup<CGemCategoryEnum, CGemEnum[]>(
+                e => typeof(CGemEnum).GetEnumValues().Cast<CGemEnum>()
+                .Where(e2 => e2.GetCustomAttributeIsDefined<CGemCategoryEnumAttribute>())
+                .Where(e2 => e2.GetCustomAttribute<CGemCategoryEnumAttribute>().GemCategoryEnum == e)
+                .Select(ge => new Tuple<CGemEnum, CGemCategoryEnumAttribute>(ge, ge.GetCustomAttribute<CGemCategoryEnumAttribute>()))
+                .Where(t1 => t1.Item2 is object).Select(t2=>t2.Item1).ToArray());
+        private CGemPropability[] NewCategoryToPropabilityMap()
+            => this.NewCategoryToGemMap().Select(ges => CGemPropability.NewFromEnum<CGemEnum>(this, ges)).ToArray();
+        private CGemPropability GetGemPropability(CGemCategoryEnum aGemCategoryEnum)
+            => this.CategoryToPropabilityMap[(int)aGemCategoryEnum];
+        #endregion
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;
         public override CServiceContainer ServiceContainer => CLazyLoad.Get(ref this.ServiceContainerM, this.NewServiceContainer);
@@ -489,6 +550,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         {
             var aServiceContainer = base.ServiceContainer.Inherit(this);
             aServiceContainer.AddService<CRandomGenerator>(() => this.RandomGenerator);
+            aServiceContainer.AddService<CGemSpriteManager>(() => this);
             return aServiceContainer;
         }
         #endregion

@@ -29,6 +29,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CharlyBeck.Utils3.Asap;
 using CharlyBeck.Mvi.Value;
+using CharlyBeck.Mvi.Sprites.Gem;
 
 namespace CharlyBeck.Mvi.Sprites
 {
@@ -753,6 +754,7 @@ namespace CharlyBeck.Mvi.Sprites
 
         internal abstract int SpriteClassCount { get; }
         private readonly CMultiSpritePool MultiSpritePool;
+
         protected TSprite AllocateSpriteNullable(TClassEnum aClassEnum)
         {
             var aSprite = (TSprite)this.MultiSpritePool.Allocate((int)(object)aClassEnum);

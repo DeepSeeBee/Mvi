@@ -1,9 +1,11 @@
 ﻿using CharlyBeck.Mvi.Cube;
 using CharlyBeck.Mvi.Facade;
 using CharlyBeck.Mvi.Sprites;
+using CharlyBeck.Mvi.Sprites.GemSlot;
 using CharlyBeck.Mvi.Sprites.Shot;
 using CharlyBeck.Mvi.Value;
 using CharlyBeck.Mvi.World;
+using CharlyBeck.Utils3.LazyLoad;
 using CharlyBeck.Utils3.ServiceLocator;
 using System;
 using System.Collections.Generic;
@@ -115,7 +117,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Gives an extra live to the player
     /// </summary>
-    internal sealed class CExtraLifeGem : CGemSprite
+    internal sealed class CExtraLifeGem : CInventoryGemSprite
     {
         #region ctor
         internal CExtraLifeGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ExtraLife)
@@ -136,7 +138,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Repairs the shell.
     /// </summary>
-    internal sealed class CShellRepairGem : CGemSprite
+    internal sealed class CShellRepairGem : CInventoryGemSprite
     {
         #region ctor
         internal CShellRepairGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ShellRepair)
@@ -156,7 +158,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Add shield energy
     /// </summary>
-    internal sealed class CShieldGem : CGemSprite
+    internal sealed class CShieldGem : CInventoryGemSprite
     {
         #region ctor
         internal CShieldGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.Shield) 
@@ -173,7 +175,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #endregion
     }
 
-    internal sealed class CAmmoEnergyGem  : CGemSprite
+    internal sealed class CAmmoEnergyGem  : CInventoryGemSprite
     {
         #region ctor
         internal CAmmoEnergyGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AmmoEnergy) 
@@ -190,7 +192,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
             };
         #endregion
     }
-    internal sealed class CAmmoThicknessGem : CGemSprite
+    internal sealed class CAmmoThicknessGem : CInventoryGemSprite
     {
         #region ctor
         internal CAmmoThicknessGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AmmoThickness)
@@ -210,7 +212,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Required for destroing suns
     /// </summary>
-    internal sealed class CNuclearMissileGem : CGemSprite
+    internal sealed class CNuclearMissileGem : CInventoryGemSprite
     {
         #region ctor
         internal CNuclearMissileGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.NuclearMissile) 
@@ -231,7 +233,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Required for landing on a planet.
     /// </summary>
-    internal sealed class CThermalShieldGem : CGemSprite
+    internal sealed class CThermalShieldGem : CInventoryGemSprite
     {
         #region ctor
         internal CThermalShieldGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.ThermalShield) 
@@ -252,7 +254,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Required for finding wormholes.Primarly retrieved by destroying suns.
     /// </summary>
-    internal sealed class CKruskalScannerGem : CGemSprite
+    internal sealed class CKruskalScannerGem : CInventoryGemSprite
     {
         #region ctor
         internal CKruskalScannerGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.KruskalScanner)
@@ -274,7 +276,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     /// <summary>
     /// Zum Bohren in planeten benötigt.
     /// </summary>
-    internal sealed class CDrillGem : CGemSprite
+    internal sealed class CDrillGem : CInventoryGemSprite
     {
         #region ctor
         internal CDrillGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.Drill)
@@ -292,7 +294,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #endregion
     }
 
-    internal sealed class CAmmoSpeedGem : CGemSprite
+    internal sealed class CAmmoSpeedGem : CInventoryGemSprite
     {
         #region ctor
         internal CAmmoSpeedGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AmmoSpeed)
@@ -309,7 +311,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         };
         #endregion
     }
-    internal sealed class CFireRateGem : CGemSprite
+    internal sealed class CFireRateGem : CInventoryGemSprite
     {
         #region ctor
         internal CFireRateGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.FireRate)
@@ -328,7 +330,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
 
     }
 
-    internal sealed class CSlowMotionGem :CGemSprite
+    internal sealed class CSlowMotionGem :CInventoryGemSprite
     {
         #region ctor
         internal CSlowMotionGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.SlowMotion)
@@ -346,7 +348,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
         #endregion 
     }
 
-    internal sealed class CAntiGravityGem : CGemSprite
+    internal sealed class CAntiGravityGem : CInventoryGemSprite
     {
         #region ctor
         internal CAntiGravityGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.AntiGravity)
@@ -371,7 +373,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
     //    #endregion
     //}
 
-    internal sealed class CGuidedMissileGem : CGemSprite
+    internal sealed class CGuidedMissileGem : CInventoryGemSprite
     {
         internal CGuidedMissileGem(CServiceLocatorNode aParent):base(aParent, CGemEnum.GuidedMissile)
         {
@@ -387,7 +389,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
                };
     }
 
-    internal sealed class CSpaceGripGem : CGemSprite
+    internal sealed class CSpaceGripGem : CInventoryGemSprite
     {
         internal CSpaceGripGem(CServiceLocatorNode aParent) : base(aParent, CGemEnum.SpaceGrip)
         {
@@ -403,5 +405,54 @@ namespace CharlyBeck.Mvi.Sprites.Gem.Internal
             };
     }
 
+    /// <summary>
+    /// Bonus item that is first emmited to space,
+    /// when collected creates another gem, whichs type is dependend
+    /// on the current gemslotstate.
+    /// </summary>
+    internal sealed class CCollectableGemSprite : CGemSprite
+    {
+        #region ctor
+        internal CCollectableGemSprite(CServiceLocatorNode aParent) : base(aParent, CGemEnum.Collectable)
+        {
+            this.GemSpriteManager = this.ServiceContainer.GetService<CGemSpriteManager>();
 
+            this.Init();
+        }
+        #endregion
+        private readonly CGemSpriteManager GemSpriteManager;
+        #region GemSlots
+        private CGemSlotControlsSpriteManager GemSlotControlsSpriteManagerM;
+        private CGemSlotControlsSpriteManager GemSlotControlsSpriteManager => CLazyLoad.Get(ref this.GemSlotControlsSpriteManagerM, () => this.ServiceContainer.GetService<CGemSlotControlsSpriteManager>());
+        private CGemSlotControlsSprite GemSlotControlsSprite => this.GemSlotControlsSpriteManager.GemSlotControlsSprite;
+        #endregion
+        #region Collect
+        internal override void Collect()
+        {
+            base.Collect();
+
+            var aSlotSprite = this.CreateInventorySpriteNullable();
+            if(aSlotSprite is object)
+            {
+                aSlotSprite.Collect();
+            }
+            else
+            {
+                // TODO  - Play zonk sound
+            }
+            this.DeallocateIsQueued = true;
+        }
+        private CInventoryGemSprite CreateInventorySpriteNullable()
+        {
+            var aGemCategory = this.GemSlotControlsSprite.GetUnfilledCategory();
+            if(aGemCategory.HasValue)
+            {
+                var aGem = this.GemSpriteManager.CreateGemNullable(aGemCategory.Value, this.WorldPos.Value);
+                return aGem;
+            }
+            return default;
+        }
+        #endregion
+
+    }
 }

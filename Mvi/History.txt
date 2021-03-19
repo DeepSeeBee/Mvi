@@ -1,3 +1,4 @@
-20200318: Activated Gems affect Ship Values, effects of certain gems disappear after 90 seconds.
-20200317: Gems can be activated
-20200316: Collected gems appear in the gem side bars. 
+202103191448: gems collected in order: first offense category gems need to be full to collect defense gems, finally navi gems.
+202003180000: Activated Gems affect Ship Values, effects of certain gems disappear after 90 seconds.
+202003170000: Gems can be activated
+202003160000: Collected gems appear in the gem side bars. 

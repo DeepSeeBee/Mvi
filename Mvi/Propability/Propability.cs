@@ -32,13 +32,24 @@ namespace CharlyBeck.Mvi.Propability
         }
 
         private CRandomGenerator RandomGenerator;
-
-        internal static CPropability<T> NewFromEnum(CServiceLocatorNode aParent)
+        internal static CPropability<TEnum> NewFromEnum<TEnum>(CServiceLocatorNode aParent, TEnum[] aEnums) where TEnum : Enum
         {
-            var aAttributes = typeof(T).GetEnumAttributes<T, CPropabilityAttribute>();
-            var aWeights = (from aAttribute in aAttributes select new Tuple<double, T>(aAttribute.Item2.Weight, aAttribute.Item1)).ToArray();
-            var aPropability = new CPropability<T>(aParent, aWeights);
+            var aAttributes = aEnums
+                                .Where(e=>e.GetCustomAttributeIsDefined<CPropabilityAttribute>())
+                                .Select(e => new Tuple<TEnum, CPropabilityAttribute>(e, e.GetCustomAttribute<CPropabilityAttribute>()));
+            var aWeights = (from aAttribute in aAttributes select new Tuple<double, TEnum>(aAttribute.Item2.Weight, aAttribute.Item1)).ToArray();
+            var aPropability = new CPropability<TEnum>(aParent, aWeights);
             return aPropability;
+        }
+        internal static CPropability<TEnum> NewFromEnum<TEnum>(CServiceLocatorNode aParent) where TEnum : Enum
+        {
+            var aEnums = typeof(T).GetEnumValues().Cast<TEnum>().ToArray();
+            var aPropability = NewFromEnum<TEnum>(aParent, aEnums);
+            return aPropability;
+            //var aAttributes = typeof(T).GetEnumAttributes<T, CPropabilityAttribute>();
+            //var aWeights = (from aAttribute in aAttributes select new Tuple<double, T>(aAttribute.Item2.Weight, aAttribute.Item1)).ToArray();
+            //var aPropability = new CPropability<T>(aParent, aWeights);
+            //return aPropability;
         }
         private Tuple<double, T>[] Map;
         private void UpdateMap()
