@@ -1,16 +1,24 @@
 ﻿- InventorStatus shows number of Missiles etc.
-- RandomGenerotor lets collect also items of allready filled categories
+
 
 - Missile-Explosion appears and destroys orbs 
 - Selecting secondary weapon using mouse wheel
 - collision with matter while shield active destroys orbs and decrements shield.
 - collision with matter while shield down damages shell.
+- ValueRamp class
 - Chaos slider to increase orb radius 
 - Chaos slider to increase orbit plane slope.
+- Chaos will be increased when filling extra abilities.
+- Speed will be incresaed when filling extra abilities.
 - laser temperature is displayed, no shoots appear when overheat	
 - player dies when shell is at 0%. 
 - Commenting GamePlay "You die."
 - Life Counter
+
+- Game pause 
+- 
+- Commenting GamePlay "Fill all slots of the lower category to unlock the upper category."
+- Commenting GamePlay "You filled all slots of the lower category. Now the upper category is unlocked."
 - Commenting GamePlay "Game over."
 - Commenting gameplay "Dont attack orbit centers before destroying trabants"
 - "kamikaze-orbs" attack player when orbit center is destroyed (player needs to first destroy moons, planets and finally sun)

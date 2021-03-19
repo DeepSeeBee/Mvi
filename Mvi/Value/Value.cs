@@ -232,8 +232,8 @@ namespace CharlyBeck.Mvi.Value
                 }
             });
         }
-
-        public override object VmValue { get => throw new InvalidOperationException(); set => throw new InvalidOperationException(); } // TODO_OO
+        internal override bool ValueIsMaximum => throw new  InvalidOperationException(); // TODO_OOD
+        public override object VmValue { get => throw new InvalidOperationException(); set => throw new InvalidOperationException(); } // TODO_OOD
     }
 
     public abstract class CValueDeclaration<T>  :CValueDeclaration
@@ -372,6 +372,7 @@ namespace CharlyBeck.Mvi.Value
         #region Values
         private CValues ValuesM;
         private CValues Values => CLazyLoad.Get(ref this.ValuesM, () => this.ServiceContainer.GetService<CValues>());
+        internal abstract bool ValueIsMaximum { get;  }
         #endregion
         #region Increment
         internal virtual void Increment(bool aDecrement, bool aLargeChange) { }
@@ -408,7 +409,6 @@ namespace CharlyBeck.Mvi.Value
             this.InvokeFromGui(delegate () { this.Increment(true, false); });
         }
         #endregion
-
 
 
     }
@@ -462,6 +462,8 @@ namespace CharlyBeck.Mvi.Value
         {
             this.Init();
         }
+
+        internal override bool ValueIsMaximum => throw new InvalidOperationException();
     }
 
     public abstract class CNumericVal<T> : CValue<T>
@@ -475,6 +477,8 @@ namespace CharlyBeck.Mvi.Value
         public object VmMaximum => this.NumericValueDeclaration.Maximum;
         public object VmSmallChange => this.NumericValueDeclaration.SmallChange;
         public object VmLargeChange => this.NumericValueDeclaration.LargeChange;
+
+        internal override bool ValueIsMaximum => object.Equals(this.Value, this.NumericValueDeclaration.Maximum);
 
     }
 
@@ -495,7 +499,7 @@ namespace CharlyBeck.Mvi.Value
         protected override double Coerce(double aValue)
             => Math.Max(this.DoubleDeclaration.Minimum, Math.Min(this.DoubleDeclaration.Maximum, aValue));
     }
-    public sealed class CInt64Value : CValue<Int64>
+    public sealed class CInt64Value : CNumericVal<Int64>
     {
         public CInt64Value(CServiceLocatorNode aParent, CInt64Declaration aValueDeclaration) : base(aParent, aValueDeclaration)
         {

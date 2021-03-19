@@ -153,7 +153,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
                 new Guid("41515983-ad37-4bb7-8021-a70833d8d17d"),
                 true, // aIsPersistent
                 CUnitEnum.Count, // UnitEnum
-                0, // Default
+                3, // Default
                 0, // Min
                 10, // Max
                 1, // SmallChange
@@ -216,7 +216,7 @@ namespace CharlyBeck.Mvi.Sprites.Avatar
             true, // IsPersistent
             CGuiEnum.Slider, // GuiEnum
             CUnitEnum.Percent, // UnitEnum
-            1d, // Default
+            0.5, // Default
             0d, // Min
             1d, // Max
             0.05d, // SmallChange

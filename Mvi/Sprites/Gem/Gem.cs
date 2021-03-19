@@ -42,6 +42,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Increments ship count.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemCollectIfValueNotFull(CValueEnum.Object_Avatar_LifeCount, false)]
+        [CGemActivateOnCollectIfNoSlot(true)]
         ExtraLife, 
 
         [CPropability(1d)]
@@ -51,6 +53,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Repairs the shell which is damaged on collisions.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemCollectIfValueNotFull(CValueEnum.Object_Avatar_Shell, false)]
+        [CGemActivateOnCollectIfNoSlot(true)] 
         ShellRepair,   
 
         [CPropability(1d)]
@@ -60,60 +64,72 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Go kamikaze and fly through matter.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemCollectIfValueNotFull(CValueEnum.Object_Avatar_Shield, true)]
+        [CGemActivateOnCollectIfNoSlot(true)]
         Shield,          
 
-        [CPropability(1d)]
+        [CPropability(0.875)]
         [CGemShortName("AMTH")]
         [CGemName("Ammo thickness")]
         [CGemCategoryEnum(CGemCategoryEnum.Offense)]
         [CGemDescription("Increases thickness of shots.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemActivateOnCollectIfNoSlot(true)]
         AmmoThickness,
 
-        [CPropability(1d)]
+        [CPropability(1.5)]
         [CGemShortName("AMSP")]
         [CGemName("Ammo speed")]
         [CGemCategoryEnum(CGemCategoryEnum.Offense)]
         [CGemDescription("Increases speed of shots")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemActivateOnCollectIfNoSlot(true)]
         AmmoSpeed,        
 
-        [CPropability(1d)]
+        [CPropability(2d)]
         [CGemShortName("FIRR")]
         [CGemName("Fire rate")]
         [CGemCategoryEnum(CGemCategoryEnum.Offense)]
         [CGemDescription("Increases fire rate.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemActivateOnCollectIfNoSlot(true)]
         FireRate,
 
-        [CPropability(1d)]
+        [CPropability(0.5d)]
         [CGemShortName("AMEN")]
         [CGemName("Ammo energy")]
         [CGemCategoryEnum(CGemCategoryEnum.Offense)]
         [CGemDescription("Increases strength of ammo.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemActivateOnCollectIfNoSlot(true)]
         AmmoEnergy,
 
-        [CPropability(0.25)]
+        [CPropability(0.5)]
         [CGemShortName(CTextConstants.Value_Avatar_NuclearMissileCount_Abbreviation)]
         [CGemName("Nuclear missile")]
         [CGemCategoryEnum(CGemCategoryEnum.Offense)]
         [CGemDescription("Produces a huge explosion.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemShotEnum(CShotEnum.NuclearMissile)]
+        [CGemCollectIfValueNotFull(CValueEnum.Object_Avatar_NuclearMissileCount, true)]
+        [CGemActivateOnCollectIfNoSlot(false)]
         NuclearMissile,
 
-        [CPropability(0.4d)]
+        [CPropability(0.8d)]
         [CGemShortName(CTextConstants.Value_Avatar_GuidedMissileCount_Abbreviation)]
         [CGemName("Guided Missile")]
         [CGemCategoryEnum(CGemCategoryEnum.Offense)]
         [CGemDescription("Target seeking missile.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)] // Verhält sich, wie ein starker schuss.
+        [CGemShotEnum(CShotEnum.GuidedMissile)]
+        [CGemCollectIfValueNotFull(CValueEnum.Object_Avatar_GuidedMissileCount, false)]
+        [CGemActivateOnCollectIfNoSlot(false)]
         GuidedMissile,
 
         [CPropability(0.3d)]
@@ -123,6 +139,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Land on a planet.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)] // Verhält sich wie normales schild.
+        [CGemActivateOnCollectIfNoSlot(false)]
         ThermalShield,
 
         [CPropability(0.15d)]
@@ -132,6 +149,9 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Produce wormholes upon planet hit.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemShotEnum(CShotEnum.KruscalScanner)]
+        [CGemCollectIfValueNotFull(CValueEnum.Object_Avatar_KruskalScannerCount, true)]
+        [CGemActivateOnCollectIfNoSlot(false)]
         KruskalScanner, 
 
         [CPropability(0.4d)]
@@ -141,6 +161,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Decelerate time.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemActivateOnCollectIfNoSlot(false)]
         SlowMotion,
 
         [CPropability(0.4d)]
@@ -150,6 +171,7 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Reduce gravity.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemActivateOnCollectIfNoSlot(true)]
         AntiGravity,
 
         [CPropability(0.3d)]
@@ -159,19 +181,19 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         [CGemDescription("Reduce inertia.")]
         [CGemAffectSpace(true)]
         [CGemAffectSurface(true)]
+        [CGemActivateOnCollectIfNoSlot(false)]
         SpaceGrip, // Trägheit auf minimum.
 
         [CPropability(0.2d)]
         [CGemShortName(CTextConstants.Value_Avatar_DrillCount_Abbreviation)]
         [CGemName("Earth Drill")]
-        [CGemCategoryEnum(CGemCategoryEnum.Offense)]
+        [CGemCategoryEnum(CGemCategoryEnum.Navigation)]
         [CGemDescription("Drill holes into planets.")]
         [CGemAffectSpace(true)] // Wirkt wie ein starker schuss.
         [CGemAffectSurface(true)]
-        Drill, // Trägheit auf minimum.
-
-
-
+        [CGemShotEnum(CShotEnum.Drill)]
+        [CGemActivateOnCollectIfNoSlot(false)]
+        Drill, 
 
         //
         //FuelGem,
@@ -303,17 +325,20 @@ namespace CharlyBeck.Mvi.Sprites.Gem
     ///       (Later) never appears in world, 
     ///       only the CCollectableGem is used for that.
     /// </summary>
-    public abstract class CInventoryGemSprite : CGemSprite
+    public abstract class CCollectedGemSprite : CGemSprite
     {
         #region ctor
-        internal CInventoryGemSprite(CServiceLocatorNode aParent, CGemEnum aGemEnum) : base(aParent, aGemEnum)
+        internal CCollectedGemSprite(CServiceLocatorNode aParent, CGemEnum aGemEnum) : base(aParent, aGemEnum)
         {
             this.GemCategories = this.ServiceContainer.GetService<CGemCategories>();
             this.GemCategoryEnum = aGemEnum.GetCustomAttribute<CGemCategoryEnumAttribute>().GemCategoryEnum;
             this.GemCategory = this.GemCategories.Get(this.GemCategoryEnum);
             this.Name = aGemEnum.GetCustomAttribute<CGemNameAttribute>().Name;
             this.ShortName = aGemEnum.GetCustomAttribute<CGemShortNameAttribute>().ShortName;
-  
+            this.ActivateOnCollectIfNoSlot = aGemEnum.GetCustomAttributeIsDefined<CGemActivateOnCollectIfNoSlotAttribute>()
+                                           ? aGemEnum.GetCustomAttribute<CGemActivateOnCollectIfNoSlotAttribute>().ActivateOnCollectIfNoSlot
+                                           : false
+                                           ;
             this.Init();
         }
         protected override void Init()
@@ -419,6 +444,9 @@ namespace CharlyBeck.Mvi.Sprites.Gem
         internal CValueModifier DefaultValueModifier =>CLazyLoad.Get(ref this.DefaultValueModifierM, this.NewDefaultValueModifier);
         internal abstract CValueModifier NewDefaultValueModifier();
         internal virtual IEnumerable<CValueModifier> ValueModifiers => new CValueModifier[] { this.DefaultValueModifier };
+
+        internal bool ActivateOnCollectIfNoSlot;
+
         private CValueModifier[] ValueModifiersArray;
         
         internal void ApplyModifiers()
@@ -522,16 +550,21 @@ namespace CharlyBeck.Mvi.Sprites.Gem
             }
             return aGem;
         }
-
-
-        internal CInventoryGemSprite CreateGemNullable(CGemCategoryEnum aCategory, CVector3Dbl aWorldPos)
+        internal CGemSprite CreateGemNullable(IEnumerable<CGemEnum> aGemEnums, CVector3Dbl aWorldPos)
         {
-            var aPropability = this.GetGemPropability(aCategory);
+            var aPropability = this.GetGemPropability(aGemEnums);
             var aGemEnum = aPropability.Next();
-            var aGemSprite = this.CreateGemNullable(aGemEnum, aWorldPos);
-            var aCollectableGemSprite = (CInventoryGemSprite)aGemSprite;
-            return aCollectableGemSprite;
+            var aGem = this.CreateGemNullable(aGemEnum, aWorldPos);
+            return aGem;
         }
+        //internal CCollectedGemSprite CreateGemNullable(CGemCategoryEnum aCategory, CVector3Dbl aWorldPos)
+        //{
+        //    var aPropability = this.GetGemPropability(aCategory);
+        //    var aGemEnum = aPropability.Next();
+        //    var aGemSprite = this.CreateGemNullable(aGemEnum, aWorldPos);
+        //    var aCollectableGemSprite = (CCollectedGemSprite)aGemSprite;
+        //    return aCollectableGemSprite;
+        //}
         #region CategoryToGemMap
         private readonly CGemPropability[] CategoryToPropabilityMap;
         private CGemEnum[][] NewCategoryToGemMap()
@@ -545,6 +578,8 @@ namespace CharlyBeck.Mvi.Sprites.Gem
             => this.NewCategoryToGemMap().Select(ges => CGemPropability.NewFromEnum<CGemEnum>(this, ges)).ToArray();
         private CGemPropability GetGemPropability(CGemCategoryEnum aGemCategoryEnum)
             => this.CategoryToPropabilityMap[(int)aGemCategoryEnum];
+        private CGemPropability GetGemPropability(IEnumerable<CGemEnum> aGemEnums)
+            => CGemPropability.NewFromEnum<CGemEnum>(this, aGemEnums.ToArray());
         #endregion
         #region ServiceContainer
         private CServiceContainer ServiceContainerM;

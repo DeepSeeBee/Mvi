@@ -16,6 +16,10 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using CharlyBeck.Mvi.XnaExtensions;
 using CharlyBeck.Mvi.Input;
+using CharlyBeck.Mvi.Sprites.Gem.Internal;
+using CharlyBeck.Mvi.Sprites.Shot;
+using CharlyBeck.Mvi.Sprites.Avatar;
+using CharlyBeck.Mvi.Value;
 
 namespace CharlyBeck.Mvi.Sprites.GemSlot
 {
@@ -56,8 +60,8 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         internal CGemCategory GemClass;
         internal CGemSideEnum? GemSideEnum;
 
-        private CInventoryGemSprite GemSpriteNullableM;
-        internal CInventoryGemSprite GemSpriteNullable
+        private CCollectedGemSprite GemSpriteNullableM;
+        internal CCollectedGemSprite GemSpriteNullable
         {
             get => this.GemSpriteNullableM;
             set
@@ -120,9 +124,9 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         internal CGemSlot[] Items { get; private set; }
         internal CGemSlot FindFreeSlotNullable()
             => this.Items.Where(s => s.IsFree).FirstOrDefault();        
-        internal CInventoryGemSprite RemoveAt(int i)
+        internal CCollectedGemSprite RemoveAt(int i)
         {
-            var aGemSpriteNullable = default(CInventoryGemSprite);
+            var aGemSpriteNullable = default(CCollectedGemSprite);
             bool aDone = false;
             for (var aIdx = i; aIdx < this.Items.Length - 1 && !aDone; ++aIdx)
             {
@@ -152,10 +156,10 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         }
         internal int GetCount()
             => this.Count.Range().Where(i => this.Items[i].IsFree).First();
-        internal virtual void OnAttachGem(CInventoryGemSprite aGemSprite)
+        internal virtual void OnAttachGem(CCollectedGemSprite aGemSprite)
         {
         }
-        internal virtual void OnDetachGem(CInventoryGemSprite aGemSprite)
+        internal virtual void OnDetachGem(CCollectedGemSprite aGemSprite)
         {
         }
         internal bool IsFull => !this.Items[this.Items.Length - 1].IsFree;
@@ -181,9 +185,9 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
 
     }
 
-    internal sealed class CGemClassBar : CServiceLocatorNode
+    internal sealed class CGemCategoryBar : CServiceLocatorNode
     {
-        internal CGemClassBar(CServiceLocatorNode aParent) : base(aParent)
+        internal CGemCategoryBar(CServiceLocatorNode aParent) : base(aParent)
         {
             this.GemClassBarSlots = new CGemClassBarSlots(this);
             this.JoystickState = this.ServiceContainer.GetService<CJoystickState>();
@@ -298,16 +302,16 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         internal CGemSideEnum GemSideEnum;
         #endregion
         #region GemClassBars
-        private CGemClassBar[] GemClassBarsM;
-        private CGemClassBar[] GemClassBars => CLazyLoad.Get(ref this.GemClassBarsM, this.NewGemClassBars);
-        private CGemClassBar[] NewGemClassBars()
+        private CGemCategoryBar[] GemClassBarsM;
+        private CGemCategoryBar[] GemClassBars => CLazyLoad.Get(ref this.GemClassBarsM, this.NewGemClassBars);
+        private CGemCategoryBar[] NewGemClassBars()
         {
             var aGemCategories = this.GemCategories.Array;
             var aCount = aGemCategories.Length;
-            var aGemClassBars = new CGemClassBar[aCount];
+            var aGemClassBars = new CGemCategoryBar[aCount];
             foreach (var aIdx in Enumerable.Range(0, aCount))
             {
-                var aGemClassBar = new CGemClassBar(this)
+                var aGemClassBar = new CGemCategoryBar(this)
                 {
                     GemClass = aGemCategories[aIdx],
                     GemSideEnum = this.GemSideEnum
@@ -316,10 +320,10 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
             }
             return aGemClassBars;
         }
-        internal CGemClassBar GetGemClassBar(CGemCategoryEnum aGemClassEnum)
+        internal CGemCategoryBar GetGemCategoryBar(CGemCategoryEnum aGemClassEnum)
             => this.GemClassBars[(int)aGemClassEnum];
         internal CGemSlot FindFreeSlotNullable(CGemCategoryEnum aGemClassEnum)
-            => this.GetGemClassBar(aGemClassEnum).FindFreeSlotNullable();
+            => this.GetGemCategoryBar(aGemClassEnum).FindFreeSlotNullable();
         #endregion
         #region GemSlots
         internal IEnumerable<CGemSlot> GemSlots => (from aGemClassBar in this.GemClassBars
@@ -329,7 +333,7 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         #region GemCategories
         private readonly CGemCategories GemCategories;
         internal bool GetCategoryIsFilled(CGemCategoryEnum aGemCategoryEnum)
-            => this.GetGemClassBar(aGemCategoryEnum).IsFull;        
+            => this.GetGemCategoryBar(aGemCategoryEnum).IsFull;        
         #endregion
         #region Update
         internal void Update(CFrameInfo aFrameInfo)
@@ -375,12 +379,12 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         }
         #endregion
         #region GemSprite
-        internal override void OnAttachGem(CInventoryGemSprite aGemSprite)
+        internal override void OnAttachGem(CCollectedGemSprite aGemSprite)
         {
             base.OnAttachGem(aGemSprite);
             aGemSprite.ApplyModifiers();
         }
-        internal override void OnDetachGem(CInventoryGemSprite aGemSprite)
+        internal override void OnDetachGem(CCollectedGemSprite aGemSprite)
         {
             base.OnDetachGem(aGemSprite);
             aGemSprite.UnapplyValues();
@@ -666,6 +670,8 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         }
         private CGemSideBar GetGemSideBar(CGemSideEnum aSide)
             => this.GemSidebars[(int)aSide];
+        private IEnumerable<CGemCategoryBar> GetGemCategoryBars(CGemCategoryEnum aGemCategory)
+            => this.GemSidebars.Select(sb => sb.GetGemCategoryBar(aGemCategory));
         #endregion
         internal readonly CRandomGenerator RandomGenerator;
         #region GemSlots
@@ -706,11 +712,82 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         {
             base.Draw();
         }
+        private readonly CGemEnum[] GemEnums = typeof(CGemEnum).GetEnumValues().Cast<CGemEnum>().ToArray();
         private readonly CGemCategoryEnum[] GemCategoryEnums = typeof(CGemCategoryEnum).GetEnumValues().Cast<CGemCategoryEnum>().ToArray();
+        internal bool GetCategoryIsFilled(CGemCategoryEnum aCategory)
+            => !this.GemSidebars.Select(sb => sb.GetCategoryIsFilled(aCategory)).Contains(false);
+
         internal CGemCategoryEnum? GetUnfilledCategory()
-            => this.GemCategoryEnums.Select(c=> 
-            this.GemSidebars.Where(sb => !sb.GetCategoryIsFilled(c)).IsEmpty() 
-            ?  default(CGemCategoryEnum?) : c).Where(c=>c.HasValue).FirstOrDefault();
+            => this.GemCategoryEnums.Select(c=> this.GetCategoryIsFilled(c) ?  default(CGemCategoryEnum?) : c).Where(c=>c.HasValue).FirstOrDefault();
+        IEnumerable<CGemCategoryEnum> GetLowerCategories(CGemCategoryEnum aGemCategoryEnum)
+            => this.GemCategoryEnums.Where(c => ((int)c) < ((int)aGemCategoryEnum));
+
+        internal IEnumerable<CGemEnum> GetCollectableGemEnums()
+        {
+            var aGemEnums = this.GemEnums;
+            foreach(var aGemEnum in this.GemEnums)
+            {
+                var aGemCategory = aGemEnum.GetCustomAttributeIsDefined<CGemCategoryEnumAttribute>()
+                                  ? aGemEnum.GetCustomAttribute<CGemCategoryEnumAttribute>().GemCategoryEnum
+                                  : default(CGemCategoryEnum?)
+                                  ;
+                var aCollectIfValueNotFullAttribute = aGemEnum.GetCustomAttributeIsDefined<CGemCollectIfValueNotFullAttribute>()
+                                                    ? aGemEnum.GetCustomAttribute<CGemCollectIfValueNotFullAttribute>()
+                                                    : default
+                                                    ;
+                var aCollectIfValueNotFullValueEnum = aCollectIfValueNotFullAttribute is object
+                                             ? aCollectIfValueNotFullAttribute.ValueEnum
+                                             : default(CValueEnum?)
+                                             ;
+                var aCollectIfValueNotFullValue = aCollectIfValueNotFullValueEnum.HasValue
+                                                 ? this.AvatarValues.GetValue(aCollectIfValueNotFullValueEnum.Value)
+                                                 : default
+                                                 ;
+                var aCollectIfValueNotFullIsFull = aCollectIfValueNotFullValue is object
+                                              ? aCollectIfValueNotFullValue.ValueIsMaximum
+                                              : default(bool?)
+                                              ;
+                var aLowerCategories = aGemCategory.HasValue
+                                     ? this.GetLowerCategories(aGemCategory.Value).ToArray()
+                                     : Array.Empty<CGemCategoryEnum>();
+                var aLowerCategoryIsFilled = aLowerCategories.IsEmpty()
+                                          ? true
+                                          : !aLowerCategories.Select(c => this.GetCategoryIsFilled(c)).Contains(false);
+                bool aRecognizeGem;
+                if(!aGemCategory.HasValue)
+                {
+                    aRecognizeGem = false;
+                }
+                else if(aLowerCategoryIsFilled)
+                {
+                    aRecognizeGem = true;
+                }
+                else if(aCollectIfValueNotFullIsFull == false 
+                     && aLowerCategoryIsFilled == true)
+                {
+                    aRecognizeGem = true;
+                }
+                else if(aCollectIfValueNotFullIsFull == false
+                    && aCollectIfValueNotFullAttribute is object 
+                    && aCollectIfValueNotFullAttribute.LowerCategoryNeedsToBeFull == false)
+                {
+                    aRecognizeGem = true;
+                }
+                else
+                {
+                    aRecognizeGem = false;
+                }
+                if(aRecognizeGem)
+                {
+                    yield return aGemEnum;
+                }
+            }
+        }
+        #region Avatar
+        private CAvatarSprite AvatarSpriteM;
+        private CAvatarSprite AvatarSprite => CLazyLoad.Get(ref this.AvatarSpriteM, () => this.ServiceContainer.GetService<CAvatarSprite>());
+        private CAvatarValues AvatarValues => this.AvatarSprite.AvatarValues;
+        #endregion
     }
 
     internal sealed class CGemSlotControlsSpriteManager : CSinglePoolSpriteManager<CGemSlotControlsSprite>
@@ -719,7 +796,7 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
         internal CGemSlotControlsSpriteManager(CServiceLocatorNode aParent): base(aParent)
         {
             this.AddOnAllocate = true;
-            this.World.GemCollected += delegate (CInventoryGemSprite aGemSprite)
+            this.World.GemCollected += delegate (CCollectedGemSprite aGemSprite)
             {
                 if (!aGemSprite.ActivateOnCollect)
                 {
@@ -728,9 +805,17 @@ namespace CharlyBeck.Mvi.Sprites.GemSlot
                     {
                         aFreeSlot.GemSpriteNullable = aGemSprite;
                     }
+                    else if(aGemSprite.ActivateOnCollectIfNoSlot)
+                    {
+                        aGemSprite.Activate();
+                    }
+                    else
+                    {
+                        // TODO_SND: Zonk sound
+                    }
                 }
             };
-            this.World.GemActivated += delegate (CInventoryGemSprite aGemSprite)
+            this.World.GemActivated += delegate (CCollectedGemSprite aGemSprite)
             {
                 if(aGemSprite.ActiveDurationIsEnabled)
                 {

@@ -694,7 +694,7 @@ namespace CharlyBeck.Mvi.Sfx
         {
             this.AddDirectory(CSoundDirectoryEnum.Audio_GemCollected);
 
-            this.World.GemCollected += delegate (CInventoryGemSprite aGemSprite)
+            this.World.GemCollected += delegate (CCollectedGemSprite aGemSprite)
             {
                 var aSound = this.GetRandomSoundFile();
                 aSound.SoundBuffer.Play();
@@ -747,7 +747,7 @@ namespace CharlyBeck.Mvi.Sfx
             }
             this.SoundFilesByGemEnum = aSoundFilesByGemEnum;
 
-            this.World.GemCollectedSoundStarting += delegate (CInventoryGemSprite aGemSprite, Action<CSoundFile> aAddFollowUp)
+            this.World.GemCollectedSoundStarting += delegate (CCollectedGemSprite aGemSprite, Action<CSoundFile> aAddFollowUp)
             {
                 //var aSound = // (from aTest in aSoundFiles2 where aTest.Item2 == aGemSprite.GemEnum select aTest).Single();
                 //aAddFollowUp(aSound.Item3);
@@ -755,7 +755,7 @@ namespace CharlyBeck.Mvi.Sfx
 
             this.SoundSequence = new CSoundSequence(2);
 
-            this.World.GemActivated += delegate (CInventoryGemSprite aGemSprite)
+            this.World.GemActivated += delegate (CCollectedGemSprite aGemSprite)
             {
                 if (!aGemSprite.ActivateOnCollect)
                 {
@@ -792,7 +792,7 @@ namespace CharlyBeck.Mvi.Sfx
         {
             this.AddDirectory(CSoundDirectoryEnum.Audio_GemActivate);
 
-            this.World.GemActivated += delegate (CInventoryGemSprite aGemSprite)
+            this.World.GemActivated += delegate (CCollectedGemSprite aGemSprite)
             {
                 this.PlayRandomSound();
             };

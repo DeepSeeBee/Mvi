@@ -327,6 +327,7 @@ namespace CharlyBeck.Mvi.World
             aServiceContainer.AddService<CNewQuadrantFunc>(() => new CNewQuadrantFunc(this.NewSpaceSwitchQuadrant));
             aServiceContainer.AddService<CCubePersistentData>(() => this.CubePersistentData);
             aServiceContainer.AddService<CJoystickState>(() => this.Joystick.JoystickState);
+            aServiceContainer.AddService<CAvatarSprite>(() => this.AvatarSprite);
             return aServiceContainer;
         }
         #endregion
@@ -417,24 +418,24 @@ namespace CharlyBeck.Mvi.World
                 this.ShootFired();
             }    
         }
-        internal event Action<CInventoryGemSprite> GemCollected;
-        internal void OnGemCollected(CInventoryGemSprite aGemSprite)
+        internal event Action<CCollectedGemSprite> GemCollected;
+        internal void OnGemCollected(CCollectedGemSprite aGemSprite)
         {
             if(this.GemCollected is object)
             {
                 this.GemCollected(aGemSprite);
             }    
         }
-        internal event Action<CInventoryGemSprite, Action<CSoundFile>> GemCollectedSoundStarting;
-        internal void OnGemCollectedSoundStarting(CInventoryGemSprite aGemSprite, Action<CSoundFile> aAddFollowUp)
+        internal event Action<CCollectedGemSprite, Action<CSoundFile>> GemCollectedSoundStarting;
+        internal void OnGemCollectedSoundStarting(CCollectedGemSprite aGemSprite, Action<CSoundFile> aAddFollowUp)
         {
             if (this.GemCollectedSoundStarting is object)
             {
                 this.GemCollectedSoundStarting(aGemSprite, aAddFollowUp);
             }
         }
-        internal event Action<CInventoryGemSprite> GemActivated;
-        internal void OnGemActivated(CInventoryGemSprite aGemSprite)
+        internal event Action<CCollectedGemSprite> GemActivated;
+        internal void OnGemActivated(CCollectedGemSprite aGemSprite)
         {
             if(this.GemActivated is object)
             {
