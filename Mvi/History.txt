@@ -1,3 +1,5 @@
+202103191900: RandomGenerotor lets collect also items of allready filled categories
+202103191900: Certain Gems will be activated automatically if no gem slot is free.
 202103191703: all shoot types can be fired using right mouse button, 1,2,3 button
 202103191703: different shoot types have different color: Canon=Yellow, GuidedMissile=Orange,NuclearMissile=Red,Drill=Blue,KruscalScanner=Purple
 202103191448: gems collected in order: first offense category gems need to be full to collect defense gems, finally navi gems.
